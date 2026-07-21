@@ -284,6 +284,34 @@ const tests = [
     }
   },
   {
+    id: 'voice-learning-system',
+    intent: 'Verify Japanese speech, autoplay controls, slow playback, and persistent voice settings are present.',
+    run() {
+      const html = read('index.html'); const js = read('game.js');
+      for (const id of ['voiceToggle','autoSpeakToggle','voiceRate','testVoiceBtn','speakQuestionBtn']) assert(html.includes(id) || js.includes(id), `Missing voice feature: ${id}`);
+      for (const token of ['SpeechSynthesisUtterance','ja-JP','speakActiveQuestion','voiceEnabled','autoSpeak']) assert(js.includes(token), `Missing Japanese voice implementation token: ${token}`);
+    }
+  },
+  {
+    id: 'smart-review-session',
+    intent: 'Verify weak-question weighting and session progress tracking are included.',
+    run() {
+      const html=read('index.html'),js=read('game.js');
+      for(const token of ['smartReviewToggle','sessionAnswered','sessionAccuracy','sessionProgressBar'])assert(html.includes(token),`Missing session UI: ${token}`);
+      for(const token of ['questionPriority','chooseQuestion','smartReview','sessionCorrect'])assert(js.includes(token),`Missing smart-review implementation: ${token}`);
+    }
+  },
+  {
+    id: 'pwa-assets',
+    intent: 'Verify installable offline-app files exist and are referenced.',
+    run() {
+      const html=read('index.html');
+      for(const rel of ['manifest.webmanifest','service-worker.js'])assert(fs.existsSync(path.join(ROOT,rel)),`Missing PWA asset: ${rel}`);
+      assert(html.includes('manifest.webmanifest'),'Manifest is not linked in index.html.');
+      assert(html.includes('serviceWorker.register'),'Service worker is not registered.');
+    }
+  },
+  {
     id: 'version-consistency',
     intent: 'Ensure the visible build badge and browser cache-busting versions agree with the README release.',
     run() {

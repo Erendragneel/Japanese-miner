@@ -276,7 +276,7 @@ const DEFAULT_STATE = {
   hints:2, shields:1, active:null, answered:false, shieldArmed:false, lastPracticeDate:null,
   kanaStats:{}, gemInventory:{}, kanaTab:"hiragana", lastKana:null, lastGem:null, hiraganaXp:0,
   heartRecoveryEnd:null, ownedPickaxeSkins:["standard"], equippedPickaxeSkin:"standard", ownedWallpapers:["midnight"], equippedWallpaper:"midnight", placementUnlockedThrough:0, developerInfiniteHearts:false,
-  selectedStage:0, soundEnabled:true, stageXp:[0,0,0,0,0,0,0], clearedStages:[], questionStats:{}
+  selectedStage:0, soundEnabled:true, voiceEnabled:true, autoSpeak:true, voiceRate:.85, smartReview:true, sessionGoal:20, sessionAnswered:0, sessionCorrect:0, stageXp:[0,0,0,0,0,0,0], clearedStages:[], questionStats:{}
 };
 const PROFILE_INDEX_KEY="jm_profiles";
 const ACTIVE_PROFILE_KEY="jm_active_profile";
@@ -345,6 +345,13 @@ function normalizeState(raw){
   next.developerInfiniteHearts=!!next.developerInfiniteHearts;
   next.selectedStage=Math.max(0,Math.min(stages.length-1,Number(next.selectedStage)||0));
   next.soundEnabled=next.soundEnabled!==false;
+  next.voiceEnabled=next.voiceEnabled!==false;
+  next.autoSpeak=next.autoSpeak!==false;
+  next.voiceRate=Math.max(.55,Math.min(1.15,Number(next.voiceRate)||.85));
+  next.smartReview=next.smartReview!==false;
+  next.sessionGoal=Math.max(5,Math.min(100,Number(next.sessionGoal)||20));
+  next.sessionAnswered=Math.max(0,Number(next.sessionAnswered)||0);
+  next.sessionCorrect=Math.max(0,Math.min(next.sessionAnswered,Number(next.sessionCorrect)||0));
   next.supportMode=["guided","standard","challenge"].includes(next.supportMode)?next.supportMode:"guided";
   next.n5Tier=["beginner","intermediate","advanced"].includes(next.n5Tier)?next.n5Tier:"beginner";
   next.n5Curriculum=["standard","tutor","mixed"].includes(next.n5Curriculum)?next.n5Curriculum:"mixed";
@@ -628,6 +635,10 @@ function render(){
     document.getElementById("hintShopPrice").textContent=`${shopPrices.hint.toLocaleString()} Nuggets`;
     document.getElementById("shieldShopPrice").textContent=`${shopPrices.shield.toLocaleString()} Nuggets`;
     document.getElementById("heartShopPrice").textContent=`${shopPrices.heart.toLocaleString()} Nuggets`;
+    updateSessionDashboard();
+    const vt=document.getElementById('voiceToggle'),at=document.getElementById('autoSpeakToggle'),sr=document.getElementById('smartReviewToggle'),vr=document.getElementById('voiceRate');
+    if(vt)vt.checked=state.voiceEnabled;if(at)at.checked=state.autoSpeak;if(sr)sr.checked=state.smartReview;if(vr)vr.value=state.voiceRate;
+    const vrl=document.getElementById('voiceRateLabel');if(vrl)vrl.textContent=`${Number(state.voiceRate).toFixed(2)}×`;
   }catch(err){ console.error("Core display refresh failed",err); }
   try{ renderPath(); }catch(err){ console.error("Path refresh failed",err); }
   try{ renderKanaChart(); }catch(err){ console.error("Kana chart refresh failed",err); }
@@ -893,6 +904,53 @@ function playFeedbackSound(correct){
   }catch(err){console.warn("Answer sound unavailable",err);}
 }
 
+let japaneseVoices=[];
+function refreshJapaneseVoices(){
+  if(!('speechSynthesis' in window)) return;
+  japaneseVoices=speechSynthesis.getVoices().filter(v=>/^ja(?:-|_)/i.test(v.lang));
+}
+if('speechSynthesis' in window){refreshJapaneseVoices();speechSynthesis.addEventListener?.('voiceschanged',refreshJapaneseVoices);}
+function stripMarkup(text){const d=document.createElement('div');d.innerHTML=String(text||'');return d.textContent||d.innerText||'';}
+function japaneseSpeechText(q=state.active){
+  if(!q)return '日本語を勉強しましょう。';
+  if(q.kana)return q.kana;
+  if(q.kind==='tutor-vocabulary' && q.a && /[ぁ-んァ-ヶ一-龯]/.test(q.a))return q.a;
+  if(q.kind==='reading' && q.q)return stripMarkup(q.q);
+  if(q.displayChallenge)return stripMarkup(q.displayChallenge);
+  if(q.q && /[ぁ-んァ-ヶ一-龯]/.test(stripMarkup(q.q)))return stripMarkup(q.q).replace(/___/g,'');
+  if(q.a && /[ぁ-んァ-ヶ一-龯]/.test(String(q.a)))return String(q.a);
+  return '';
+}
+function speakJapanese(text,rate=state.voiceRate){
+  if(!state.voiceEnabled)return;
+  if(!('speechSynthesis'in window)){setMessage('Japanese speech is not supported in this browser.','wrong');return;}
+  const clean=stripMarkup(text).trim();if(!clean)return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(clean);u.lang='ja-JP';u.rate=Math.max(.55,Math.min(1.15,Number(rate)||.85));u.pitch=1;
+  refreshJapaneseVoices();if(japaneseVoices.length)u.voice=japaneseVoices.find(v=>/Google|Kyoko|O-ren|Hattori/i.test(v.name))||japaneseVoices[0];
+  speechSynthesis.speak(u);
+}
+function speakActiveQuestion(rate=state.voiceRate){const text=japaneseSpeechText();if(text)speakJapanese(text,rate);else setMessage('This question does not contain spoken Japanese.','');}
+function updateSessionDashboard(){
+  const answered=Number(state.sessionAnswered||0),correct=Number(state.sessionCorrect||0),goal=Number(state.sessionGoal||20);
+  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value;};
+  set('sessionAnswered',answered);set('sessionGoal',goal);set('sessionAccuracy',answered?`${Math.round(correct/answered*100)}%`:'—');
+  const bar=document.getElementById('sessionProgressBar');if(bar)bar.style.width=`${Math.min(100,answered/goal*100)}%`;
+}
+function questionPriority(q){
+  const stat=state.questionStats?.[q.id]||{attempts:0,correct:0};
+  const attempts=Number(stat.attempts)||0,correct=Number(stat.correct)||0;
+  if(!attempts)return 100;
+  return Math.max(2,70-(correct/attempts*55)+Math.max(0,4-attempts)*8);
+}
+function chooseQuestion(pool){
+  if(!state.smartReview)return pool[Math.floor(Math.random()*pool.length)];
+  const weighted=pool.map(q=>({q,w:questionPriority(q)}));
+  const total=weighted.reduce((s,x)=>s+x.w,0);let roll=Math.random()*total;
+  for(const item of weighted){roll-=item.w;if(roll<=0)return item.q;}
+  return pool[0];
+}
+
 function quickMineAction(){
   if(state.active&&!state.answered){
     const target=document.getElementById("challengeArea");
@@ -932,13 +990,14 @@ function mine(){
   const recent=new Set(state.recentQuestionIds||[]);
   let candidates=pool.filter(q=>!recent.has(q.id));
   if(!candidates.length) candidates=pool;
-  const q=candidates[Math.floor(Math.random()*candidates.length)];
+  const q=chooseQuestion(candidates);
   state.recentQuestionIds=[...(state.recentQuestionIds||[]),q.id].slice(-Math.min(20,Math.max(5,pool.length-1)));
   state.active=q;
   state.answered=false;
   state.shieldArmed=false;
   showQuestion(q);
   setMessage("","");
+  if(state.voiceEnabled&&state.autoSpeak)setTimeout(()=>speakActiveQuestion(),180);
   render();
 }
 
@@ -955,7 +1014,11 @@ function questionDisplay(q){
 function showQuestion(q){
   const area=document.getElementById("challengeArea");
   const helpButton=q.help?'<button id="kanjiHelpBtn" class="kanji-help-btn" type="button">📖 I don’t know this kanji</button>':'';
-  area.innerHTML=`<div class="question">${questionDisplay(q)}</div><div class="prompt">${q.prompt}</div>${helpButton}<div id="kanjiHelpBox" class="kanji-help-box" hidden></div><div class="answers" id="answers"></div>`;
+  const spoken=japaneseSpeechText(q);
+  const voiceTools=spoken?`<div class="voice-tools"><button id="speakQuestionBtn" type="button">🔊 Hear Japanese</button><button id="slowSpeakQuestionBtn" type="button">🐢 Slow</button><span>${spoken}</span></div>`:'';
+  area.innerHTML=`<div class="question-card"><div class="question">${questionDisplay(q)}</div><div class="prompt">${q.prompt}</div>${voiceTools}${helpButton}<div id="kanjiHelpBox" class="kanji-help-box" hidden></div><div class="answers" id="answers"></div></div>`;
+  document.getElementById('speakQuestionBtn')?.addEventListener('click',()=>speakActiveQuestion());
+  document.getElementById('slowSpeakQuestionBtn')?.addEventListener('click',()=>speakActiveQuestion(.58));
   if(q.help){
     document.getElementById("kanjiHelpBtn").addEventListener("click",()=>{
       const box=document.getElementById("kanjiHelpBox");
@@ -982,6 +1045,9 @@ function recordQuestionAttempt(q,correct){
 function answer(opt,button){
   if(state.answered || !state.active) return;
   const correct=opt===state.active.a;
+  state.sessionAnswered=Number(state.sessionAnswered||0)+1;
+  if(correct)state.sessionCorrect=Number(state.sessionCorrect||0)+1;
+  updateSessionDashboard();
   const all=[...document.querySelectorAll("#answers button")];
 
   if(correct){
@@ -1379,7 +1445,7 @@ function renderAcademy(){
 }
 function showVocabLesson(i){const words=academyVocabularyBank().slice(i*50,i*50+50),box=document.getElementById('vocabLessonWords');if(!box)return;box.innerHTML=words.length?words.map((w,j)=>academyCard('vocab:'+(i*50+j),w.jp,w.reading,`<p>${w.en}</p>`)).join(''):`<p class="academy-callout">This lesson is reserved in the 1,000-word progression. Additions to the course bank will populate it without changing player progress.</p>`;box.querySelectorAll('[data-master-id]').forEach(b=>b.addEventListener('click',()=>academyMaster(b.dataset.masterId)));}
 function showKanjiDetail(k){const info=N5_KANJI_INFO[k]||['—','repetition mark'];const i=N5_KANJI_LIST.indexOf(k),examples=(typeof n5Vocab!=='undefined'?n5Vocab:[]).filter(x=>x[0].includes(k)).slice(0,4);const box=document.getElementById('kanjiDetail');box.innerHTML=academyCard('kanji:'+k,`<span class="kanji-hero">${k}</span>`,`${i+1} of 120`,`<p><strong>Readings:</strong> ${info[0]}</p><p><strong>Meaning:</strong> ${info[1]}</p><p><strong>Example words:</strong> ${examples.length?examples.map(x=>`${x[0]} (${x[1]}) — ${x[2]}`).join('<br>'):'Reference examples unlock as vocabulary grows.'}</p><p class="small">Stroke-order reference: write top-to-bottom and left-to-right, following standard kanji stroke principles.</p>`);box.querySelector('[data-master-id]').addEventListener('click',()=>academyMaster('kanji:'+k));}
-function speakJapanese(text){if(!('speechSynthesis'in window)){alert('Speech playback is not supported in this browser.');return;}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='ja-JP';u.rate=.82;speechSynthesis.speak(u);}
+
 function startAcademyTest(count){const pool=questions.filter(q=>q.stage===2);if(!pool.length)return;let score=0;for(let i=0;i<count;i++){const q=pool[Math.floor(Math.random()*pool.length)];if(Math.random()<(questionMasteryScore(state.questionStats[q.id])/100*.6+.25))score++;}const pct=Math.round(score/count*100);state.academyTestBest=Math.max(state.academyTestBest,pct);save();alert(`Practice simulation complete: ${score}/${count} (${pct}%).\n\nThis simulation estimates performance from your recorded mastery. Mine questions directly to improve it.`);renderAcademy();}
 
 // Add academy kanji and grammar to the N5 mine question pool.
@@ -1854,6 +1920,11 @@ function renderShop(){
  }
 }
 function scrollToSection(id){closeGameMenu();const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+document.getElementById('voiceToggle')?.addEventListener('change',e=>{state.voiceEnabled=e.target.checked;save();});
+document.getElementById('autoSpeakToggle')?.addEventListener('change',e=>{state.autoSpeak=e.target.checked;save();});
+document.getElementById('smartReviewToggle')?.addEventListener('change',e=>{state.smartReview=e.target.checked;save();});
+document.getElementById('voiceRate')?.addEventListener('input',e=>{state.voiceRate=Number(e.target.value);document.getElementById('voiceRateLabel').textContent=`${state.voiceRate.toFixed(2)}×`;save();});
+document.getElementById('testVoiceBtn')?.addEventListener('click',()=>speakJapanese('日本語を一緒に勉強しましょう。'));
 document.getElementById('gameMenuBtn')?.addEventListener('click',openGameMenu);
 document.getElementById('closeGameMenuBtn')?.addEventListener('click',closeGameMenu);
 document.getElementById('gameMenuOverlay')?.addEventListener('click',e=>{if(e.target.id==='gameMenuOverlay')closeGameMenu();});
@@ -1995,7 +2066,7 @@ applyWallpaper();
   function renderMistakes(){if(!state.mistakes.length)return '<div class="empty-feature">📕 No mistakes saved yet. Incorrect mine answers will appear here automatically.</div>';return `<div class="mistake-list">${state.mistakes.map((m,i)=>`<article class="mistake-card ${m.resolved?'resolved':''}"><div><span class="viz-badge">${stages[m.stage]?.label||'Review'}</span><h3>${m.question||m.prompt}</h3><p>${m.prompt}</p><p><strong>Correct:</strong> ${m.correct} · <strong>Your last answer:</strong> ${m.lastAnswer}</p><small>Missed ${m.count} time${m.count===1?'':'s'} · ${new Date(m.lastMissed).toLocaleDateString()}</small></div><button data-resolve-mistake="${i}">${m.resolved?'Restore':'Mark reviewed'}</button></article>`).join('')}</div>`;}
   function statPercent(){return state.analytics.answered?Math.round(state.analytics.correct/state.analytics.answered*100):0;}
   function renderStatistics(){const days=(state.practiceDates||state.studyDates||[]).length;const weakest=['vocabulary','kanji','grammar','reading','listening'].sort((a,b)=>(state.analytics[a]||0)-(state.analytics[b]||0))[0];return `<div class="stats-feature-grid"><div class="metric-card"><span>Total questions</span><strong class="viz-stat-value">${state.analytics.answered.toLocaleString()}</strong></div><div class="metric-card"><span>Overall accuracy</span><strong class="viz-stat-value">${statPercent()}%</strong></div><div class="metric-card"><span>Study days</span><strong class="viz-stat-value">${days}</strong></div><div class="metric-card"><span>Best streak</span><strong class="viz-stat-value">${Number(state.bestStreak||0)}</strong></div></div><div class="feature-section"><h3>Practice distribution</h3>${['vocabulary','kanji','grammar','reading','listening'].map(k=>`<div class="stat-row"><span>${k[0].toUpperCase()+k.slice(1)}</span><strong>${Number(state.analytics[k]||0).toLocaleString()}</strong></div>`).join('')}<div class="viz-callout"><strong>Recommended focus:</strong> ${weakest[0].toUpperCase()+weakest.slice(1)} has received the least practice so far.</div><h3>Current progression</h3>${stages.map((s,i)=>`<div class="stat-row"><span>${s.label}</span><strong>${Math.round(stageMastery(i))}% mastery · ${Number(state.stageXp[i]||0).toLocaleString()} XP</strong></div>`).join('')}</div>`;}
-  function backupPayload(){const profiles=readProfiles();const profile=profiles.find(p=>p.id===activeProfileId);return {format:'JapaneseMinerBackup',version:'3.8',exportedAt:new Date().toISOString(),profile:{name:profile?.name||'Player',id:activeProfileId},state};}
+  function backupPayload(){const profiles=readProfiles();const profile=profiles.find(p=>p.id===activeProfileId);return {format:'JapaneseMinerBackup',version:'4.0',exportedAt:new Date().toISOString(),profile:{name:profile?.name||'Player',id:activeProfileId},state};}
   function downloadBackup(){const blob=new Blob([JSON.stringify(backupPayload(),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`japanese-miner-${(document.getElementById('activePlayerName')?.textContent||'player').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}-backup.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
   function importBackup(file){const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(data.format!=='JapaneseMinerBackup'||!data.state)throw new Error('Invalid Japanese Miner backup.');if(!confirm('Replace this profile’s current progress with the imported backup?'))return;state=normalizeState(data.state);ensureV38();save();render();closeFeatureCenter();setMessage('Account backup imported successfully.','correct');}catch(e){alert(e.message||'The backup could not be imported.');}};reader.readAsText(file);}
   function renderAccount(){return `<div class="feature-section"><div class="viz-callout"><strong>Portable account backup</strong><br>This build stores profiles in the browser. Exporting a backup lets you move progress to another phone or browser safely.</div><button id="exportBackupBtn" class="primary" type="button">⬇️ Export account backup</button><label class="backup-upload">⬆️ Import account backup<input id="importBackupInput" type="file" accept="application/json"></label><h3>Cloud account status</h3><p>A true automatic cloud account requires a secure hosted database and authentication service. This deployable build includes cross-device backup and restore, but it does not pretend local storage is cloud sync.</p><div class="stat-row"><span>Active profile ID</span><strong>${activeProfileId||'Not signed in'}</strong></div><div class="stat-row"><span>Selected title</span><strong>${state.selectedTitle||'None'}</strong></div></div>`;}
