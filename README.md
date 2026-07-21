@@ -1,29 +1,45 @@
-# Japanese Miner v4.0
+# Japanese Miner v4.2
 
-Japanese Miner v4.0 is a balanced learning-and-gameplay update built from the tested v3.10 release.
+Adds a fully customizable miner character profile with selectable skin tone, hair style, hair color, clothing top, clothing bottom, accessories, and randomization. Character choices save per profile and travel with exported backups.
 
-## Major v4.0 additions
+A balanced Japanese-learning mining game with browser-based Japanese pronunciation, smart review, kana-first progression, JLPT study content, collectible gemstones, Nuggets, quests, achievements, and portable player backups.
 
-- Spoken Japanese using the browser's Japanese text-to-speech voice
-- Automatic pronunciation when a new question appears
-- Normal and slow playback buttons on supported questions
-- Adjustable pronunciation speed and persistent voice preferences
-- Smart Review that weights unseen and weak questions more heavily
-- Session goal, live accuracy, and progress tracking
-- Redesigned question cards and improved mobile feedback
-- Installable Progressive Web App files and offline caching
-- Save migration that preserves existing v3.x local profiles
+## v4.2 player progression systems
 
-The voice uses the Japanese voice installed in the player's browser or operating system. Voice quality therefore varies by phone, browser, and device. Chrome and Samsung Internet on Android normally provide Japanese speech synthesis when a Japanese system voice is available.
+### Daily and weekly quests
 
-True automatic cloud synchronization still requires a hosted authentication and database service. Local profiles and portable backup/import remain available.
+The Player Center includes daily and weekly objectives. Completed objectives award Nuggets and each reward can only be claimed once during its active day or week.
 
-## Testing
+### Achievements and equippable titles
 
-Run the complete release gate with:
+Milestones such as First Strike, Century Miner, Kana Master, and N5 Graduate award Nuggets and unlock titles that players can equip on their profile.
+
+### Mistake Notebook
+
+Incorrect answers are recorded with the question, incorrect response, correct response, mine, miss count, and latest miss date. Players can mark entries reviewed and restore them later.
+
+### Detailed statistics
+
+The statistics screen tracks questions answered, accuracy, study days, best streak, practice distribution, mine XP, mine mastery, and a recommended weak category.
+
+### Portable account backup
+
+Players can export their complete profile to a JSON backup and import it on another browser or device. This preserves progression, inventory, placement results, achievements, mistakes, cosmetics, and settings. Automatic cloud synchronization still requires a separately configured hosted authentication and database service.
+
+## Voice learning and smart review
+
+Japanese text can be spoken through the browser speech engine using a Japanese voice. Players can enable automatic pronunciation, replay at normal or slow speed, adjust speech rate, and use Smart Review to prioritize unseen or frequently missed questions.
+
+## Installable offline app
+
+The web manifest and service worker allow supported browsers to install Japanese Miner to the home screen and cache the main game files after the first successful visit.
+
+## Automated release gate
+
+Run the full test suite with Node.js 18 or newer:
 
 ```bash
 node test-runner.mjs --test all --continue
 ```
 
-A release is ready only when the final output states `RELEASE GATE PASSED`.
+A release is ready only when the output states `RELEASE GATE PASSED`.

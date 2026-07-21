@@ -75,13 +75,17 @@ Project: /mnt/data/japanese-miner-v4
 [INTENT] Verify installable offline-app files exist and are referenced.
 [PASS] pwa-assets
 
+[RUN] player-progression-center
+[INTENT] Verify quests, achievements, mistake tracking, statistics, and portable backup systems are included.
+[PASS] player-progression-center
+
 [RUN] version-consistency
 [INTENT] Ensure the visible build badge and browser cache-busting versions agree with the README release.
 [PASS] version-consistency
 
 === FINAL TEST SUMMARY ===
-Passed: 19
+Passed: 20
 Failed: 0
-Duration: 133 ms
+Duration: 109 ms
 
 RELEASE GATE PASSED: The game compiles and every selected unit test passes.

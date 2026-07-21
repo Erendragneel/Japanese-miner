@@ -312,6 +312,25 @@ const tests = [
     }
   },
   {
+    id: 'player-progression-center',
+    intent: 'Verify quests, achievements, mistake tracking, statistics, and portable backup systems are included.',
+    run() {
+      const js=read('game.js');
+      for(const token of ['DAILY_QUESTS','WEEKLY_QUESTS','ACHIEVEMENTS','state.mistakes','renderQuests','renderAchievements','renderMistakes','renderStatistics','downloadBackup','importBackup']) assert(js.includes(token),`Missing player progression feature: ${token}`);
+      for(const tab of ['quests','achievements','mistakes','statistics','account']) assert(js.includes(`data-feature-tab="${tab}"`) || js.includes(`['${tab}'`) || js.includes(`'${tab}'`),`Missing Player Center tab: ${tab}`);
+    }
+  },
+  {
+    id: 'character-customization',
+    intent: 'Verify the customizable character profile includes saved skin, hair, clothing, and accessory options.',
+    run() {
+      const js = read('game.js');
+      const css = read('styles.css');
+      for (const token of ['state.character','hairStyle','hairColor','shirt','pants','accessory','renderProfile','randomizeCharacter']) assert(js.includes(token), `Missing character system token: ${token}`);
+      for (const token of ['.miner-avatar','.character-customizer','.character-choice-grid']) assert(css.includes(token), `Missing character styling token: ${token}`);
+    }
+  },
+  {
     id: 'version-consistency',
     intent: 'Ensure the visible build badge and browser cache-busting versions agree with the README release.',
     run() {

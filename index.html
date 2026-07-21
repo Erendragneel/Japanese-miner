@@ -6,12 +6,9 @@
 <title>Japanese Miner</title>
 <meta name="description" content="A relaxing Japanese-learning mining game with kana mastery, gemstones, nuggets, and collectible pickaxes." />
 <meta name="theme-color" content="#101522" />
-<meta name="mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-title" content="Japanese Miner" />
-<link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-<link rel="stylesheet" href="styles.css?v=4.0" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="stylesheet" href="styles.css?v=4.2" />
 
 </head>
 <body>
@@ -31,7 +28,7 @@
     <label id="migrateWrap" class="form-check" style="display:none;margin-top:10px"><input id="migrateOldSave" class="form-check-input" type="checkbox" checked><span class="form-check-label">Import the existing prototype save into this new profile</span></label>
     <div class="auth-actions"><button id="authSubmitBtn" class="primary" type="button">Sign in</button></div>
     <div id="authMessage" class="auth-message" aria-live="polite"></div>
-    <div class="small">Local profiles are not online accounts. Clearing browser storage or switching devices will remove access unless save export is added later.</div>
+    <div class="small">Local profiles are not online accounts. Clearing browser storage or switching devices will remove access unless you export an account backup first.</div>
   </section>
 </div>
 
@@ -51,7 +48,7 @@
     <h1>⛏️ Japanese Miner</h1>
     <div class="subtitle">Learn Japanese. Mine gems. Rise from Hiragana to JLPT N1.</div>
   </div>
-  <div class="account-chip"><span class="build-badge">v4.0</span><span>👤 <b id="activePlayerName">Not signed in</b></span><button id="headerStatsBtn" type="button" title="Open quick stats">📊 Stats</button><button id="developerBtn" class="developer-only" type="button" hidden>👑 Admin</button><button id="logoutBtn" type="button">Log out</button></div>
+  <div class="account-chip"><span class="build-badge">v4.2</span><span>👤 <b id="activePlayerName">Not signed in</b></span><button id="headerStatsBtn" type="button" title="Open quick stats">📊 Stats</button><button id="developerBtn" class="developer-only" type="button" hidden>👑 Admin</button><button id="logoutBtn" type="button">Log out</button></div>
 </header>
 
 <button id="quickMineBtn" class="quick-mine-btn" type="button" aria-label="Start or return to the current question">⛏️ <span id="quickMineLabel">New Question</span></button>
@@ -107,14 +104,19 @@
     <div id="tutorMasteryLabel" class="small">Tutor curriculum mastery: 0%</div>
     <div class="small">Changing either setting starts a fresh question. Recent-question memory reduces repetition.</div>
   </div>
-  <div class="audio-settings-card">
-    <div class="audio-settings-title">🔊 Japanese Voice</div>
+  <div class="voice-session-settings" aria-label="Voice and smart review settings">
     <label class="form-check form-switch sound-toggle"><input id="soundToggle" class="form-check-input" type="checkbox" checked><span class="form-check-label">Answer sounds</span></label>
-    <label class="form-check form-switch sound-toggle"><input id="voiceToggle" class="form-check-input" type="checkbox" checked><span class="form-check-label">Voice pronunciation</span></label>
+    <label class="form-check form-switch sound-toggle"><input id="voiceToggle" class="form-check-input" type="checkbox" checked><span class="form-check-label">Japanese voice</span></label>
     <label class="form-check form-switch sound-toggle"><input id="autoSpeakToggle" class="form-check-input" type="checkbox" checked><span class="form-check-label">Speak new questions automatically</span></label>
+    <label class="form-check form-switch sound-toggle"><input id="smartReviewToggle" class="form-check-input" type="checkbox" checked><span class="form-check-label">Smart Review weak questions</span></label>
     <label for="voiceRate">Voice speed <span id="voiceRateLabel">0.85×</span><input id="voiceRate" type="range" min="0.55" max="1.15" step="0.05" value="0.85"></label>
-    <button id="testVoiceBtn" type="button">▶ Test Japanese voice</button>
+    <button id="testVoiceBtn" type="button">🔊 Test Japanese Voice</button>
   </div>
+  <section class="session-summary" aria-label="Current study session">
+    <div><span>Session</span><strong><b id="sessionAnswered">0</b>/<b id="sessionGoal">20</b></strong></div>
+    <div><span>Accuracy</span><strong id="sessionAccuracy">—</strong></div>
+    <div class="session-progress"><i id="sessionProgressBar" style="width:0%"></i></div>
+  </section>
   <div class="quick-actions">
     <button id="jumpHealthBtn" type="button">❤️ Health</button>
     <button id="jumpMasteryBtn" type="button">🔤 Mastery</button><button id="placementTestBtn" type="button">🧭 Placement Test</button>
@@ -135,12 +137,6 @@
         <div class="progress"><div class="bar" id="xpBar"></div></div>
       </div>
 
-      <div class="session-dashboard" aria-label="Current study session">
-        <div><span>Session goal</span><strong><b id="sessionAnswered">0</b>/<b id="sessionGoal">20</b></strong></div>
-        <div><span>Accuracy</span><strong id="sessionAccuracy">—</strong></div>
-        <div><span>Smart review</span><label class="mini-switch"><input id="smartReviewToggle" type="checkbox" checked><i></i></label></div>
-        <div class="session-progress"><i id="sessionProgressBar"></i></div>
-      </div>
       <div id="challengeArea">
         <div class="small">No challenge active.</div>
       </div>
@@ -331,13 +327,11 @@
   </section>
 </div>
 
-<div class="footer">Japanese Miner v4.0 — balanced learning, smart review, spoken Japanese, polished mobile play, and offline installation.</div>
+<div class="footer">Japanese Miner v4.2 — voice learning, smart review, quests, achievements, mistake notebook, detailed statistics, and portable account backups.</div>
 </div>
 
-<script src="game.js?v=4.0" defer></script>
+<script src="game.js?v=4.2" defer></script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));}</script>
 
-<script>
-if ('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));
-</script>
 </body>
 </html>
