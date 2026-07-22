@@ -1,4 +1,4 @@
-# Japanese Miner v6.1.0 — Anime Adventure Miner
+# Japanese Miner v6.1.1 — Anime Adventure Miner
 
 Adds a fully customizable miner character profile with selectable skin tone, hair style, hair color, clothing top, clothing bottom, accessories, and randomization. Character choices save per profile and travel with exported backups.
 

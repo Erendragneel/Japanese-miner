@@ -1,7 +1,7 @@
 // Japanese Miner v6.0 — The Polish Update
 (()=>{
 'use strict';
-const VERSION='6.1.0', SNAPSHOT_PREFIX='jm_v6_snapshots_';
+const VERSION='6.1.1', SNAPSHOT_PREFIX='jm_v6_snapshots_';
 const TOUR=[
  {icon:'⛏️',title:'Welcome to Japanese Miner',text:'Answer Japanese questions to mine gemstones, earn Nuggets, and progress from Hiragana to JLPT N1.'},
  {icon:'🗺️',title:'Explore the mines',text:'The Expedition Hub is your world map. Complete checkpoints, unlock deeper mines, and challenge each guardian.'},
