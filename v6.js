@@ -38,12 +38,12 @@ function recommendation(){
  if(state.hearts<=0)return{icon:'❤️‍🩹',title:'Hearts are recovering',text:'Use review tools or explore your collection while the recovery timer counts down.',action:'dashboard',label:'View health'};
  const due=state.v5?.srs?Object.values(state.v5.srs).filter(x=>x?.dueAt<=Date.now()).length:0;
  if(due)return{icon:'🧠',title:`${due} review${due===1?'':'s'} ready`,text:'A short Smart Review session is the best next step for long-term memory.',action:'review',label:'Start review'};
- if(!state.active)return{icon:'⛏️',title:`Continue ${stages[selectedStageIndex()]?.label||'your mine'}`,text:'Mine a new Japanese challenge and move toward the next checkpoint.',action:'mine',label:'New question'};
- if(state.active&&!state.answered)return{icon:'🎌',title:'Finish your current challenge',text:'Read carefully, listen if available, and choose the best answer.',action:'question',label:'Return to question'};
+ if(!state.active)return{icon:'⛏️',title:`Continue ${stages[selectedStageIndex()]?.label||'your mine'}`,text:'Use the permanent New Question button below when you are ready to continue mining.',action:'mine',label:'New question'};
+ if(state.active&&!state.answered)return{icon:'🎌',title:'Finish your current challenge',text:'Your question is already waiting below. Read carefully, listen if available, and choose the best answer.',action:'question',label:'Return to question'};
  return{icon:'🗺️',title:'Explore your next checkpoint',text:'Open the expedition map to see your current mine and upcoming guardian.',action:'map',label:'Open map'};
 }
 function coachShell(){let c=document.getElementById('v6CoachCard');if(!c){c=document.createElement('section');c.id='v6CoachCard';c.className='v6-coach-card';document.querySelector('.v5-launch-card')?.after(c);}renderCoach();}
-function renderCoach(){const c=document.getElementById('v6CoachCard');if(!c)return;const r=recommendation();c.innerHTML=`<div class="v6-coach-guide">⛑️<i></i></div><div><span>STUDY COACH</span><h2>${r.icon} ${r.title}</h2><p>${r.text}</p></div><button class="primary" data-v6-coach="${r.action}">${r.label}</button>`;c.querySelector('[data-v6-coach]').onclick=()=>coachAction(r.action);}
+function renderCoach(){const c=document.getElementById('v6CoachCard');if(!c)return;const r=recommendation(),duplicate=['mine','question'].includes(r.action);c.classList.toggle('informational',duplicate);c.innerHTML=`<div class="v6-coach-guide">⛑️<i></i></div><div><span>STUDY COACH</span><h2>${r.icon} ${r.title}</h2><p>${r.text}</p></div>${duplicate?'':`<button class="primary" data-v6-coach="${r.action}">${r.label}</button>`}`;const action=c.querySelector('[data-v6-coach]');if(action)action.onclick=()=>coachAction(r.action);}
 function coachAction(a){if(a==='mine'){mine();document.getElementById('challengeArea')?.scrollIntoView({behavior:'smooth'});}else if(a==='question')document.getElementById('challengeArea')?.scrollIntoView({behavior:'smooth'});else if(a==='map')window.openJapaneseMinerV5?.('map');else if(a==='review')window.openJapaneseMinerV5?.('review');else if(a==='dashboard')window.openJapaneseMinerDashboard?.('health');}
 function explanation(q,chosen,correct){
  if(!state.v6.explanations||!q)return;
@@ -67,6 +67,9 @@ const oldRender=render;render=function(){ensureV6();oldRender();applySettings();
 const oldSave=save;save=function(){oldSave();if(state?.v6)createSnapshot();};
 const oldLoad=loadProfile;loadProfile=function(profile){oldLoad(profile);ensureV6();applySettings();setTimeout(init,0);};
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.v6-overlay.open').forEach(o=>closeOverlay(o.id.includes('Tour')?'tour':o.id.includes('Settings')?'settings':'feedback'));});
+document.addEventListener('click',e=>{const toggle=e.target.closest?.('.character-option-toggle');if(!toggle)return;const section=toggle.closest('.character-option'),collapsed=section.classList.toggle('collapsed');toggle.setAttribute('aria-expanded',String(!collapsed));const key=section.dataset.characterSection;if(key)try{localStorage.setItem('jmCharacterSection:'+key,collapsed?'collapsed':'open');}catch{}});
+document.addEventListener('jm-character-sections-ready',()=>document.querySelectorAll('.character-option[data-character-section]').forEach(section=>{try{if(localStorage.getItem('jmCharacterSection:'+section.dataset.characterSection)==='collapsed'){section.classList.add('collapsed');section.querySelector('.character-option-toggle')?.setAttribute('aria-expanded','false');}}catch{}}));
+const characterSectionObserver=new MutationObserver(rows=>{if(rows.some(r=>[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('.character-option')||n.querySelector?.('.character-option')))))document.dispatchEvent(new Event('jm-character-sections-ready'));});characterSectionObserver.observe(document.body,{childList:true,subtree:true});
 window.openJapaneseMinerGuide=openTour;window.openJapaneseMinerSettings=openSettings;window.openJapaneseMinerFeedback=openFeedback;
 init();
 })();
