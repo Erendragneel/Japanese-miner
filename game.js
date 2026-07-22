@@ -562,11 +562,11 @@ function ensureHeartRecovery(){
     save();
     setMessage("Recovery complete! You gained 3 hearts.","correct");
   }
-  if(state.hearts<=0 && totalStoneValue()<heartRestoreCost() && !state.heartRecoveryEnd){
+  if(state.hearts<=0 && !state.heartRecoveryEnd){
     state.heartRecoveryEnd=now+HEART_RECOVERY_MS;
     save();
   }
-  if(state.hearts>0 || totalStoneValue()>=heartRestoreCost()){
+  if(state.hearts>0){
     if(state.heartRecoveryEnd){ state.heartRecoveryEnd=null; save(); }
   }
 }
@@ -574,16 +574,19 @@ function renderRecovery(){
   ensureHeartRecovery();
   const box=document.getElementById("recoveryBox");
   const time=document.getElementById("recoveryTime");
-  if(!box||!time) return;
-  const active=state.hearts<=0 && totalStoneValue()<heartRestoreCost() && state.heartRecoveryEnd;
-  box.classList.toggle("active",!!active);
+  const active=state.hearts<=0 && state.heartRecoveryEnd;
+  const hud=document.getElementById('heartRecoveryHud'),hudTime=document.getElementById('heartRecoveryHudTime');
+  if(hud)hud.classList.toggle('active',!!active);
   if(active){
     const remaining=Math.max(0,state.heartRecoveryEnd-Date.now());
     const total=Math.ceil(remaining/1000);
     const min=String(Math.floor(total/60)).padStart(2,"0");
     const sec=String(total%60).padStart(2,"0");
-    time.textContent=`${min}:${sec}`;
+    if(time)time.textContent=`${min}:${sec}`;
+    if(hudTime)hudTime.textContent=`${min}:${sec}`;
   }
+  if(!box||!time) return;
+  box.classList.toggle("active",!!active);
 }
 function startRecoveryClock(){
   if(heartRecoveryInterval) clearInterval(heartRecoveryInterval);
@@ -1716,7 +1719,9 @@ function renderStudyCalendar(){
     });
     grid.appendChild(btn);
   }
-  document.getElementById('calendarNextMonth').disabled = year===new Date().getFullYear() && month===new Date().getMonth();
+  // A normal calendar can browse both past and future months. Future dates stay
+  // visually muted and cannot create study history until they actually occur.
+  document.getElementById('calendarNextMonth').disabled = false;
 }
 function refreshStudyCalendarCounters(){
   normalizeStudyDates();
@@ -2018,6 +2023,7 @@ document.addEventListener('click',event=>{
     if(!owned){
       event.preventDefault();event.stopImmediatePropagation();
       const price=V43_COSMETIC_PRICES[key]||0;
+      if(typeof window.previewJapaneseMinerCosmetic==='function'){window.previewJapaneseMinerCosmetic({type:'character',key,value,price,name:cosmetic.querySelector('span:last-child')?.childNodes[0]?.textContent?.trim()||'Character style',source:cosmetic});return;}
       if(!spendStoneValue(price)){setMessage(`You need ${price.toLocaleString()} Nuggets to unlock this style.`,'wrong');return;}
       state.ownedCosmetics.push(id);state.character[key]=value;save();cosmetic.closest('.character-customizer')?.querySelectorAll(`[data-character-key="${key}"]`).forEach(x=>x.classList.toggle('selected',x===cosmetic));cosmetic.classList.remove('locked');cosmetic.classList.add('owned');const priceLabel=cosmetic.querySelector('small');if(priceLabel)priceLabel.textContent='Owned';render();
       setMessage(`New style unlocked for ${price.toLocaleString()} Nuggets!`,'correct');
