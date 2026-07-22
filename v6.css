@@ -58,11 +58,11 @@ button,.panel,.v5-card,.cosmetic-card{transition:transform .16s ease,border-colo
 
 /* v6.1.3: pixel-fitted cosmetic masks derived from the rendered miner artwork. */
 .rendered-avatar-layers>i:not(.rendered-accessory){inset:0!important;width:auto!important;height:auto!important;border:0!important;border-radius:0!important;clip-path:none!important;box-shadow:none!important;background-repeat:no-repeat!important;background-position:center!important;background-size:contain!important;-webkit-mask-repeat:no-repeat;-webkit-mask-position:center;-webkit-mask-size:contain;mask-repeat:no-repeat;mask-position:center;mask-size:contain;mix-blend-mode:color!important}
-.rendered-skin-tint{background:var(--skin)!important;opacity:.88!important;-webkit-mask-image:url("assets/avatar/masks/skin.png");mask-image:url("assets/avatar/masks/skin.png")}
+.rendered-skin-tint{background:var(--skin)!important;opacity:.55!important;-webkit-mask-image:var(--mask-skin);mask-image:var(--mask-skin)}
 .rendered-skin-tint:before,.rendered-skin-tint:after{display:none!important}
-.rendered-hair-tint{background:var(--hair)!important;opacity:.9!important;-webkit-mask-image:url("assets/avatar/masks/hair.png");mask-image:url("assets/avatar/masks/hair.png")}
-.rendered-shirt-tint{opacity:.86!important;-webkit-mask-image:url("assets/avatar/masks/jacket.png");mask-image:url("assets/avatar/masks/jacket.png")}
-.rendered-pants-tint{opacity:.82!important;-webkit-mask-image:url("assets/avatar/masks/pants.png");mask-image:url("assets/avatar/masks/pants.png")}
-.rendered-glove-tint{opacity:.9!important;-webkit-mask-image:url("assets/avatar/masks/gloves.png");mask-image:url("assets/avatar/masks/gloves.png")}
-.rendered-shoe-tint{opacity:.88!important;-webkit-mask-image:url("assets/avatar/masks/shoes.png");mask-image:url("assets/avatar/masks/shoes.png")}
-.miner-avatar[data-skin] .rendered-skin-tint{opacity:.88!important}.miner-avatar[data-hair-color] .rendered-hair-tint{opacity:.9!important}.miner-avatar[data-pants] .rendered-pants-tint{opacity:.82!important}
+.rendered-hair-tint{background:var(--hair)!important;opacity:.9!important;-webkit-mask-image:var(--mask-hair);mask-image:var(--mask-hair)}
+.rendered-shirt-tint{opacity:.78!important;-webkit-mask-image:var(--mask-jacket);mask-image:var(--mask-jacket)}
+.rendered-pants-tint{opacity:.72!important;-webkit-mask-image:var(--mask-pants);mask-image:var(--mask-pants)}
+.rendered-glove-tint{opacity:.8!important;-webkit-mask-image:var(--mask-gloves);mask-image:var(--mask-gloves)}
+.rendered-shoe-tint{opacity:.76!important;-webkit-mask-image:var(--mask-shoes);mask-image:var(--mask-shoes)}
+.miner-avatar[data-skin="light"] .rendered-skin-tint{opacity:.28!important}.miner-avatar[data-skin="warm"] .rendered-skin-tint{opacity:.42!important}.miner-avatar[data-skin="tan"] .rendered-skin-tint{opacity:.56!important}.miner-avatar[data-skin="deep"] .rendered-skin-tint{opacity:.68!important}.miner-avatar[data-hair-color] .rendered-hair-tint{opacity:.9!important}.miner-avatar[data-pants] .rendered-pants-tint{opacity:.72!important}

@@ -1,4 +1,4 @@
-# Japanese Miner v6.1.3 — Cosmetic Mask Fix
+# Japanese Miner v6.2.0 — Cosmetic Mask Fix
 
 Adds a fully customizable miner character profile with selectable skin tone, hair style, hair color, clothing top, clothing bottom, accessories, and randomization. Character choices save per profile and travel with exported backups.
 
