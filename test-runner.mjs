@@ -335,6 +335,10 @@ const tests = [
       }
       for (const mask of ['skin','hair','jacket','pants','gloves','shoes']) assert(fs.existsSync(path.join(ROOT,`assets/avatar/hairstyles/masks/spiky/${mask}.png`)), `Missing ${mask} mask for hairstyle: spiky`);
       assert(previewJs.includes("japaneseMinerCharacterMarkup?.('large',{[item.key]:item.value})"), 'Locked cosmetic previews must freshly render the selected hairstyle and its matching masks.');
+      assert(previewJs.includes('avatar.dataset.previewKey=item.key'), 'Try-on previews must identify the selected cosmetic layer.');
+      const previewCss=read('v6.css');
+      assert(previewCss.includes('.preview-avatar[data-preview-key="hairStyle"] .rendered-avatar-layers{display:none!important}'), 'Hairstyle previews must render one clean character without stacked color masks.');
+      for(const key of ['hairColor','shirt','jacket','pants','gloves','shoes']) assert(previewCss.includes(`data-preview-key="${key}"`), `Missing focused true-color preview rule for ${key}.`);
     }
   },
   {

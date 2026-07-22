@@ -1,4 +1,4 @@
-# Japanese Miner v6.2.1 — Try-On Preview Fix
+# Japanese Miner v6.2.2 — True-Color Try-On Fix
 
 Adds a fully customizable miner character profile with selectable skin tone, hair style, hair color, clothing top, clothing bottom, accessories, and randomization. Character choices save per profile and travel with exported backups.
 

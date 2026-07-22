@@ -66,3 +66,20 @@ button,.panel,.v5-card,.cosmetic-card{transition:transform .16s ease,border-colo
 .rendered-glove-tint{opacity:.8!important;-webkit-mask-image:var(--mask-gloves);mask-image:var(--mask-gloves)}
 .rendered-shoe-tint{opacity:.76!important;-webkit-mask-image:var(--mask-shoes);mask-image:var(--mask-shoes)}
 .miner-avatar[data-skin="light"] .rendered-skin-tint{opacity:.28!important}.miner-avatar[data-skin="warm"] .rendered-skin-tint{opacity:.42!important}.miner-avatar[data-skin="tan"] .rendered-skin-tint{opacity:.56!important}.miner-avatar[data-skin="deep"] .rendered-skin-tint{opacity:.68!important}.miner-avatar[data-hair-color] .rendered-hair-tint{opacity:.9!important}.miner-avatar[data-pants] .rendered-pants-tint{opacity:.72!important}
+
+/* v6.2.2: previews use one deliberate replacement-color layer instead of
+   stacking translucent highlights for every equipped cosmetic. */
+.preview-avatar[data-preview-key="hairStyle"] .rendered-avatar-layers{display:none!important}
+.preview-avatar[data-preview-key="hairColor"] .rendered-avatar-layers>i:not(.rendered-hair-tint),
+.preview-avatar[data-preview-key="shirt"] .rendered-avatar-layers>i:not(.rendered-shirt-tint),
+.preview-avatar[data-preview-key="jacket"] .rendered-avatar-layers>i:not(.rendered-shirt-tint),
+.preview-avatar[data-preview-key="pants"] .rendered-avatar-layers>i:not(.rendered-pants-tint),
+.preview-avatar[data-preview-key="gloves"] .rendered-avatar-layers>i:not(.rendered-glove-tint),
+.preview-avatar[data-preview-key="shoes"] .rendered-avatar-layers>i:not(.rendered-shoe-tint),
+.preview-avatar[data-preview-key="accessory"] .rendered-avatar-layers>i:not(.rendered-accessory){display:none!important}
+.preview-avatar[data-preview-key="hairColor"] .rendered-hair-tint,
+.preview-avatar[data-preview-key="shirt"] .rendered-shirt-tint,
+.preview-avatar[data-preview-key="jacket"] .rendered-shirt-tint,
+.preview-avatar[data-preview-key="pants"] .rendered-pants-tint,
+.preview-avatar[data-preview-key="gloves"] .rendered-glove-tint,
+.preview-avatar[data-preview-key="shoes"] .rendered-shoe-tint{mix-blend-mode:color!important;opacity:1!important}
