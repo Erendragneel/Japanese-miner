@@ -1,4 +1,4 @@
-# Japanese Miner v5.6
+# Japanese Miner v5.7
 
 Adds a fully customizable miner character profile with selectable skin tone, hair style, hair color, clothing top, clothing bottom, accessories, and randomization. Character choices save per profile and travel with exported backups.
 
