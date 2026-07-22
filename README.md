@@ -1,4 +1,4 @@
-# Japanese Miner v5.3
+# Japanese Miner v5.3.1
 
 Adds a fully customizable miner character profile with selectable skin tone, hair style, hair color, clothing top, clothing bottom, accessories, and randomization. Character choices save per profile and travel with exported backups.
 
@@ -43,3 +43,4 @@ node test-runner.mjs --test all --continue
 ```
 
 A release is ready only when the output states `RELEASE GATE PASSED`.
+

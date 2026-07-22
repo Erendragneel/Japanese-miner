@@ -49,10 +49,17 @@ h1{font-size:clamp(22px,4vw,34px);margin:0}
 .pickaxe-icon{display:inline-block;transition:.18s transform,.18s filter;font-size:64px;line-height:1}
 .rock:hover .pickaxe-icon{transform:rotate(-10deg) scale(1.06)}
 .rock[data-pickaxe="copper"] .pickaxe-icon{filter:sepia(1) saturate(2.2) hue-rotate(335deg) brightness(1.05)}
+.rock[data-pickaxe="sakura"] .pickaxe-icon{filter:sepia(.4) saturate(3) hue-rotate(285deg) brightness(1.25) drop-shadow(0 0 7px #ff9dcc)}
 .rock[data-pickaxe="silver"] .pickaxe-icon{filter:grayscale(1) brightness(1.65) drop-shadow(0 0 5px #dce8ff)}
+.rock[data-pickaxe="frost"] .pickaxe-icon{filter:hue-rotate(155deg) saturate(2.4) brightness(1.35) drop-shadow(0 0 9px #8de9ff)}
 .rock[data-pickaxe="gold"] .pickaxe-icon{filter:sepia(1) saturate(4) brightness(1.25) drop-shadow(0 0 7px #ffd166)}
+.rock[data-pickaxe="neon"] .pickaxe-icon{filter:hue-rotate(135deg) saturate(4) brightness(1.2) drop-shadow(0 0 10px #36fff2)}
 .rock[data-pickaxe="amethyst"] .pickaxe-icon{filter:hue-rotate(225deg) saturate(2.2) drop-shadow(0 0 8px #b989ff)}
+.rock[data-pickaxe="inferno"] .pickaxe-icon{filter:sepia(1) saturate(6) hue-rotate(330deg) brightness(1.15) drop-shadow(0 0 11px #ff542f)}
+.rock[data-pickaxe="galaxy"] .pickaxe-icon{filter:hue-rotate(205deg) saturate(3.5) brightness(.9) drop-shadow(0 0 12px #745cff)}
 .rock[data-pickaxe="emerald"] .pickaxe-icon{filter:hue-rotate(80deg) saturate(2.3) drop-shadow(0 0 8px #56d69b)}
+.rock[data-pickaxe="aurora"] .pickaxe-icon{filter:hue-rotate(115deg) saturate(3) brightness(1.25) drop-shadow(0 0 12px #70ffbf)}
+.rock[data-pickaxe="shadow"] .pickaxe-icon{filter:grayscale(.7) hue-rotate(235deg) saturate(3) brightness(.55) drop-shadow(0 0 11px #9b68ff)}
 .rock[data-pickaxe="red-diamond"] .pickaxe-icon{filter:hue-rotate(315deg) saturate(3) brightness(1.25) drop-shadow(0 0 10px #ff496c)}
 .pickaxe-shop{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .pickaxe-card{background:#12192b;border:1px solid #2a3552;border-radius:12px;padding:11px;display:flex;flex-direction:column;gap:8px}

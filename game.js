@@ -313,7 +313,7 @@ function normalizeState(raw){
   next.heartRecoveryEnd=Number(next.heartRecoveryEnd)||null;
   next.ownedPickaxeSkins=Array.isArray(next.ownedPickaxeSkins)?next.ownedPickaxeSkins:["standard"];
   if(!next.ownedPickaxeSkins.includes("standard")) next.ownedPickaxeSkins.unshift("standard");
-  const validPickaxeIds=["standard","copper","silver","gold","amethyst","emerald","red-diamond"];
+  const validPickaxeIds=["standard","copper","sakura","silver","frost","gold","neon","amethyst","inferno","galaxy","emerald","aurora","shadow","red-diamond"];
   next.equippedPickaxeSkin=validPickaxeIds.includes(next.equippedPickaxeSkin)?next.equippedPickaxeSkin:"standard";
   if(!next.ownedPickaxeSkins.includes(next.equippedPickaxeSkin)) next.equippedPickaxeSkin="standard";
   next.ownedWallpapers=Array.isArray(next.ownedWallpapers)?next.ownedWallpapers:["midnight"];
@@ -532,10 +532,17 @@ function spendStoneValue(cost){
 const PICKAXE_SKINS = [
   {id:"standard", name:"Standard Pickaxe", icon:"⛏️", cost:0, desc:"The dependable starter tool."},
   {id:"copper", name:"Copper Pickaxe", icon:"⛏️", cost:25000, desc:"A warm copper finish for early miners."},
+  {id:"sakura", name:"Sakura Pickaxe", icon:"⛏️", cost:60000, desc:"A soft pink pickaxe inspired by cherry blossoms."},
   {id:"silver", name:"Silver Pickaxe", icon:"⛏️", cost:125000, desc:"A polished silver tool with a cool shine."},
+  {id:"frost", name:"Frost Pickaxe", icon:"⛏️", cost:300000, desc:"An icy blue tool sparkling with frozen light."},
   {id:"gold", name:"Golden Pickaxe", icon:"⛏️", cost:625000, desc:"A prestigious golden mining skin."},
+  {id:"neon", name:"Neon Pickaxe", icon:"⛏️", cost:1500000, desc:"An electric cyan tool from the city mines."},
   {id:"amethyst", name:"Amethyst Pickaxe", icon:"⛏️", cost:3125000, desc:"A purple crystal-infused pickaxe."},
+  {id:"inferno", name:"Inferno Pickaxe", icon:"⛏️", cost:7500000, desc:"A blazing tool forged in the flame mine."},
+  {id:"galaxy", name:"Galaxy Pickaxe", icon:"⛏️", cost:12000000, desc:"A deep-space finish surrounded by starlight."},
   {id:"emerald", name:"Emerald Pickaxe", icon:"⛏️", cost:15625000, desc:"A vivid green endgame-style tool."},
+  {id:"aurora", name:"Aurora Pickaxe", icon:"⛏️", cost:30000000, desc:"Shifting northern-light colors for master miners."},
+  {id:"shadow", name:"Shadow Pickaxe", icon:"⛏️", cost:50000000, desc:"A mysterious dark-metal pickaxe with a violet glow."},
   {id:"red-diamond", name:"Red Diamond Pickaxe", icon:"⛏️", cost:78125000, desc:"The rarest and most luxurious current skin."}
 ];
 
@@ -855,10 +862,17 @@ function renderPickaxeShop(){
 function pickaxePreviewStyle(id){
   const styles={
     copper:"filter:sepia(1) saturate(2.2) hue-rotate(335deg) brightness(1.05)",
+    sakura:"filter:sepia(.4) saturate(3) hue-rotate(285deg) brightness(1.25) drop-shadow(0 0 7px #ff9dcc)",
     silver:"filter:grayscale(1) brightness(1.65) drop-shadow(0 0 5px #dce8ff)",
+    frost:"filter:hue-rotate(155deg) saturate(2.4) brightness(1.35) drop-shadow(0 0 9px #8de9ff)",
     gold:"filter:sepia(1) saturate(4) brightness(1.25) drop-shadow(0 0 7px #ffd166)",
+    neon:"filter:hue-rotate(135deg) saturate(4) brightness(1.2) drop-shadow(0 0 10px #36fff2)",
     amethyst:"filter:hue-rotate(225deg) saturate(2.2) drop-shadow(0 0 8px #b989ff)",
+    inferno:"filter:sepia(1) saturate(6) hue-rotate(330deg) brightness(1.15) drop-shadow(0 0 11px #ff542f)",
+    galaxy:"filter:hue-rotate(205deg) saturate(3.5) brightness(.9) drop-shadow(0 0 12px #745cff)",
     emerald:"filter:hue-rotate(80deg) saturate(2.3) drop-shadow(0 0 8px #56d69b)",
+    aurora:"filter:hue-rotate(115deg) saturate(3) brightness(1.25) drop-shadow(0 0 12px #70ffbf)",
+    shadow:"filter:grayscale(.7) hue-rotate(235deg) saturate(3) brightness(.55) drop-shadow(0 0 11px #9b68ff)",
     "red-diamond":"filter:hue-rotate(315deg) saturate(3) brightness(1.25) drop-shadow(0 0 10px #ff496c)"
   };
   return styles[id]||"";
