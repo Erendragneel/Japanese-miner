@@ -1627,10 +1627,11 @@ function renderPlacementQuestion(){
   const pct=Math.round(placementSession.index/PLACEMENT_TEST_QUESTIONS.length*100);
   const sectionName=q.section==='hiragana'?'Hiragana':q.section==='katakana'?'Katakana':'JLPT N5';
   box.innerHTML=`<div class="placement-progress-label"><span>${sectionName}</span><strong>Question ${placementSession.index+1} of ${PLACEMENT_TEST_QUESTIONS.length}</strong></div>${progressBar(pct)}
-  <div class="placement-question"><h3>${v3Esc(q.prompt)}</h3><div class="jp-test">${v3Esc(q.display)}</div><div class="placement-options">${q.options.map((o,i)=>`<button type="button" data-place-answer="${i}">${v3Esc(o)}</button>`).join('')}</div><div id="placementFeedback" class="placement-feedback" aria-live="polite"></div><button id="placementNextBtn" class="placement-next primary" type="button" hidden>${placementSession.index===PLACEMENT_TEST_QUESTIONS.length-1?'See my result':'Next question'}</button></div>`;
+  <div class="placement-question"><h3>${v3Esc(q.prompt)}</h3><div class="jp-test">${v3Esc(q.display)}</div><div class="placement-options">${q.options.map((o,i)=>`<button type="button" data-place-answer="${i}">${v3Esc(o)}</button>`).join('')}</div><button id="placementSkipBtn" class="placement-skip" type="button">Skip — I don’t know</button><div id="placementFeedback" class="placement-feedback" aria-live="polite"></div><button id="placementNextBtn" class="placement-next primary" type="button" hidden>${placementSession.index===PLACEMENT_TEST_QUESTIONS.length-1?'See my result':'Next question'}</button></div>`;
   box.querySelectorAll('[data-place-answer]').forEach(btn=>btn.addEventListener('click',()=>answerPlacementQuestion(Number(btn.dataset.placeAnswer))));
+  document.getElementById('placementSkipBtn').addEventListener('click',()=>answerPlacementQuestion(-1,true));
 }
-function answerPlacementQuestion(optionIndex){
+function answerPlacementQuestion(optionIndex,skipped=false){
   if(placementSession.locked)return;
   placementSession.locked=true;
   const q=PLACEMENT_TEST_QUESTIONS[placementSession.index];
@@ -1638,7 +1639,8 @@ function answerPlacementQuestion(optionIndex){
   placementSession.answers.push({section:q.section,correct});
   const buttons=[...document.querySelectorAll('[data-place-answer]')];
   buttons.forEach((b,i)=>{b.disabled=true;if(q.options[i]===q.answer)b.classList.add('correct');else if(i===optionIndex)b.classList.add('wrong');});
-  document.getElementById('placementFeedback').textContent=correct?'✓ Correct':`Not quite. The correct answer is ${q.answer}.`;
+  const skip=document.getElementById('placementSkipBtn');if(skip)skip.disabled=true;
+  document.getElementById('placementFeedback').textContent=skipped?`Skipped. The correct answer is ${q.answer}.`:correct?'✓ Correct':`Not quite. The correct answer is ${q.answer}.`;
   const next=document.getElementById('placementNextBtn');next.hidden=false;next.addEventListener('click',()=>{placementSession.index++;placementSession.locked=false;if(placementSession.index>=PLACEMENT_TEST_QUESTIONS.length)finishPlacementTest();else renderPlacementQuestion();},{once:true});
 }
 function placementSectionScore(section){
@@ -1936,6 +1938,8 @@ function renderShop(){
  const balance=document.getElementById('shopNuggetBalance');if(balance)balance.textContent=totalStoneValue().toLocaleString();
  document.querySelectorAll('[data-shop-tab]').forEach(b=>b.classList.toggle('primary',b.dataset.shopTab===activeShopTab));
  const box=document.getElementById('shopContent');if(!box)return;
+ if(activeShopTab==='character'&&typeof window.renderJapaneseMinerCharacterShop==='function'){window.renderJapaneseMinerCharacterShop(box);return;}
+ if(['fashion','companions','settlement'].includes(activeShopTab)&&typeof window.renderJapaneseMinerV5Shop==='function'){window.renderJapaneseMinerV5Shop(activeShopTab,box);return;}
  if(activeShopTab==='pickaxes'){
   box.innerHTML='<div class="cosmetic-grid" id="menuPickaxeShop"></div>';
   const grid=document.getElementById('menuPickaxeShop');
@@ -2037,6 +2041,7 @@ document.addEventListener('click',event=>{
     if(!owned){
       event.preventDefault();event.stopImmediatePropagation();
       const price=V43_COSMETIC_PRICES[key]||0;
+      if(!cosmetic.closest('#shopContent')){openShop('character');setMessage('This style is available in the Character section of the Shop.','correct');return;}
       if(typeof window.previewJapaneseMinerCosmetic==='function'){window.previewJapaneseMinerCosmetic({type:'character',key,value,price,name:cosmetic.querySelector('span:last-child')?.childNodes[0]?.textContent?.trim()||'Character style',source:cosmetic});return;}
       if(!spendStoneValue(price)){setMessage(`You need ${price.toLocaleString()} Nuggets to unlock this style.`,'wrong');return;}
       state.ownedCosmetics.push(id);state.character[key]=value;save();cosmetic.closest('.character-customizer')?.querySelectorAll(`[data-character-key="${key}"]`).forEach(x=>x.classList.toggle('selected',x===cosmetic));cosmetic.classList.remove('locked');cosmetic.classList.add('owned');const priceLabel=cosmetic.querySelector('small');if(priceLabel)priceLabel.textContent='Owned';render();
@@ -2139,6 +2144,11 @@ if(state?.colorTheme)document.body.dataset.theme=state.colorTheme;
   function themeButtons(){return `<div class="character-option"><h4>Bright game colors — free</h4><div class="theme-choice-grid">${COLOR_THEMES.map(([value,name])=>`<button type="button" data-color-theme="${value}" class="${state.colorTheme===value?'selected':''}"><span class="theme-swatch theme-${value}"></span><span>${name}<small>Included</small></span></button>`).join('')}</div></div>`;}
   function renderProfile(){const player=document.getElementById('activePlayerName')?.textContent||'Miner';return `<div class="character-profile"><section class="character-preview-card"><div class="profile-nameplate"><span class="placement-kicker">Your miner</span><h3>${player}</h3><p>${state.selectedTitle||'Japanese Learner'}</p><strong class="cosmetic-balance">🪙 ${totalStoneValue().toLocaleString()} Nuggets</strong></div>${characterMarkup('large')}<div class="character-save-note">Skin tones are always free. Hair, clothes, and accessories are one-time unlocks saved to this profile.</div></section><section class="character-customizer">${themeButtons()}${optionButtons('skin','Skin tone — free')}${optionButtons('hairStyle','Hair style')}${optionButtons('hairColor','Hair color')}${optionButtons('shirt','Clothing top')}${optionButtons('pants','Clothing bottom')}${optionButtons('accessory','Accessory')}<button id="randomizeCharacterBtn" class="primary" type="button">🎲 Randomize owned style</button></section></div>`;}
   function randomizeCharacter(){Object.entries(CHARACTER_OPTIONS).forEach(([key,values])=>{const available=values.filter(([value])=>cosmeticOwned(key,value));state.character[key]=available[Math.floor(Math.random()*available.length)][0];});save();renderFeatureCenter('profile');render();}
+
+  window.renderJapaneseMinerCharacterShop=function(box){
+    box.innerHTML=`<div class="shop-section-heading"><span>Character collection</span><h3>Hair, colors, clothing, and accessories</h3><p>Preview every locked style before spending Nuggets.</p></div><div class="character-profile shop-character-profile"><section class="character-preview-card">${characterMarkup('large')}</section><section class="character-customizer">${optionButtons('skin','Skin tones — free')}${optionButtons('hairStyle','Hair styles')}${optionButtons('hairColor','Hair colors')}${optionButtons('shirt','Clothing tops')}${optionButtons('pants','Clothing bottoms')}${optionButtons('accessory','Accessories')}</section></div>`;
+    box.querySelectorAll('[data-character-key]').forEach(b=>b.addEventListener('click',()=>{const key=b.dataset.characterKey,value=b.dataset.characterValue;if(!cosmeticOwned(key,value))return;state.character[key]=value;save();render();renderShop();}));
+  };
 
   function renderQuests(){return `<div class="feature-section"><h3>Daily quests</h3><p class="small">Refresh each calendar day.</p>${DAILY_QUESTS.map(q=>progressCard(q,'daily')).join('')}<h3>Weekly quests</h3><p class="small">Refresh every Monday.</p>${WEEKLY_QUESTS.map(q=>progressCard(q,'weekly')).join('')}</div>`;}
   function renderAchievements(){return `<div class="achievement-grid">${ACHIEVEMENTS.map(a=>{const unlocked=state.achievements[a.id];return `<article class="achievement-card ${unlocked?'unlocked':''}"><span>${unlocked?'🏆':'🔒'}</span><div><strong>${a.name}</strong><p>${a.desc}</p><small>Reward: ${a.reward.toLocaleString()} Nuggets · Title: ${a.title}</small></div>${unlocked?`<button data-title="${a.title}" ${state.selectedTitle===a.title?'disabled':''}>${state.selectedTitle===a.title?'Equipped':'Use title'}</button>`:''}</article>`}).join('')}</div>`;}
