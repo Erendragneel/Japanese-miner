@@ -83,3 +83,24 @@ button,.panel,.v5-card,.cosmetic-card{transition:transform .16s ease,border-colo
 .preview-avatar[data-preview-key="pants"] .rendered-pants-tint,
 .preview-avatar[data-preview-key="gloves"] .rendered-glove-tint,
 .preview-avatar[data-preview-key="shoes"] .rendered-shoe-tint{mix-blend-mode:color!important;opacity:1!important}
+
+/* v6.2.3: hue replacement keeps the luminance already painted into the PNG.
+   Folds, seams, hair strands and edge lighting remain visible instead of being
+   covered by a flat opaque color. */
+.rendered-hair-tint,.rendered-shirt-tint,.rendered-pants-tint,.rendered-glove-tint,.rendered-shoe-tint{mix-blend-mode:hue!important;opacity:.94!important}
+.miner-avatar[data-hair-color="black"] .rendered-hair-tint{background:#252936!important;mix-blend-mode:color!important;opacity:.7!important}
+.miner-avatar[data-hair-color="blonde"] .rendered-hair-tint{background:#d9ad45!important;mix-blend-mode:color!important;opacity:.78!important}
+.miner-avatar[data-hair-color="silver"] .rendered-hair-tint{background:#aeb9c9!important;mix-blend-mode:color!important;opacity:.72!important}
+.miner-avatar[data-pants="black"] .rendered-pants-tint{background:#252b38!important;mix-blend-mode:color!important;opacity:.68!important}
+.miner-avatar[data-pants="white"] .rendered-pants-tint{background:#c8d3df!important;mix-blend-mode:color!important;opacity:.7!important}
+.preview-avatar[data-preview-key="hairColor"] .rendered-hair-tint,
+.preview-avatar[data-preview-key="shirt"] .rendered-shirt-tint,
+.preview-avatar[data-preview-key="jacket"] .rendered-shirt-tint,
+.preview-avatar[data-preview-key="pants"] .rendered-pants-tint,
+.preview-avatar[data-preview-key="gloves"] .rendered-glove-tint,
+.preview-avatar[data-preview-key="shoes"] .rendered-shoe-tint{mix-blend-mode:hue!important;opacity:.94!important}
+.preview-avatar[data-preview-key="hairColor"][data-hair-color="black"] .rendered-hair-tint,
+.preview-avatar[data-preview-key="hairColor"][data-hair-color="blonde"] .rendered-hair-tint,
+.preview-avatar[data-preview-key="hairColor"][data-hair-color="silver"] .rendered-hair-tint,
+.preview-avatar[data-preview-key="pants"][data-pants="black"] .rendered-pants-tint,
+.preview-avatar[data-preview-key="pants"][data-pants="white"] .rendered-pants-tint{mix-blend-mode:color!important}

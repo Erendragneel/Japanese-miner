@@ -339,6 +339,8 @@ const tests = [
       const previewCss=read('v6.css');
       assert(previewCss.includes('.preview-avatar[data-preview-key="hairStyle"] .rendered-avatar-layers{display:none!important}'), 'Hairstyle previews must render one clean character without stacked color masks.');
       for(const key of ['hairColor','shirt','jacket','pants','gloves','shoes']) assert(previewCss.includes(`data-preview-key="${key}"`), `Missing focused true-color preview rule for ${key}.`);
+      assert(previewCss.includes('mix-blend-mode:hue!important;opacity:.94!important'), 'Rendered cosmetics must preserve the original artwork luminance and texture.');
+      for(const value of ['black','blonde','silver']) assert(previewCss.includes(`data-hair-color="${value}"`), `Missing textured special-case hair treatment for ${value}.`);
     }
   },
   {
