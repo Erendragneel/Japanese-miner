@@ -318,7 +318,7 @@ function normalizeState(raw){
   if(!next.ownedPickaxeSkins.includes(next.equippedPickaxeSkin)) next.equippedPickaxeSkin="standard";
   next.ownedWallpapers=Array.isArray(next.ownedWallpapers)?next.ownedWallpapers:["midnight"];
   if(!next.ownedWallpapers.includes("midnight"))next.ownedWallpapers.unshift("midnight");
-  const validWallpaperIds=["midnight","sakura","bamboo","sunrise","crystal","paper"];
+  const validWallpaperIds=["midnight","sakura","bamboo","sunrise","crystal","paper","galaxy","emoji","inferno","aurora","ocean","confetti"];
   next.equippedWallpaper=validWallpaperIds.includes(next.equippedWallpaper)?next.equippedWallpaper:"midnight";
   if(!next.ownedWallpapers.includes(next.equippedWallpaper))next.equippedWallpaper="midnight";
   next.placementUnlockedThrough=Math.max(0,Math.min(stages.length-1,Number(next.placementUnlockedThrough)||0));
@@ -1900,6 +1900,12 @@ const WALLPAPERS=[
  {id:'sunrise',name:'Mountain Sunrise',cost:350000,desc:'Warm sunrise colors above the mine entrance.',preview:'radial-gradient(circle at 50% 0%,#ffc168,transparent 38%),linear-gradient(160deg,#533c67,#172544)'},
  {id:'crystal',name:'Crystal Depths',cost:1000000,desc:'Blue and violet crystal light from the deepest tunnels.',preview:'radial-gradient(circle at 75% 10%,#735cff,transparent 35%),radial-gradient(circle at 15% 60%,#42caff,transparent 34%),#10142c'},
  {id:'paper',name:'Study Notebook',cost:2500000,desc:'A clean grid-paper look inspired by Japanese study notebooks.',preview:'linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.12) 1px,transparent 1px),#26314a'}
+ ,{id:'galaxy',name:'Galaxy Quest',cost:175000,desc:'Stars, nebula clouds, and deep-space color.',preview:'radial-gradient(circle at 18% 22%,#fff 0 2px,transparent 3px),radial-gradient(circle at 70% 35%,#fff 0 1px,transparent 2px),radial-gradient(circle at 55% 20%,#b14cff88,transparent 35%),linear-gradient(145deg,#070522,#15105d,#09031a)'}
+ ,{id:'emoji',name:'Emoji Party',cost:90000,desc:'A cheerful field of smiles, stars, hearts, and gems.',preview:'linear-gradient(135deg,#ff78b9,#725cff)'}
+ ,{id:'inferno',name:'Inferno Mine',cost:225000,desc:'Animated-looking flame colors from the volcanic depths.',preview:'radial-gradient(ellipse at 30% 100%,#fff15c,transparent 28%),radial-gradient(ellipse at 70% 100%,#ff4b21,transparent 45%),linear-gradient(#3b0710,#120309)'}
+ ,{id:'aurora',name:'Aurora Sky',cost:300000,desc:'Flowing northern lights in emerald, cyan, and violet.',preview:'radial-gradient(ellipse at 25% 10%,#55ffc988,transparent 42%),radial-gradient(ellipse at 75% 20%,#a26cff99,transparent 45%),linear-gradient(160deg,#071d35,#121339)'}
+ ,{id:'ocean',name:'Ocean Bubbles',cost:140000,desc:'A bright underwater world filled with rising bubbles.',preview:'radial-gradient(circle at 18% 25%,#c9ffff88 0 8px,transparent 9px),radial-gradient(circle at 75% 55%,#fff8 0 5px,transparent 6px),linear-gradient(#087fc1,#063765)'}
+ ,{id:'confetti',name:'Lucky Confetti',cost:110000,desc:'A colorful celebration for every study streak.',preview:'conic-gradient(from 25deg at 20% 30%,#ffdc68 0 12deg,transparent 13deg),conic-gradient(from 70deg at 70% 55%,#67f0ce 0 13deg,transparent 14deg),linear-gradient(135deg,#5d35a8,#c83f86)'}
 ];
 let activeShopTab='pickaxes';
 function applyWallpaper(){document.body.dataset.wallpaper=state.equippedWallpaper||'midnight';}
