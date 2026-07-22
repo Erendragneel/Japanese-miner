@@ -914,11 +914,10 @@ function stripMarkup(text){const d=document.createElement('div');d.innerHTML=Str
 function japaneseSpeechText(q=state.active){
   if(!q)return '日本語を勉強しましょう。';
   if(q.kana)return q.kana;
-  if(q.kind==='tutor-vocabulary' && q.a && /[ぁ-んァ-ヶ一-龯]/.test(q.a))return q.a;
   if(q.kind==='reading' && q.q)return stripMarkup(q.q);
   if(q.displayChallenge)return stripMarkup(q.displayChallenge);
   if(q.q && /[ぁ-んァ-ヶ一-龯]/.test(stripMarkup(q.q)))return stripMarkup(q.q).replace(/___/g,'');
-  if(q.a && /[ぁ-んァ-ヶ一-龯]/.test(String(q.a)))return String(q.a);
+  // Never use q.a here: for English prompts the Japanese answer must remain a surprise.
   return '';
 }
 function speakJapanese(text,rate=state.voiceRate){
@@ -1015,7 +1014,7 @@ function showQuestion(q){
   const area=document.getElementById("challengeArea");
   const helpButton=q.help?'<button id="kanjiHelpBtn" class="kanji-help-btn" type="button">📖 I don’t know this kanji</button>':'';
   const spoken=japaneseSpeechText(q);
-  const voiceTools=spoken?`<div class="voice-tools"><button id="speakQuestionBtn" type="button">🔊 Hear Japanese</button><button id="slowSpeakQuestionBtn" type="button">🐢 Slow</button><span>${spoken}</span></div>`:'';
+  const voiceTools=spoken?`<div class="voice-tools"><button id="speakQuestionBtn" type="button">🔊 Hear question</button><button id="slowSpeakQuestionBtn" type="button">🐢 Slow</button><span>Question audio only</span></div>`:'';
   area.innerHTML=`<div class="question-card"><div class="question">${questionDisplay(q)}</div><div class="prompt">${q.prompt}</div>${voiceTools}${helpButton}<div id="kanjiHelpBox" class="kanji-help-box" hidden></div><div class="answers" id="answers"></div></div>`;
   document.getElementById('speakQuestionBtn')?.addEventListener('click',()=>speakActiveQuestion());
   document.getElementById('slowSpeakQuestionBtn')?.addEventListener('click',()=>speakActiveQuestion(.58));
@@ -1374,7 +1373,12 @@ document.getElementById("authSubmitBtn").onclick=submitAuth;
 showAuthMode("login");renderProfileList();
 const remembered=localStorage.getItem(ACTIVE_PROFILE_KEY);
 const rememberedProfile=readProfiles().find(p=>p.id===remembered);
-if(rememberedProfile){document.getElementById("authUsername").value=rememberedProfile.name;}
+if(rememberedProfile){
+  document.getElementById("authUsername").value=rememberedProfile.name;
+  // This is a local profile on the same browser. Keep it signed in across refreshes;
+  // the explicit Log out button still clears the remembered session.
+  loadProfile(rememberedProfile);
+}
 
 
 // Integrated JLPT N5 Mine course v2.1
@@ -1998,6 +2002,28 @@ applyWallpaper();
   else installCollapsiblePanels();
 })();
 
+// v4.3 cosmetic purchasing and bright palette controls.
+const V43_COSMETIC_PRICES={hairStyle:2500,hairColor:1200,shirt:4000,pants:3000,accessory:3500};
+document.addEventListener('click',event=>{
+  const cosmetic=event.target.closest?.('[data-character-key]');
+  if(cosmetic){
+    const key=cosmetic.dataset.characterKey,value=cosmetic.dataset.characterValue,id=`${key}:${value}`;
+    const owned=key==='skin'||state.ownedCosmetics?.includes(id);
+    if(!owned){
+      event.preventDefault();event.stopImmediatePropagation();
+      const price=V43_COSMETIC_PRICES[key]||0;
+      if(!spendStoneValue(price)){setMessage(`You need ${price.toLocaleString()} Nuggets to unlock this style.`,'wrong');return;}
+      state.ownedCosmetics.push(id);state.character[key]=value;save();cosmetic.closest('.character-customizer')?.querySelectorAll(`[data-character-key="${key}"]`).forEach(x=>x.classList.toggle('selected',x===cosmetic));cosmetic.classList.remove('locked');cosmetic.classList.add('owned');const priceLabel=cosmetic.querySelector('small');if(priceLabel)priceLabel.textContent='Owned';render();
+      setMessage(`New style unlocked for ${price.toLocaleString()} Nuggets!`,'correct');
+    }
+  }
+  const theme=event.target.closest?.('[data-color-theme]');
+  if(theme){state.colorTheme=theme.dataset.colorTheme;document.body.dataset.theme=state.colorTheme;theme.closest('.theme-choice-grid')?.querySelectorAll('button').forEach(x=>x.classList.toggle('selected',x===theme));save();render();}
+},true);
+const renderV43=render;
+render=function(){renderV43();if(state?.colorTheme)document.body.dataset.theme=state.colorTheme;};
+if(state?.colorTheme)document.body.dataset.theme=state.colorTheme;
+
 // v3.8 — Quests, achievements, mistake notebook, detailed statistics, and portable account backups.
 (function(){
   const DAY=86400000;
@@ -2009,6 +2035,9 @@ applyWallpaper();
     state.achievements=state.achievements||{};
     state.selectedTitle=state.selectedTitle||'';
     state.character=Object.assign({skin:'warm',hairStyle:'short',hairColor:'brown',shirt:'miner',pants:'denim',accessory:'none'},state.character||{});
+    state.ownedCosmetics=Array.isArray(state.ownedCosmetics)?state.ownedCosmetics:['hairStyle:short','hairColor:brown','shirt:miner','pants:denim','accessory:none'];
+    ['hairStyle:short','hairColor:brown','shirt:miner','pants:denim','accessory:none'].forEach(id=>{if(!state.ownedCosmetics.includes(id))state.ownedCosmetics.push(id);});
+    state.colorTheme=['midnight','sunrise','sakura','aqua','candy'].includes(state.colorTheme)?state.colorTheme:'midnight';
     state.questData=state.questData||{day:'',week:'',daily:{},weekly:{}};
     if(state.questData.day!==todayKey()) state.questData={...state.questData,day:todayKey(),daily:{}};
     if(state.questData.week!==weekKey()) state.questData={...state.questData,week:weekKey(),weekly:{}};
@@ -2071,14 +2100,19 @@ applyWallpaper();
     pants:[['denim','Denim'],['black','Black'],['khaki','Khaki'],['white','White'],['purple','Purple'],['red','Red']],
     accessory:[['none','None'],['glasses','Glasses'],['headband','Headband'],['helmet','Miner Helmet'],['earrings','Earrings'],['scarf','Scarf']]
   };
+  const COSMETIC_PRICES={hairStyle:2500,hairColor:1200,shirt:4000,pants:3000,accessory:3500};
+  const COLOR_THEMES=[['midnight','Midnight','Free'],['sunrise','Sunrise','Free'],['sakura','Sakura','Free'],['aqua','Aqua','Free'],['candy','Candy','Free']];
+  function cosmeticId(key,value){return `${key}:${value}`;}
+  function cosmeticOwned(key,value){return key==='skin'||state.ownedCosmetics.includes(cosmeticId(key,value));}
   function characterMarkup(size='large'){
     const c=state.character;
     return `<div class="miner-avatar ${size}" data-skin="${c.skin}" data-hair-style="${c.hairStyle}" data-hair-color="${c.hairColor}" data-shirt="${c.shirt}" data-pants="${c.pants}" data-accessory="${c.accessory}" aria-label="Customized miner character">
       <div class="avatar-shadow"></div><div class="avatar-legs"><i></i><i></i></div><div class="avatar-body"><div class="avatar-shirt-detail"></div><div class="avatar-arm left"></div><div class="avatar-arm right"></div></div><div class="avatar-neck"></div><div class="avatar-head"><div class="avatar-ear left"></div><div class="avatar-ear right"></div><div class="avatar-hair back"></div><div class="avatar-face"><i class="eye left"></i><i class="eye right"></i><i class="mouth"></i></div><div class="avatar-hair front"></div><div class="avatar-accessory"></div></div></div>`;
   }
-  function optionButtons(key,label){return `<div class="character-option"><h4>${label}</h4><div class="character-choice-grid">${CHARACTER_OPTIONS[key].map(([value,name])=>`<button type="button" data-character-key="${key}" data-character-value="${value}" class="${state.character[key]===value?'selected':''}"><span class="choice-swatch ${key}-${value}"></span>${name}</button>`).join('')}</div></div>`;}
-  function renderProfile(){const player=document.getElementById('activePlayerName')?.textContent||'Miner';return `<div class="character-profile"><section class="character-preview-card"><div class="profile-nameplate"><span class="placement-kicker">Your miner</span><h3>${player}</h3><p>${state.selectedTitle||'Japanese Learner'}</p></div>${characterMarkup('large')}<div class="character-save-note">Changes save automatically to this profile and are included in account backups.</div></section><section class="character-customizer">${optionButtons('skin','Skin tone')}${optionButtons('hairStyle','Hair style')}${optionButtons('hairColor','Hair color')}${optionButtons('shirt','Clothing top')}${optionButtons('pants','Clothing bottom')}${optionButtons('accessory','Accessory')}<button id="randomizeCharacterBtn" class="primary" type="button">🎲 Randomize character</button></section></div>`;}
-  function randomizeCharacter(){Object.entries(CHARACTER_OPTIONS).forEach(([key,values])=>state.character[key]=values[Math.floor(Math.random()*values.length)][0]);save();renderFeatureCenter('profile');render();}
+  function optionButtons(key,label){return `<div class="character-option"><h4>${label}</h4><div class="character-choice-grid">${CHARACTER_OPTIONS[key].map(([value,name],index)=>{const owned=cosmeticOwned(key,value),price=index===0?0:COSMETIC_PRICES[key]||0;return `<button type="button" data-character-key="${key}" data-character-value="${value}" class="${state.character[key]===value?'selected':''} ${owned?'owned':'locked'}"><span class="choice-swatch ${key}-${value}"></span><span>${name}<small>${owned?'Owned':`${price.toLocaleString()} 🪙`}</small></span></button>`;}).join('')}</div></div>`;}
+  function themeButtons(){return `<div class="character-option"><h4>Bright game colors — free</h4><div class="theme-choice-grid">${COLOR_THEMES.map(([value,name])=>`<button type="button" data-color-theme="${value}" class="${state.colorTheme===value?'selected':''}"><span class="theme-swatch theme-${value}"></span><span>${name}<small>Included</small></span></button>`).join('')}</div></div>`;}
+  function renderProfile(){const player=document.getElementById('activePlayerName')?.textContent||'Miner';return `<div class="character-profile"><section class="character-preview-card"><div class="profile-nameplate"><span class="placement-kicker">Your miner</span><h3>${player}</h3><p>${state.selectedTitle||'Japanese Learner'}</p><strong class="cosmetic-balance">🪙 ${totalStoneValue().toLocaleString()} Nuggets</strong></div>${characterMarkup('large')}<div class="character-save-note">Skin tones are always free. Hair, clothes, and accessories are one-time unlocks saved to this profile.</div></section><section class="character-customizer">${themeButtons()}${optionButtons('skin','Skin tone — free')}${optionButtons('hairStyle','Hair style')}${optionButtons('hairColor','Hair color')}${optionButtons('shirt','Clothing top')}${optionButtons('pants','Clothing bottom')}${optionButtons('accessory','Accessory')}<button id="randomizeCharacterBtn" class="primary" type="button">🎲 Randomize owned style</button></section></div>`;}
+  function randomizeCharacter(){Object.entries(CHARACTER_OPTIONS).forEach(([key,values])=>{const available=values.filter(([value])=>cosmeticOwned(key,value));state.character[key]=available[Math.floor(Math.random()*available.length)][0];});save();renderFeatureCenter('profile');render();}
 
   function renderQuests(){return `<div class="feature-section"><h3>Daily quests</h3><p class="small">Refresh each calendar day.</p>${DAILY_QUESTS.map(q=>progressCard(q,'daily')).join('')}<h3>Weekly quests</h3><p class="small">Refresh every Monday.</p>${WEEKLY_QUESTS.map(q=>progressCard(q,'weekly')).join('')}</div>`;}
   function renderAchievements(){return `<div class="achievement-grid">${ACHIEVEMENTS.map(a=>{const unlocked=state.achievements[a.id];return `<article class="achievement-card ${unlocked?'unlocked':''}"><span>${unlocked?'🏆':'🔒'}</span><div><strong>${a.name}</strong><p>${a.desc}</p><small>Reward: ${a.reward.toLocaleString()} Nuggets · Title: ${a.title}</small></div>${unlocked?`<button data-title="${a.title}" ${state.selectedTitle===a.title?'disabled':''}>${state.selectedTitle===a.title?'Equipped':'Use title'}</button>`:''}</article>`}).join('')}</div>`;}
@@ -2096,3 +2130,6 @@ applyWallpaper();
   const loadV38=loadProfile;loadProfile=function(profile){loadV38(profile);ensureV38();save();};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{featureShell();addMenuItems();});else{featureShell();addMenuItems();}
 })();
+
+// Finish restoring all v4.3 profile features after an automatic refresh sign-in.
+if(activeProfileId)render();

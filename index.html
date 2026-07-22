@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#101522" />
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
 <link rel="manifest" href="manifest.webmanifest" />
-<link rel="stylesheet" href="styles.css?v=4.2" />
+<link rel="stylesheet" href="styles.css?v=4.3" />
 
 </head>
 <body>
@@ -48,7 +48,7 @@
     <h1>⛏️ Japanese Miner</h1>
     <div class="subtitle">Learn Japanese. Mine gems. Rise from Hiragana to JLPT N1.</div>
   </div>
-  <div class="account-chip"><span class="build-badge">v4.2</span><span>👤 <b id="activePlayerName">Not signed in</b></span><button id="headerStatsBtn" type="button" title="Open quick stats">📊 Stats</button><button id="developerBtn" class="developer-only" type="button" hidden>👑 Admin</button><button id="logoutBtn" type="button">Log out</button></div>
+  <div class="account-chip"><span class="build-badge">v4.3</span><span>👤 <b id="activePlayerName">Not signed in</b></span><button id="headerStatsBtn" type="button" title="Open quick stats">📊 Stats</button><button id="developerBtn" class="developer-only" type="button" hidden>👑 Admin</button><button id="logoutBtn" type="button">Log out</button></div>
 </header>
 
 <button id="quickMineBtn" class="quick-mine-btn" type="button" aria-label="Start or return to the current question">⛏️ <span id="quickMineLabel">New Question</span></button>
@@ -125,7 +125,8 @@
 
 <div class="grid">
   <main>
-    <section class="panel mine">
+    <section class="panel mine" aria-label="Current learning-path cave">
+      <div class="cave-scene" aria-hidden="true"><i class="cave-arch"></i><i class="cave-depth"></i><i class="cave-crystal c1"></i><i class="cave-crystal c2"></i><i class="cave-crystal c3"></i><i class="cave-lantern"></i></div>
       <div class="rock" id="rock" data-pickaxe="standard" title="Mine with Standard Pickaxe"><span id="pickaxeIcon" class="pickaxe-icon">⛏️</span></div>
       <h2 class="mine-title">Tap the rock to reveal a Japanese challenge</h2>
       <div class="mine-note">Correct answers produce better gems. Longer streaks increase gem quality and quantity.</div>
@@ -327,10 +328,10 @@
   </section>
 </div>
 
-<div class="footer">Japanese Miner v4.2 — voice learning, smart review, quests, achievements, mistake notebook, detailed statistics, and portable account backups.</div>
+<div class="footer">Japanese Miner v4.3 — live progress, themed caves, cosmetic rewards, brighter palettes, and question-safe voice learning.</div>
 </div>
 
-<script src="game.js?v=4.2" defer></script>
+<script src="game.js?v=4.3" defer></script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));}</script>
 
 </body>
