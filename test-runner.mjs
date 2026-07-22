@@ -331,9 +331,9 @@ const tests = [
       for (const token of ['.miner-avatar','.character-customizer','.character-choice-grid']) assert(css.includes(token), `Missing character styling token: ${token}`);
       for (const style of ['short','bob','long','bun','buzz','ponytail','wavy','undercut','twintails']) {
         assert(fs.existsSync(path.join(ROOT,`assets/avatar/hairstyles/${style}.png`)), `Missing rendered hairstyle: ${style}`);
-        for (const mask of ['skin','hair','jacket','pants','gloves','shoes']) assert(fs.existsSync(path.join(ROOT,`assets/avatar/hairstyles/masks/${style}/${mask}.png`)), `Missing ${mask} mask for hairstyle: ${style}`);
+        assert(fs.existsSync(path.join(ROOT,`assets/avatar/hairstyles/masks/${style}/skin.png`)), `Missing skin mask for hairstyle: ${style}`);
       }
-      for (const mask of ['skin','hair','jacket','pants','gloves','shoes']) assert(fs.existsSync(path.join(ROOT,`assets/avatar/hairstyles/masks/spiky/${mask}.png`)), `Missing ${mask} mask for hairstyle: spiky`);
+      assert(fs.existsSync(path.join(ROOT,'assets/avatar/hairstyles/masks/spiky/skin.png')), 'Missing skin mask for hairstyle: spiky');
       assert(previewJs.includes("japaneseMinerCharacterMarkup?.('large',{[item.key]:item.value})"), 'Locked cosmetic previews must freshly render the selected hairstyle and its matching masks.');
       assert(previewJs.includes('avatar.dataset.previewKey=item.key'), 'Try-on previews must identify the selected cosmetic layer.');
       const previewCss=read('v6.css');
@@ -341,6 +341,14 @@ const tests = [
       for(const key of ['hairColor','shirt','jacket','pants','gloves','shoes']) assert(previewCss.includes(`data-preview-key="${key}"`), `Missing focused true-color preview rule for ${key}.`);
       assert(previewCss.includes('mix-blend-mode:hue!important;opacity:.94!important'), 'Rendered cosmetics must preserve the original artwork luminance and texture.');
       for(const value of ['black','blonde','silver']) assert(previewCss.includes(`data-hair-color="${value}"`), `Missing textured special-case hair treatment for ${value}.`);
+      assert(js.includes('renderedColorVars')&&js.includes('syncJapaneseMinerRenderedLayers'), 'Rendered WebP color layers must stay synchronized with equipped cosmetics.');
+      assert(previewCss.includes('background-image:var(--recolor-hair)!important')&&previewCss.includes('mix-blend-mode:normal!important'), 'Cosmetic colors must use rendered image layers instead of browser blend effects.');
+      const recolorBundle=Array.from({length:38},(_,i)=>read(`recolors-${i+1}.js`)).join('');
+      assert(recolorBundle.includes('getJapaneseMinerRecolor'), 'Missing bundled rendered cosmetic artwork loader.');
+      for(const style of ['short','spiky','bob','long','bun','buzz','ponytail','wavy','undercut','twintails']) for(const file of ['hair/red','shirt/casual','pants/black','shoes/boots']) assert(recolorBundle.includes(`"${style}/${file}"`),`Missing bundled cosmetic layer: ${style}/${file}`);
+      const countFiles=dir=>fs.readdirSync(dir,{withFileTypes:true}).reduce((sum,row)=>sum+(row.isDirectory()?countFiles(path.join(dir,row.name)):1),0);
+      assert(countFiles(ROOT)<100,'GitHub web uploads must contain fewer than 100 files.');
+      for(const bundle of Array.from({length:38},(_,i)=>`recolors-${i+1}.js`)) assert(fs.statSync(path.join(ROOT,bundle)).size<2_000_000,`${bundle} exceeds the safe 2 MB web-upload size.`);
     }
   },
   {

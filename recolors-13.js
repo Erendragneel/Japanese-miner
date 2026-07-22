@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Japanese Miner</title>
+<meta name="description" content="A relaxing Japanese-learning mining game with kana mastery, gemstones, nuggets, and collectible pickaxes." />
+<meta name="theme-color" content="#101522" />
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="stylesheet" href="styles.css?v=6.2.8" />
+<link rel="stylesheet" href="v5.css?v=6.2.8" />
+<link rel="stylesheet" href="v6.css?v=6.2.8" />
+
+</head>
+<body>
+
+<div id="authOverlay" class="auth-overlay">
+  <section class="auth-card" aria-labelledby="authTitle">
+    <h2 id="authTitle">⛏️ Japanese Miner Profiles</h2>
+    <p>Create a local player profile or sign in to continue your own saved game. Each profile stores separate progress on this device and browser.</p>
+    <div class="auth-tabs">
+      <button id="loginTabBtn" class="primary" type="button">Sign in</button>
+      <button id="createTabBtn" type="button">Create profile</button>
+    </div>
+    <div id="profileList" class="profile-list"></div>
+    <div class="auth-field"><label for="authUsername">Player name</label><input id="authUsername" maxlength="20" autocomplete="username" placeholder="Enter player name"></div>
+    <div class="auth-field"><label for="authPin">4–8 digit PIN</label><input id="authPin" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password" placeholder="Enter PIN"></div>
+    <div id="confirmPinWrap" class="auth-field" style="display:none"><label for="authPinConfirm">Confirm PIN</label><input id="authPinConfirm" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password" placeholder="Re-enter PIN"></div>
+    <label id="migrateWrap" class="form-check" style="display:none;margin-top:10px"><input id="migrateOldSave" class="form-check-input" type="checkbox" checked><span class="form-check-label">Import the existing prototype save into this new profile</span></label>
+    <div class="auth-actions"><button id="authSubmitBtn" class="primary" type="button">Sign in</button></div>
+    <div id="authMessage" class="auth-message" aria-live="polite"></div>
+    <div class="small">Local profiles are not online accounts. Clearing browser storage or switching devices will remove access unless you export an account backup first.</div>
+  </section>
+</div>
+
+<div id="placementOverlay" class="placement-overlay" aria-hidden="true">
+  <section class="placement-card" role="dialog" aria-modal="true" aria-labelledby="placementTitle">
+    <div class="placement-head">
+      <div><div class="placement-kicker">New player setup</div><h2 id="placementTitle">Choose where your journey begins</h2></div>
+      <button id="placementCloseBtn" class="placement-close" type="button" aria-label="Close placement test">×</button>
+    </div>
+    <div id="placementContent" aria-live="polite"></div>
+  </section>
+</div>
+
+<div class="app">
+<header>
+  <div>
+    <h1>⛏️ Japanese Miner</h1>
+    <div class="subtitle">Learn Japanese. Mine gems. Rise from Hiragana to JLPT N1.</div>
+  </div>
+  <div class="account-chip"><span class="build-badge">v6.2.8</span><span>👤 <b id="activePlayerName">Not signed in</b></span><button id="headerStatsBtn" type="button" title="Open quick stats">📊 Stats</button><button id="developerBtn" class="developer-only" type="button" hidden>👑 Admin</button><button id="logoutBtn" type="button">Log out</button></div>
+</header>
+
+<section class="v5-launch-card" aria-label="Japanese Miner version 5 expansion">
+  <div><span id="v5LoadStatus">⏳ Loading v5 expansion…</span><h2>🗺️ Expedition Hub</h2><p>Cave maps, bosses, smart review, word cards, companions, settlement, missions, events, and fashion.</p></div>
+  <button id="v5LaunchBtn" class="primary" type="button" onclick="if(window.openJapaneseMinerV5){window.openJapaneseMinerV5('map')}else{alert('The v5.js expansion file has not loaded. Confirm v5.js and v5.css were uploaded to the GitHub repository root.')}" disabled>Open Expedition Hub</button>
+</section>
+
+<button id="quickMineBtn" class="quick-mine-btn" type="button" aria-label="Start or return to the current question">⛏️ <span id="quickMineLabel">New Question</span></button>
+<button id="gameMenuBtn" class="game-menu-btn" type="button" aria-label="Open game menu" aria-expanded="false">☰</button>
+<div id="statsOverlay" class="stats-overlay"></div>
+<aside id="statsDrawer" class="stats-drawer" aria-hidden="true">
+  <div class="stats-drawer-head">
+    <div><h2>Quick Stats</h2><div class="small">Your progress at a glance</div></div>
+    <button id="closeStatsBtn" class="stats-close" type="button" aria-label="Close quick stats">×</button>
+  </div>
+  <div class="quick-stats-grid">
+    <div class="quick-stat"><span>Nugget balance</span><strong>🪙 <b id="stoneWealth">0</b> Nuggets</strong></div>
+    <div class="quick-stat"><span>Practice health</span><strong>❤️ <b id="hearts">3</b>/<b id="maxHeartsTop">3</b></strong></div>
+    <div class="quick-stat"><span>Daily streak</span><strong>📅 <b id="practiceStreak">0</b> days</strong></div>
+    <div class="quick-stat"><span>Japanese level</span><strong>⭐ Lv. <b id="level">1</b></strong></div>
+    <div class="quick-stat"><span>Answer streak</span><strong>🔥 <b id="streak">0</b></strong></div>
+    <div class="quick-stat"><span>Current mine</span><strong id="quickStage">Hiragana</strong></div>
+  </div>
+  <div class="learning-settings">
+    <label for="supportMode">Reading support
+      <select id="supportMode">
+        <option value="guided">Guided — readings and furigana</option>
+        <option value="standard">Standard — normal furigana</option>
+        <option value="challenge">Challenge — reduced furigana</option>
+      </select>
+    </label>
+    <label id="n5TierWrap" for="n5Tier" hidden>N5 learning track
+      <select id="n5Tier">
+        <option value="beginner">Beginner — vocabulary first</option>
+        <option value="intermediate">Intermediate — particles and readings</option>
+        <option value="advanced">Advanced — short sentences</option>
+      </select>
+    </label>
+    <label id="n5CurriculumWrap" for="n5Curriculum" hidden>N5 curriculum source
+      <select id="n5Curriculum">
+        <option value="mixed">Mixed — standard N5 + tutor lessons</option>
+        <option value="tutor">Tutor Curriculum only</option>
+        <option value="standard">Standard N5 only</option>
+      </select>
+    </label>
+    <label id="tutorTrackWrap" for="tutorTrack" hidden>Tutor lesson track
+      <select id="tutorTrack">
+        <option value="all">All tutor material</option>
+        <option value="vocabulary">Core vocabulary</option>
+        <option value="verbs">Verb groups and conjugation</option>
+        <option value="particles">Particles</option>
+        <option value="patterns">Wants, requests, ability and plans</option>
+        <option value="adjectives">Adjectives and descriptions</option>
+        <option value="conversation">Daily conversation</option>
+      </select>
+    </label>
+    <div id="tutorMasteryLabel" class="small">Tutor curriculum mastery: 0%</div>
+    <div class="small">Changing either setting starts a fresh question. Recent-question memory reduces repetition.</div>
+  </div>
+  <div class="voice-session-settings" aria-label="Voice and smart review settings">
+    <label class="form-check form-switch sound-toggle"><input id="soundToggle" class="form-check-input" type="checkbox" checked><span class="form-check-label">Answer sounds</span></label>
+    <label class="form-check form-switch sound-toggle"><input id="voiceToggle" class="form-check-input" type="checkbox" checked><span class="form-check-label">Japanese voice</span></label>
+    <label class="form-check form-switch sound-toggle"><input id="autoSpeakToggle" class="form-check-input" type="checkbox" checked><span class="form-check-label">Speak new questions automatically</span></label>
+    <label class="form-check form-switch sound-toggle"><input id="smartReviewToggle" class="form-check-input" type="checkbox" checked><span class="form-check-label">Smart Review weak questions</span></label>
+    <label for="voiceRate">Voice speed <span id="voiceRateLabel">0.85×</span><input id="voiceRate" type="range" min="0.55" max="1.15" step="0.05" value="0.85"></label>
+    <button id="testVoiceBtn" type="button">🔊 Test Japanese Voice</button>
+  </div>
+  <section class="session-summary" aria-label="Current study session">
+    <div><span>Session</span><strong><b id="sessionAnswered">0</b>/<b id="sessionGoal">20</b></strong></div>
+    <div><span>Accuracy</span><strong id="sessionAccuracy">—</strong></div>
+    <div class="session-progress"><i id="sessionProgressBar" style="width:0%"></i></div>
+  </section>
+  <div class="quick-actions">
+    <button id="jumpHealthBtn" type="button">❤️ Health</button>
+    <button id="jumpMasteryBtn" type="button">🔤 Mastery</button><button id="placementTestBtn" type="button">🧭 Placement Test</button>
+  </div>
+</aside>
+
+<div class="grid">
+  <main>
+    <section class="panel mine" aria-label="Current learning-path cave">
+      <div class="cave-scene" aria-hidden="true"><i class="cave-arch"></i><i class="cave-depth"></i><i class="cave-crystal c1"></i><i class="cave-crystal c2"></i><i class="cave-crystal c3"></i><i class="cave-lantern"></i></div>
+      <div class="rock" id="rock" data-pickaxe="standard" title="Mine with Standard Pickaxe"><span id="pickaxeIcon" class="pickaxe-icon">⛏️</span></div>
+      <h2 class="mine-title">Tap the rock to reveal a Japanese challenge</h2>
+      <div class="mine-note">Correct answers produce better gems. Longer streaks increase gem quality and quantity.</div>
+    </section>
+
+    <section class="panel" style="margin-top:14px">
+      <div class="progress-wrap">
+        <div class="progress-label"><span id="stageName">Hiragana Mine</span><span><span id="xp">0</span>/<span id="xpNeed">100</span> XP</span></div>
+        <div class="progress"><div class="bar" id="xpBar"></div></div>
+      </div>
+
+      <div id="challengeArea">
+        <div class="small">No challenge active.</div>
+      </div>
+      <div class="message" id="message"></div>
+
+      <div class="controls">
+        <button id="hintBtn" class="warn" disabled>💡 Hint (<span id="hints">2</span>)</button>
+        <button id="shieldBtn" class="good" disabled>🛡️ Use Shield (<span id="shields">1</span>)</button>
+        <button id="nextBtn" class="primary" disabled>Next Mine</button>
+        <button id="resetBtn" class="danger">Reset Save</button>
+      </div>
+    </section>
+  </main>
+
+  <aside>
+    <section class="panel" id="healthSection">
+      <h3 class="section-title">Practice Health</h3>
+      <div style="display:flex;justify-content:space-between"><strong>❤️ <span id="healthText">3/3</span></strong><span class="small">Maximum: 14</span></div>
+      <div class="health-track"><div class="health-fill" id="healthFill"></div></div>
+      <p class="small">One heart is lost for each calendar day without Japanese practice. Wrong answers may also cost one heart.</p>
+      <div id="recoveryBox" class="recovery-box" aria-live="polite">
+        <strong>❤️ Out of Hearts</strong>
+        <div class="small">You do not have enough Nuggets for a restore.</div>
+        <div id="recoveryTime" class="recovery-time">30:00</div>
+        <div class="small">You will gain 3 hearts when the timer reaches zero.</div>
+      </div>
+      <button id="maxHeartBtn" onclick="buyMaxHeart()">Increase Max Health — <span id="maxHeartCost">1 Agate</span></button>
+    </section>
+
+    <section class="panel" style="margin-top:14px">
+      <h3 class="section-title">Learning Path</h3>
+      <div class="path" id="path"></div>
+    </section>
+
+    <section class="panel" style="margin-top:14px">
+      <h3 class="section-title">Nugget Exchange</h3>
+      <p class="small">Prices increase automatically as higher learning mines are unlocked.</p>
+      <div class="shop">
+        <div class="item">
+          <div class="item-top"><strong>💡 Hint Crystal</strong><span id="hintShopPrice">2,500 Nuggets</span></div>
+          <p>Reveals one incorrect answer during a challenge.</p>
+          <button id="buyHintBtn" onclick="buy('hint')">Buy</button>
+        </div>
+        <div class="item">
+          <div class="item-top"><strong>🛡️ Life Shield</strong><span id="shieldShopPrice">10,000 Nuggets</span></div>
+          <p>Protects one heart after a wrong answer.</p>
+          <button id="buyShieldBtn" onclick="buy('shield')">Buy</button>
+        </div>
+        <div class="item">
+          <div class="item-top"><strong>❤️ Heart Restore</strong><span id="heartShopPrice">50,000 Nuggets</span></div>
+          <p>Restores all hearts.</p>
+          <button id="buyHeartBtn" onclick="buy('heart')">Buy</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel legacy-workshop" style="margin-top:14px" hidden>
+      <h3 class="section-title">Pickaxe Workshop</h3>
+      <p class="small">Purchase permanent cosmetic pickaxe skins with Nuggets. Skins do not change gem odds or learning rewards.</p>
+      <div class="pickaxe-shop" id="pickaxeShop"></div>
+    </section>
+
+    <section class="panel" style="margin-top:14px">
+      <h3 class="section-title">Inventory</h3>
+      <div class="inventory">
+        <div class="inv"><div>💡</div><strong id="invHints">2</strong><div class="small">Hints</div></div>
+        <div class="inv"><div>🛡️</div><strong id="invShields">1</strong><div class="small">Shields</div></div>
+        <div class="inv"><div>🏆</div><strong id="bestStreak">0</strong><div class="small">Best streak</div></div>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<section class="panel" id="masterySection" style="margin-top:14px">
+  <h3 class="section-title">Kana Mastery Chart</h3>
+  <div class="kana-tabs">
+    <button id="hiraTab" onclick="setKanaTab('hiragana')" class="primary">Hiragana</button>
+    <button id="kataTab" onclick="setKanaTab('katakana')">Katakana</button>
+  </div>
+  <p class="small">Each correct answer begins at 4% mastery. Repeated accurate practice gradually raises the character toward 100%.</p>
+  <div class="progress-summary">
+    <div class="progress-box"><strong id="kanaAttempts">0</strong><span class="small">Attempts</span></div>
+    <div class="progress-box"><strong id="kanaCorrect">0</strong><span class="small">Correct</span></div>
+    <div class="progress-box"><strong><span id="kanaAverage">0</span>%</strong><span class="small">Average mastery</span></div>
+  </div>
+  <div class="latest-progress" id="latestKanaProgress" style="display:none"></div>
+  <div class="kana-grid" id="kanaGrid"></div>
+</section>
+
+
+<section class="panel academy-launch" id="n5AcademySection" style="margin-top:14px">
+  <div class="academy-launch-head">
+    <div><h3 class="section-title">⛏️ JLPT Course & Progress</h3><p class="small">Open the course for your selected JLPT mine: study vocabulary, kanji, grammar, reading, listening, reviews, and tests.</p></div>
+    <div class="n5-launch-actions"><button id="enterN5MineBtn" type="button">⛏️ Enter Selected Mine</button><button id="openAcademyBtn" class="primary" type="button">📚 Open Selected JLPT Course</button></div>
+  </div>
+  <div class="academy-summary-grid">
+    <div class="academy-summary"><strong id="academyVocabSummary">0/1000</strong><span>Vocabulary target</span></div>
+    <div class="academy-summary"><strong id="academyKanjiSummary">0/120</strong><span>Kanji mastered</span></div>
+    <div class="academy-summary"><strong id="academyGrammarSummary">0/90</strong><span>Grammar mastered</span></div>
+    <div class="academy-summary"><strong id="academyReadinessSummary">0%</strong><span>N5 readiness</span></div>
+  </div>
+</section>
+
+<section class="panel" style="margin-top:14px">
+  <h3 class="section-title">Scientific Gem Collection</h3>
+  <p class="science-note">Gemstones are now the game currency. Each stone has a fixed Nugget value; common stones are easier to mine, while Red Diamond is the rarest and most valuable. Shop purchases automatically spend the lowest-value stones first and return change as lower stones when needed.</p>
+  <div class="wealth-line"><span><strong>Total Nuggets</strong><div class="small">Replaces the old generic gem currency</div></span><span class="gem-value"><span id="collectionWealth">0</span> Nuggets</span></div>
+  <div class="collection-head"><strong><span id="totalGemstones">0</span> gemstones collected</strong><span class="badge"><span id="uniqueGemstones">0</span>/<span id="gemSpeciesTotal">15</span> types discovered</span></div>
+  <div class="latest-progress" id="latestGemProgress" style="display:none"></div>
+  <div class="gem-log" id="gemCollection"></div>
+</section>
+
+
+
+<div id="gameMenuOverlay" class="game-menu-overlay" aria-hidden="true">
+  <section class="game-menu-panel" role="dialog" aria-modal="true" aria-labelledby="gameMenuTitle">
+    <div class="game-menu-head"><div><div class="placement-kicker">Japanese Miner</div><h2 id="gameMenuTitle">Game Menu</h2></div><button id="closeGameMenuBtn" type="button" aria-label="Close game menu">×</button></div>
+    <div class="menu-wheel">
+      <button type="button" data-menu-action="course"><span>📚</span><strong>Course</strong><small>Study your current JLPT level</small></button>
+      <button type="button" data-menu-action="shop"><span>🛍️</span><strong>Shop</strong><small>Skins, wallpapers, and supplies</small></button>
+      <button type="button" data-menu-action="inventory"><span>🎒</span><strong>Inventory</strong><small>Hints, shields, and gemstones</small></button>
+      <button type="button" data-menu-action="path"><span>🧭</span><strong>Learning Path</strong><small>Review every unlocked mine</small></button>
+      <button type="button" data-menu-action="stats"><span>📊</span><strong>Stats</strong><small>Progress, settings, and calendar</small></button>
+      <button type="button" data-menu-action="mine"><span>⛏️</span><strong>Mine</strong><small>Return to your current question</small></button>
+    </div>
+  </section>
+</div>
+
+<div id="shopOverlay" class="shop-overlay" aria-hidden="true">
+  <section class="shop-panel" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
+    <div class="shop-head"><div><div class="placement-kicker">Nugget Marketplace</div><h2 id="shopTitle">Miner Shop</h2><p>Spend Nuggets on permanent cosmetics or useful practice supplies.</p></div><button id="closeShopBtn" type="button" aria-label="Close shop">×</button></div>
+    <div class="shop-balance">🪙 <strong id="shopNuggetBalance">0</strong> Nuggets available</div>
+    <div class="shop-tabs" role="tablist">
+      <button type="button" data-shop-tab="pickaxes" class="primary">⛏️ Pickaxe Skins</button>
+      <button type="button" data-shop-tab="character">🧍 Character</button>
+      <button type="button" data-shop-tab="fashion">👘 Fashion</button>
+      <button type="button" data-shop-tab="companions">🐾 Companions</button>
+      <button type="button" data-shop-tab="settlement">🏘️ Settlement</button>
+      <button type="button" data-shop-tab="wallpapers">🖼️ Wallpapers</button>
+      <button type="button" data-shop-tab="supplies">🎒 Supplies</button>
+    </div>
+    <div id="shopContent" class="shop-content"></div>
+  </section>
+</div>
+
+
+<div id="academyOverlay" class="academy-overlay" aria-hidden="true">
+  <section class="academy-panel" role="dialog" aria-modal="true" aria-labelledby="academyTitle">
+    <div class="academy-head"><div><h2 id="academyTitle">⛏️ JLPT N5 Mine — Course & Progress</h2><p>The mine and every N5 study tool share the same progress and mastery.</p></div><button id="closeAcademyBtn" type="button" aria-label="Close academy">×</button></div>
+    <div class="academy-tabs" role="tablist">
+      <button data-academy-tab="overview" class="primary" type="button">N5 Hub</button><button data-academy-tab="vocabulary" type="button">Vocabulary</button><button data-academy-tab="kanji" type="button">Kanji</button><button data-academy-tab="grammar" type="button">Grammar</button><button data-academy-tab="reading" type="button">Reading</button><button data-academy-tab="listening" type="button">Listening</button><button data-academy-tab="review" type="button">Daily Review</button><button data-academy-tab="tests" type="button">Tests</button>
+    </div>
+    <div id="academyContent" class="academy-content"></div>
+  </section>
+</div>
+
+<div id="developerOverlay" class="developer-overlay" aria-hidden="true">
+  <section class="developer-panel" role="dialog" aria-modal="true" aria-labelledby="developerTitle">
+    <div class="developer-head">
+      <div><h2 id="developerTitle">👑 Developer Control Center</h2><p>Testing tools for the Erendragneel administrator profile.</p></div>
+      <button id="closeDeveloperBtn" type="button" aria-label="Close developer controls">×</button>
+    </div>
+    <div class="developer-status"><span>Active profile</span><strong id="developerProfileName">Erendragneel</strong><span class="badge">ADMIN</span></div>
+    <div class="developer-grid">
+      <div class="developer-group">
+        <h3>🪙 Economy</h3>
+        <label>Set total Nuggets<input id="adminNuggetAmount" type="number" min="0" step="1000" value="1000000"></label>
+        <div class="developer-actions"><button data-admin="set-nuggets" type="button">Set Nuggets</button><button data-admin="add-million" type="button">+1,000,000</button><button data-admin="add-gems" type="button">+100 of every gem</button></div>
+      </div>
+      <div class="developer-group">
+        <h3>❤️ Health</h3>
+        <div class="developer-actions"><button data-admin="restore-hearts" type="button">Restore Hearts</button><button data-admin="max-hearts" type="button">Set 14 Max Hearts</button></div>
+        <label class="admin-toggle"><input id="adminInfiniteHearts" type="checkbox"> Infinite hearts / no heart loss</label>
+      </div>
+      <div class="developer-group">
+        <h3>📚 Progression</h3>
+        <label>Jump to learning stage<select id="adminStageSelect"><option value="0">Hiragana</option><option value="1">Katakana</option><option value="2">JLPT N5</option><option value="3">JLPT N4</option><option value="4">JLPT N3</option><option value="5">JLPT N2</option><option value="6">JLPT N1</option></select></label>
+        <div class="developer-actions"><button data-admin="set-stage" type="button">Apply Stage</button><button data-admin="master-kana" type="button">Master All Kana</button><button data-admin="unlock-all" type="button">Unlock Everything</button></div>
+      </div>
+      <div class="developer-group">
+        <h3>⛏️ Cosmetics & Inventory</h3>
+        <div class="developer-actions"><button data-admin="unlock-pickaxes" type="button">Unlock All Pickaxes</button><button data-admin="add-items" type="button">+99 Hints & Shields</button></div>
+      </div>
+      <div class="developer-group developer-wide">
+        <h3>💾 Save Testing</h3>
+        <div class="developer-actions"><button data-admin="export-save" type="button">Export Save File</button><button data-admin="copy-save" type="button">Show Save JSON</button><button data-admin="reset-profile" class="danger" type="button">Reset Profile</button></div>
+        <textarea id="adminSaveJson" rows="6" placeholder="Exported save JSON appears here. You can also paste a save here and use Import."></textarea>
+        <button data-admin="import-save" type="button">Import Pasted Save</button>
+      </div>
+    </div>
+    <div id="developerMessage" class="developer-message" aria-live="polite"></div>
+  </section>
+</div>
+
+<div class="footer">Japanese Miner v6.2.8 — Tiny GitHub upload bundles.</div>
+</div>
+
+<script src="recolors-1.js?v=6.2.8" defer></script>
+<script src="recolors-2.js?v=6.2.8" defer></script>
+<script src="recolors-3.js?v=6.2.8" defer></script>
+<script src="recolors-4.js?v=6.2.8" defer></script>
+<script src="recolors-5.js?v=6.2.8" defer></script>
+<script src="recolors-6.js?v=6.2.8" defer></script>
+<script src="recolors-7.js?v=6.2.8" defer></script>
+<script src="recolors-8.js?v=6.2.8" defer></script>
+<script src="recolors-9.js?v=6.2.8" defer></script>
+<script src="recolors-10.js?v=6.2.8" defer></script>
+<script src="recolors-11.js?v=6.2.8" defer></script>
+<script src="recolors-12.js?v=6.2.8" defer></script>
+<script src="recolors-13.js?v=6.2.8" defer></script>
+<script src="recolors-14.js?v=6.2.8" defer></script>
+<script src="recolors-15.js?v=6.2.8" defer></script>
+<script src="recolors-16.js?v=6.2.8" defer></script>
+<script src="recolors-17.js?v=6.2.8" defer></script>
+<script src="recolors-18.js?v=6.2.8" defer></script>
+<script src="recolors-19.js?v=6.2.8" defer></script>
+<script src="recolors-20.js?v=6.2.8" defer></script>
+<script src="recolors-21.js?v=6.2.8" defer></script>
+<script src="recolors-22.js?v=6.2.8" defer></script>
+<script src="recolors-23.js?v=6.2.8" defer></script>
+<script src="recolors-24.js?v=6.2.8" defer></script>
+<script src="recolors-25.js?v=6.2.8" defer></script>
+<script src="recolors-26.js?v=6.2.8" defer></script>
+<script src="recolors-27.js?v=6.2.8" defer></script>
+<script src="recolors-28.js?v=6.2.8" defer></script>
+<script src="recolors-29.js?v=6.2.8" defer></script>
+<script src="recolors-30.js?v=6.2.8" defer></script>
+<script src="recolors-31.js?v=6.2.8" defer></script>
+<script src="recolors-32.js?v=6.2.8" defer></script>
+<script src="recolors-33.js?v=6.2.8" defer></script>
+<script src="recolors-34.js?v=6.2.8" defer></script>
+<script src="recolors-35.js?v=6.2.8" defer></script>
+<script src="recolors-36.js?v=6.2.8" defer></script>
+<script src="recolors-37.js?v=6.2.8" defer></script>
+<script src="recolors-38.js?v=6.2.8" defer></script>
+<script src="game.js?v=6.2.8" defer></script>
+<script src="v5.js?v=6.2.8" defer></script>
+<script src="v6.js?v=6.2.8" defer></script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));}</script>
+
+</body>
+</html>

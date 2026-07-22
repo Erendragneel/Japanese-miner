@@ -104,3 +104,13 @@ button,.panel,.v5-card,.cosmetic-card{transition:transform .16s ease,border-colo
 .preview-avatar[data-preview-key="hairColor"][data-hair-color="silver"] .rendered-hair-tint,
 .preview-avatar[data-preview-key="pants"][data-pants="black"] .rendered-pants-tint,
 .preview-avatar[data-preview-key="pants"][data-pants="white"] .rendered-pants-tint{mix-blend-mode:color!important}
+
+/* v6.2.4: browser blend modes are replaced by artwork-derived WebP layers.
+   Each transparent layer contains the original material luminance, so texture
+   is preserved without a translucent highlight or flat paint block. */
+.rendered-hair-tint,.rendered-shirt-tint,.rendered-pants-tint,.rendered-glove-tint,.rendered-shoe-tint{background-color:transparent!important;background-repeat:no-repeat!important;background-position:center!important;background-size:contain!important;-webkit-mask-image:none!important;mask-image:none!important;mix-blend-mode:normal!important;opacity:1!important}
+.rendered-hair-tint{background-image:var(--recolor-hair)!important}
+.rendered-shirt-tint{background-image:var(--recolor-shirt)!important}
+.rendered-pants-tint{background-image:var(--recolor-pants)!important}
+.rendered-glove-tint{background-image:var(--recolor-gloves)!important}
+.rendered-shoe-tint{background-image:var(--recolor-shoes)!important}
