@@ -1938,7 +1938,7 @@ function renderShop(){
  const balance=document.getElementById('shopNuggetBalance');if(balance)balance.textContent=totalStoneValue().toLocaleString();
  document.querySelectorAll('[data-shop-tab]').forEach(b=>b.classList.toggle('primary',b.dataset.shopTab===activeShopTab));
  const box=document.getElementById('shopContent');if(!box)return;
- if(activeShopTab==='character'&&typeof window.renderJapaneseMinerCharacterShop==='function'){window.renderJapaneseMinerCharacterShop(box);return;}
+ if(activeShopTab==='character'&&typeof window.renderJapaneseMinerCharacterShop==='function'){window.renderJapaneseMinerCharacterShop(box);window.refreshJapaneseMinerCompanionDisplays?.();return;}
  if(['fashion','companions','settlement'].includes(activeShopTab)&&typeof window.renderJapaneseMinerV5Shop==='function'){window.renderJapaneseMinerV5Shop(activeShopTab,box);return;}
  if(activeShopTab==='pickaxes'){
   box.innerHTML='<div class="cosmetic-grid" id="menuPickaxeShop"></div>';
