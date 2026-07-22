@@ -55,3 +55,14 @@ button,.panel,.v5-card,.cosmetic-card{transition:transform .16s ease,border-colo
 
 /* v6.0.2 collapsible character-shop sections */
 .character-option{border:1px solid #34496f;border-radius:16px;background:#0d172a;overflow:hidden;margin-bottom:10px}.character-option-toggle{width:100%;min-height:54px;padding:11px 14px;border:0;border-radius:0;display:flex;align-items:center;justify-content:space-between;text-align:left;background:linear-gradient(135deg,#263b61,#1b2947);color:#fff}.character-option-toggle span{font-size:16px;font-weight:900}.character-option-toggle b{width:34px;height:34px;display:grid;place-items:center;border:1px solid #6980a8;border-radius:50%;font-size:24px;line-height:1;transition:transform .2s;background:#111d34}.character-option>.character-choice-grid{padding:12px;max-height:2000px;opacity:1;transition:max-height .28s ease,opacity .2s ease,padding .28s ease}.character-option.collapsed>.character-choice-grid{max-height:0;opacity:0;overflow:hidden;padding-top:0;padding-bottom:0}.character-option.collapsed .character-option-toggle b{transform:rotate(-90deg)}.character-option-toggle:focus-visible{outline-offset:-4px}
+
+/* v6.1.3: pixel-fitted cosmetic masks derived from the rendered miner artwork. */
+.rendered-avatar-layers>i:not(.rendered-accessory){inset:0!important;width:auto!important;height:auto!important;border:0!important;border-radius:0!important;clip-path:none!important;box-shadow:none!important;background-repeat:no-repeat!important;background-position:center!important;background-size:contain!important;-webkit-mask-repeat:no-repeat;-webkit-mask-position:center;-webkit-mask-size:contain;mask-repeat:no-repeat;mask-position:center;mask-size:contain;mix-blend-mode:color!important}
+.rendered-skin-tint{background:var(--skin)!important;opacity:.88!important;-webkit-mask-image:url("assets/avatar/masks/skin.png");mask-image:url("assets/avatar/masks/skin.png")}
+.rendered-skin-tint:before,.rendered-skin-tint:after{display:none!important}
+.rendered-hair-tint{background:var(--hair)!important;opacity:.9!important;-webkit-mask-image:url("assets/avatar/masks/hair.png");mask-image:url("assets/avatar/masks/hair.png")}
+.rendered-shirt-tint{opacity:.86!important;-webkit-mask-image:url("assets/avatar/masks/jacket.png");mask-image:url("assets/avatar/masks/jacket.png")}
+.rendered-pants-tint{opacity:.82!important;-webkit-mask-image:url("assets/avatar/masks/pants.png");mask-image:url("assets/avatar/masks/pants.png")}
+.rendered-glove-tint{opacity:.9!important;-webkit-mask-image:url("assets/avatar/masks/gloves.png");mask-image:url("assets/avatar/masks/gloves.png")}
+.rendered-shoe-tint{opacity:.88!important;-webkit-mask-image:url("assets/avatar/masks/shoes.png");mask-image:url("assets/avatar/masks/shoes.png")}
+.miner-avatar[data-skin] .rendered-skin-tint{opacity:.88!important}.miner-avatar[data-hair-color] .rendered-hair-tint{opacity:.9!important}.miner-avatar[data-pants] .rendered-pants-tint{opacity:.82!important}
