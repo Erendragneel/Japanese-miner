@@ -325,6 +325,7 @@ const tests = [
     intent: 'Verify the customizable character profile includes saved skin, hair, clothing, and accessory options.',
     run() {
       const js = read('game.js');
+      const previewJs = read('v5.js');
       const css = read('styles.css');
       for (const token of ['state.character','hairStyle','hairColor','shirt','pants','accessory','renderProfile','randomizeCharacter']) assert(js.includes(token), `Missing character system token: ${token}`);
       for (const token of ['.miner-avatar','.character-customizer','.character-choice-grid']) assert(css.includes(token), `Missing character styling token: ${token}`);
@@ -333,6 +334,7 @@ const tests = [
         for (const mask of ['skin','hair','jacket','pants','gloves','shoes']) assert(fs.existsSync(path.join(ROOT,`assets/avatar/hairstyles/masks/${style}/${mask}.png`)), `Missing ${mask} mask for hairstyle: ${style}`);
       }
       for (const mask of ['skin','hair','jacket','pants','gloves','shoes']) assert(fs.existsSync(path.join(ROOT,`assets/avatar/hairstyles/masks/spiky/${mask}.png`)), `Missing ${mask} mask for hairstyle: spiky`);
+      assert(previewJs.includes("japaneseMinerCharacterMarkup?.('large',{[item.key]:item.value})"), 'Locked cosmetic previews must freshly render the selected hairstyle and its matching masks.');
     }
   },
   {
