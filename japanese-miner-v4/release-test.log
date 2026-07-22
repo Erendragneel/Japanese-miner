@@ -1,0 +1,91 @@
+=== Japanese Miner Test Runner ===
+Mode: tests
+Failure policy: CONTINUE AND REPORT ALL FAILURES
+Project: /mnt/data/japanese-miner-v4
+
+[RUN] quick-compile
+[INTENT] Verify game.js parses successfully before any slower project tests run.
+[PASS] quick-compile
+
+[RUN] required-files
+[INTENT] Verify every file required for the browser build exists and is not empty.
+[PASS] required-files
+
+[RUN] html-assets
+[INTENT] Verify local script, stylesheet, and icon references in index.html point to real files.
+[PASS] html-assets
+
+[RUN] unique-html-ids
+[INTENT] Prevent duplicate HTML element IDs that can make controls update the wrong element.
+[PASS] unique-html-ids
+
+[RUN] kana-only-mines
+[INTENT] Guarantee Hiragana and Katakana mines contain kana recognition only and no vocabulary questions.
+[PASS] kana-only-mines
+
+[RUN] n5-vocabulary-start
+[INTENT] Guarantee vocabulary begins at JLPT N5 rather than before the player completes kana.
+[PASS] n5-vocabulary-start
+
+[RUN] question-integrity
+[INTENT] Verify every generated question has one valid answer, four unique choices, a valid stage, and a unique ID.
+[PASS] question-integrity
+
+[RUN] content-volume
+[INTENT] Ensure every learning stage has enough questions to reduce excessive repetition.
+[PASS] content-volume
+
+[RUN] stage-progression
+[INTENT] Verify stage order, XP requirements, mastery thresholds, and clear rewards form a complete seven-stage path.
+[PASS] stage-progression
+
+[RUN] unlock-contract
+[INTENT] Verify later stages unlock only after the previous stage meets both XP and mastery requirements.
+[PASS] unlock-contract
+
+[RUN] gem-economy
+[INTENT] Verify gem values rise consistently, rarity declines, and advanced gems cannot appear in early mines.
+[PASS] gem-economy
+
+[RUN] shop-economy
+[INTENT] Verify consumable and pickaxe prices are positive, increase predictably, and contain no duplicate item IDs.
+[PASS] shop-economy
+
+[RUN] save-profile-contract
+[INTENT] Verify profiles use separate storage keys and saves are normalized before gameplay resumes.
+[PASS] save-profile-contract
+
+[RUN] state-safety
+[INTENT] Verify corrupted or old saves are bounded to valid hearts, stages, arrays, settings, and inventories.
+[PASS] state-safety
+
+[RUN] test-runner-contract
+[INTENT] Verify the test runner supports quick compile, single/all tests, fail-fast, continue mode, per-test intent, and a release gate.
+[PASS] test-runner-contract
+
+[RUN] voice-learning-system
+[INTENT] Verify Japanese speech, autoplay controls, slow playback, and persistent voice settings are present.
+[PASS] voice-learning-system
+
+[RUN] smart-review-session
+[INTENT] Verify weak-question weighting and session progress tracking are included.
+[PASS] smart-review-session
+
+[RUN] pwa-assets
+[INTENT] Verify installable offline-app files exist and are referenced.
+[PASS] pwa-assets
+
+[RUN] player-progression-center
+[INTENT] Verify quests, achievements, mistake tracking, statistics, and portable backup systems are included.
+[PASS] player-progression-center
+
+[RUN] version-consistency
+[INTENT] Ensure the visible build badge and browser cache-busting versions agree with the README release.
+[PASS] version-consistency
+
+=== FINAL TEST SUMMARY ===
+Passed: 20
+Failed: 0
+Duration: 109 ms
+
+RELEASE GATE PASSED: The game compiles and every selected unit test passes.
