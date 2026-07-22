@@ -1,4 +1,4 @@
-# Japanese Miner v5.8
+# Japanese Miner v6.0 — The Polish Update
 
 Adds a fully customizable miner character profile with selectable skin tone, hair style, hair color, clothing top, clothing bottom, accessories, and randomization. Character choices save per profile and travel with exported backups.
 
