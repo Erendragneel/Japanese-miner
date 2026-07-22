@@ -1210,7 +1210,7 @@ document.getElementById("supportMode").addEventListener("change",e=>{state.suppo
 document.getElementById("n5Tier").addEventListener("change",e=>{state.n5Tier=e.target.value;state.active=null;state.answered=false;save();render();setMessage(`N5 track changed to ${e.target.options[e.target.selectedIndex].text}. Start a new question.`,"correct");});
 document.getElementById("n5Curriculum").addEventListener("change",e=>{state.n5Curriculum=e.target.value;state.active=null;state.answered=false;save();render();setMessage(`N5 curriculum changed to ${e.target.options[e.target.selectedIndex].text}. Start a new question.`,"correct");});
 document.getElementById("tutorTrack").addEventListener("change",e=>{state.tutorTrack=e.target.value;state.active=null;state.answered=false;save();render();setMessage(`Tutor lesson track changed to ${e.target.options[e.target.selectedIndex].text}. Start a new question.`,"correct");});
-document.getElementById("quickStatsBtn").onclick=()=>setStatsDrawer(true);
+document.getElementById("quickStatsBtn")?.addEventListener("click",()=>setStatsDrawer(true));
 document.getElementById("headerStatsBtn").onclick=()=>setStatsDrawer(true);
 document.getElementById("closeStatsBtn").onclick=()=>setStatsDrawer(false);
 document.getElementById("statsOverlay").onclick=()=>setStatsDrawer(false);
