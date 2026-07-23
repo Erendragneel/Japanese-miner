@@ -114,3 +114,75 @@ button,.panel,.v5-card,.cosmetic-card{transition:transform .16s ease,border-colo
 .rendered-pants-tint{background-image:var(--recolor-pants)!important}
 .rendered-glove-tint{background-image:var(--recolor-gloves)!important}
 .rendered-shoe-tint{background-image:var(--recolor-shoes)!important}
+
+/* v6.2.11: ensure artwork layers win over legacy full-canvas color fills. */
+.miner-avatar[data-hair-color] .rendered-hair-tint,
+.miner-avatar[data-hair-color="black"] .rendered-hair-tint,
+.miner-avatar[data-hair-color="blonde"] .rendered-hair-tint,
+.miner-avatar[data-hair-color="silver"] .rendered-hair-tint{
+  background-color:transparent!important;
+  background-image:var(--recolor-hair)!important;
+  mix-blend-mode:normal!important;
+  opacity:1!important;
+}
+.preview-avatar[data-preview-key="hairColor"] .rendered-hair-tint{
+  background-color:transparent!important;
+  background-image:var(--recolor-hair)!important;
+  mix-blend-mode:normal!important;
+  opacity:1!important;
+}
+
+/* Crystal armor receives readable crystalline plates without tinting the body. */
+.miner-avatar[data-shirt="armor"] .rendered-shirt-tint{
+  filter:drop-shadow(0 0 5px #65f3ff) saturate(1.18) brightness(1.08);
+}
+.miner-avatar[data-shirt="armor"] .rendered-shirt-tint:before,
+.miner-avatar[data-shirt="armor"] .rendered-shirt-tint:after{
+  content:"";
+  position:absolute;
+  top:25%;
+  width:13%;
+  height:18%;
+  background:linear-gradient(145deg,#d8ffff 0 12%,#54e7f3 13% 46%,#176b88 47% 76%,#85f8ff 77%);
+  clip-path:polygon(50% 0,100% 25%,83% 100%,17% 100%,0 25%);
+  box-shadow:0 0 9px #5befff;
+  opacity:.88;
+}
+.miner-avatar[data-shirt="armor"] .rendered-shirt-tint:before{left:25%;transform:rotate(-12deg)}
+.miner-avatar[data-shirt="armor"] .rendered-shirt-tint:after{right:25%;transform:rotate(12deg)}
+
+/* Head-fitted hard hat: crown, brim, lamp and highlights. */
+.miner-avatar[data-accessory="helmet"] .rendered-accessory{
+  left:31%!important;
+  top:7.1%!important;
+  width:38%!important;
+  height:7.2%!important;
+  border:2px solid #4a3216!important;
+  border-radius:50% 50% 18% 18%/72% 72% 28% 28%!important;
+  background:linear-gradient(105deg,#ad6d19,#f0b438 42%,#ffd86c 66%,#b7731b)!important;
+  box-shadow:inset 0 -5px #8d5719,0 3px 3px #0008!important;
+}
+.miner-avatar[data-accessory="helmet"] .rendered-accessory:before{
+  content:"";
+  position:absolute;
+  left:-9%;
+  right:-9%;
+  bottom:-3px;
+  height:19%;
+  border:2px solid #493117;
+  border-radius:999px;
+  background:linear-gradient(#ffd267,#c68120);
+  box-shadow:0 2px 2px #0007;
+}
+.miner-avatar[data-accessory="helmet"] .rendered-accessory:after{
+  content:"";
+  position:absolute;
+  left:40%;
+  top:24%;
+  width:20%;
+  height:39%;
+  border:2px solid #26313b;
+  border-radius:50%;
+  background:radial-gradient(circle at 42% 38%,#fff 0 18%,#bffaff 19% 45%,#4299ad 46% 70%,#1c3440 71%);
+  box-shadow:0 0 7px #b9fbff;
+}
