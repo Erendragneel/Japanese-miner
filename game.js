@@ -1,3 +1,26 @@
+// v6.2.13: load rendered cosmetics from the main game program so GitHub Pages
+// cannot silently skip a separate loader script.
+window.JM_RECOLOR_DATA={};
+window.getJapaneseMinerRecolor=key=>{
+  const value=window.JM_RECOLOR_DATA[key];
+  return value?`data:image/webp;base64,${value}`:'';
+};
+(async()=>{
+  try{
+    const response=await fetch('recolors.json.gz?v=6.2.13');
+    if(!response.ok)throw new Error(`Cosmetic artwork request failed: ${response.status}`);
+    const payload=await response.arrayBuffer();
+    const bytes=new Uint8Array(payload);
+    if(bytes[0]===0x1f&&bytes[1]===0x8b){
+      const stream=new Blob([payload]).stream().pipeThrough(new DecompressionStream('gzip'));
+      window.JM_RECOLOR_DATA=await new Response(stream).json();
+    }else{
+      window.JM_RECOLOR_DATA=JSON.parse(new TextDecoder().decode(bytes));
+    }
+    window.dispatchEvent(new Event('jm-recolors-ready'));
+  }catch(error){console.error('Japanese Miner cosmetic artwork could not be loaded.',error);}
+})();
+
 const stages = [
   {name:"Hiragana Mine", label:"Hiragana", unlock:1},
   {name:"Katakana Cavern", label:"Katakana", unlock:3, requiredHiraganaXp:18240},
@@ -2145,6 +2168,7 @@ if(state?.colorTheme)document.body.dataset.theme=state.colorTheme;
   function syncRenderedAvatarLayers(avatar){if(!avatar)return;const style=avatar.dataset.hairStyle||'spiky',c={hairColor:avatar.dataset.hairColor||'brown',shirt:avatar.dataset.shirt||'miner',pants:avatar.dataset.pants||'denim'},fashion={jacket:avatar.dataset.jacket||'none',gloves:avatar.dataset.gloves||'none',shoes:avatar.dataset.shoes||'boots'};renderedColorVars(c,style,fashion).split(';').forEach(row=>{const cut=row.indexOf(':');if(cut>0)avatar.style.setProperty(row.slice(0,cut),row.slice(cut+1));});}
   window.syncJapaneseMinerRenderedLayers=syncRenderedAvatarLayers;
   window.addEventListener('jm-recolors-ready',()=>document.querySelectorAll('.miner-avatar').forEach(syncRenderedAvatarLayers));
+  if(Object.keys(window.JM_RECOLOR_DATA||{}).length)queueMicrotask(()=>document.querySelectorAll('.miner-avatar').forEach(syncRenderedAvatarLayers));
   function characterMarkup(size='large',override={}){
     const c=Object.assign({},state.character,override);
     const hairstyleImages={short:'assets/avatar/hairstyles/short.png',spiky:'assets/avatar/anime-miner-v1.png',bob:'assets/avatar/hairstyles/bob.png',long:'assets/avatar/hairstyles/long.png',bun:'assets/avatar/hairstyles/bun.png',buzz:'assets/avatar/hairstyles/buzz.png',ponytail:'assets/avatar/hairstyles/ponytail.png',wavy:'assets/avatar/hairstyles/wavy.png',undercut:'assets/avatar/hairstyles/undercut.png',twintails:'assets/avatar/hairstyles/twintails.png'};

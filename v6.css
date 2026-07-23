@@ -204,9 +204,9 @@ button,.panel,.v5-card,.cosmetic-card{transition:transform .16s ease,border-colo
 
 /* Fit the hard hat to the painted hairline instead of the full image canvas. */
 .miner-avatar[data-accessory="helmet"] .rendered-accessory{
-  left:34%!important;
-  top:8.3%!important;
-  width:32%!important;
-  height:6.7%!important;
+  left:37%!important;
+  top:9.8%!important;
+  width:26%!important;
+  height:5.8%!important;
 }
-.miner-avatar[data-accessory="helmet"] .rendered-accessory:before{left:-6%!important;right:-6%!important}
+.miner-avatar[data-accessory="helmet"] .rendered-accessory:before{left:-5%!important;right:-5%!important}
