@@ -1,0 +1,6 @@
+Upload BOTH files to the main/root page of the GitHub repository:
+
+1. index.html
+2. game-7170.js
+
+Do not rename game-7170.js. Commit both files together. This new JavaScript filename bypasses the cached broken file.
