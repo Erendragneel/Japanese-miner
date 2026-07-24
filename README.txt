@@ -1,0 +1,1 @@
+Upload only game-7020.js to the repository root and replace the existing file. The six accessory preview images are embedded inside the JavaScript, so no accessory folders or PNG uploads are required.
