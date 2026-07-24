@@ -1,3 +1,16 @@
+Japanese Miner v6.5.4
+
+HIRAGANA & KATAKANA EXPEDITION CORRECTION
+- Hiragana Mine and Katakana Cavern now contain alphabet-only questions.
+- No vocabulary, kanji, grammar, dialogue, or sentence questions appear in those two mines.
+- Their four expedition stops are:
+  1. Vowels, K & S
+  2. T, N & H
+  3. M, Y, R, W & N
+  4. Dakuten & Handakuten
+- Each alphabet group has its own tracked 0–100% progress.
+- N5 through N1 mines continue using Vocabulary, Kanji, Grammar, and Reading.
+
 Japanese Miner v6.5.3
 
 EXPEDITION SKILL PROGRESSION
