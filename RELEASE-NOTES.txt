@@ -1,3 +1,15 @@
+Japanese Miner v6.5.2
+
+NEW: Full-Screen Guardian Trials
+- Clicking Start Timed Trial immediately opens a dedicated boss page.
+- A giant stage-specific guardian appears behind the questions.
+- Live 1:00 countdown timer with a red final-10-second warning.
+- Displays Question X of 25, correct-answer count, and progress bar.
+- Correct answers automatically advance to the next question.
+- One incorrect answer or running out of time fails the trial.
+- Results page shows PASS or FAIL, score, questions answered, completion time, reward, and retry/return controls.
+- Passing unlocks the next mine and awards Nuggets.
+
 Japanese Miner v6.5.1
 
 NEW: 12 Miner Boot colors in the Fashion Shop.
