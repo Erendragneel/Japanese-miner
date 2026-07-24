@@ -2313,7 +2313,7 @@ if(state?.colorTheme)document.body.dataset.theme=state.colorTheme;
   if(Object.keys(window.JM_RECOLOR_DATA||{}).length)queueMicrotask(()=>document.querySelectorAll('.miner-avatar').forEach(syncRenderedAvatarLayers));
   function characterMarkup(size='large',override={}){
     const c=Object.assign({},state.character,override);
-    const hairstyleImages={short:'assets/avatar/hairstyles/short.png',spiky:'assets/avatar/anime-miner-v1.png',bob:'assets/avatar/hairstyles/bob.png',long:'assets/avatar/hairstyles/long.png',bun:'assets/avatar/hairstyles/bun.png',buzz:'assets/avatar/hairstyles/buzz.png',ponytail:'assets/avatar/hairstyles/ponytail.png',wavy:'assets/avatar/hairstyles/wavy.png',undercut:'assets/avatar/hairstyles/undercut.png',twintails:'assets/avatar/hairstyles/twintails.png',regalsweep:'./regal-sweep.png',sidesweep:'./side-sweep.png',flamespikes:'./flame-spikes.png',texturedcrop:'./textured-crop.png'};
+    const hairstyleImages={short:'assets/avatar/hairstyles/short.png',spiky:'assets/avatar/anime-miner-v1.png',bob:'assets/avatar/hairstyles/bob.png',long:'assets/avatar/hairstyles/long.png',bun:'assets/avatar/hairstyles/bun.png',buzz:'assets/avatar/hairstyles/buzz.png',ponytail:'assets/avatar/hairstyles/ponytail.png',wavy:'assets/avatar/hairstyles/wavy.png',undercut:'assets/avatar/hairstyles/undercut.png',twintails:'assets/avatar/hairstyles/twintails.png',regalsweep:'assets/avatar/hairstyles/regal-sweep.png',sidesweep:'assets/avatar/hairstyles/side-sweep.png',flamespikes:'assets/avatar/hairstyles/flame-spikes.png',texturedcrop:'assets/avatar/hairstyles/textured-crop.png'};
     const avatarImage=hairstyleImages[c.hairStyle]||hairstyleImages.spiky;
     const maskStyle=hairstyleImages[c.hairStyle]?c.hairStyle:'spiky';
     const fashion=Object.assign({jacket:'none',gloves:'none',shoes:'boots'},state.v5?.fashion||{},override._fashion||{}),sources=renderedSources(c,maskStyle,fashion);
@@ -2369,11 +2369,16 @@ if(state?.colorTheme)document.body.dataset.theme=state.colorTheme;
       </button>`;
     }).join('')}</div>`;
   }
+  function accessoryPreview(value,name){
+    const src=`assets/avatar/accessories/${value}.png?v=7.1.3`;
+    return `<img class="studio-accessory-preview-image" src="${src}" alt="${name} accessory preview" draggable="false">`;
+  }
   function studioCharacterCards(key,items){
     return `<div class="studio-item-grid">${items.map(([value,name],index)=>{
       const owned=cosmeticOwned(key,value),price=index===0?0:(COSMETIC_PRICES[key]||0),selected=state.character[key]===value;
+      const preview=key==='skin'?`<span class="studio-skin-swatch skin-${value}"></span>`:key==='accessory'?accessoryPreview(value,name):characterMarkup('mini',{[key]:value});
       return `<button type="button" class="studio-item-card ${selected?'selected':''} ${owned?'owned':'locked'}" data-studio-character-key="${key}" data-studio-character-value="${value}" data-studio-price="${price}">
-        <div class="studio-item-preview">${key==='skin'?`<span class="studio-skin-swatch skin-${value}"></span>`:characterMarkup('mini',{[key]:value})}</div>
+        <div class="studio-item-preview ${key==='accessory'?'studio-accessory-preview':''}">${preview}</div>
         <strong>${name}</strong><small>${selected?'Equipped':owned?'Owned':`${price.toLocaleString()} Nuggets`}</small>
       </button>`;
     }).join('')}</div>`;
