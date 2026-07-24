@@ -1,3 +1,18 @@
+Japanese Miner v7.0.0 — Character Studio Overhaul
+
+NEW CHARACTER STUDIO
+- Replaced the expandable customization list with a modern two-pane RPG-style screen.
+- The miner remains visible while every category is browsed.
+- Added category navigation for:
+  Skin, Hair, Clothing, Pants, Boots, Gloves, Accessories, Pickaxes, Companions, and Titles.
+- Every item previews directly on the character where artwork is available.
+- Purchases and equipping happen without leaving the Character Studio.
+- Added jacket and glove controls to the main character customization area.
+- Pickaxe collection and companion selection are now integrated.
+- Earned achievement titles can be selected and displayed.
+- Mobile layout automatically stacks the character above the item catalog.
+- All existing saves and previously purchased cosmetics remain compatible.
+
 Japanese Miner v6.5.5
 
 FOOTWEAR CUSTOMIZATION
