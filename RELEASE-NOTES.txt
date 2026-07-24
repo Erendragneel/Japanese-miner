@@ -1,3 +1,15 @@
+Japanese Miner v7.0.2
+
+BACK BUTTON REPAIR
+- Fixed the Menu/Back buttons across the Shop, Expedition, Calendar, Academy,
+  Character Studio, utility menus, and statistics drawer.
+- Back navigation now uses one delegated handler, so buttons continue working
+  after a screen or header is re-rendered.
+- Closing a screen no longer depends on screen-specific functions being visible
+  in another JavaScript file.
+- Open overlays, expanded states, and page scrolling are reset consistently.
+- Added stronger click and touch handling for desktop, tablet, and mobile.
+
 Japanese Miner v7.0.1
 
 REPLAYABLE EXPEDITIONS AND BOSSES
