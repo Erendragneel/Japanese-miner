@@ -1,3 +1,15 @@
+Japanese Miner v6.5.5
+
+FOOTWEAR CUSTOMIZATION
+- Added a dedicated Footwear section to the Character menu.
+- Added the Footwear section to the Character Shop.
+- All 12 Miner Boot colors, Bright Sneakers, and Festival Geta can be previewed.
+- Owned footwear can be equipped directly.
+- Locked footwear can be purchased directly with Nuggets.
+- The preview character updates to show the selected footwear before purchase.
+- Equipped and owned states are clearly labeled.
+- Existing footwear purchases and save data remain compatible.
+
 Japanese Miner v6.5.4
 
 HIRAGANA & KATAKANA EXPEDITION CORRECTION
