@@ -1,0 +1,9 @@
+Japanese Miner v7.2.0
+
+- Replaced fragile accessory preview images with the same live avatar compositor used in Progress Center.
+- Corrected glasses, headband, helmet, earrings, and scarf alignment at every avatar size.
+- Added 16 new achievements (39 total).
+- Preserved Settings and Game Guide.
+- Added missing hairstyle assets to assets/avatar/hairstyles.
+- Improved Player Center, achievement grid, character studio, and mobile layouts.
+- Added new cache-busting JS/CSS filenames and bumped the service-worker cache.
