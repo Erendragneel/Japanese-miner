@@ -1,3 +1,15 @@
+Japanese Miner v7.0.1
+
+REPLAYABLE EXPEDITIONS AND BOSSES
+- Completed expedition stops remain selectable and show “Replay.”
+- Defeated guardians can be challenged again from the map or boss list.
+- Cleared boss cards now show “Replay timed trial” instead of becoming disabled.
+- Passing a replay still awards the normal boss Nugget bounty.
+- Boss results distinguish a first clear from a replay victory.
+- The results screen always offers Retry/Replay Trial.
+- First clears continue unlocking the next mine.
+- Replay wins are tracked separately without relocking progression.
+
 Japanese Miner v7.0.0 — Character Studio Overhaul
 
 NEW CHARACTER STUDIO
