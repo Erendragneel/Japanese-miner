@@ -2030,10 +2030,42 @@ document.getElementById('autoSpeakToggle')?.addEventListener('change',e=>{state.
 document.getElementById('smartReviewToggle')?.addEventListener('change',e=>{state.smartReview=e.target.checked;save();});
 document.getElementById('voiceRate')?.addEventListener('input',e=>{state.voiceRate=Number(e.target.value);document.getElementById('voiceRateLabel').textContent=`${state.voiceRate.toFixed(2)}×`;save();});
 document.getElementById('testVoiceBtn')?.addEventListener('click',()=>speakJapanese('日本語を一緒に勉強しましょう。'));
+function setUtilityOverlay(id,open){const el=document.getElementById(id);if(!el)return;el.classList.toggle('open',open);el.setAttribute('aria-hidden',open?'false':'true');document.body.style.overflow=open?'hidden':'';}
+function syncSettingsMenu(){
+  const map=[['settingsSoundToggle','soundEnabled'],['settingsVoiceToggle','voiceEnabled'],['settingsAutoSpeakToggle','autoSpeak'],['settingsSmartReviewToggle','smartReview']];
+  map.forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.checked=state[key]!==false;});
+  const support=document.getElementById('settingsSupportMode');if(support)support.value=state.supportMode||'guided';
+  const rate=document.getElementById('settingsVoiceRate');if(rate)rate.value=Number(state.voiceRate||.85);
+  const label=document.getElementById('settingsVoiceRateLabel');if(label)label.textContent=`${Number(state.voiceRate||.85).toFixed(2)}×`;
+  document.querySelectorAll('[data-setting-theme]').forEach(b=>b.classList.toggle('selected',b.dataset.settingTheme===(state.colorTheme||'midnight')));
+}
+function openSettings(){syncSettingsMenu();setUtilityOverlay('settingsOverlay',true);}
+function closeSettings(){setUtilityOverlay('settingsOverlay',false);}
+const GUIDE_SECTIONS={
+ basics:`<div class="guide-card-grid"><article><h3>1. Choose a mine</h3><p>Begin with Hiragana, then progress through Katakana and JLPT N5–N1. Earlier mines stay available for review.</p></article><article><h3>2. Answer questions</h3><p>Select the correct answer to mine the rock. Correct answers build XP, mastery, streaks, and rewards.</p></article><article><h3>3. Protect your hearts</h3><p>Wrong answers can cost hearts. Shields prevent heart loss, and heart restores refill your supply.</p></article><article><h3>4. Keep studying</h3><p>Daily practice builds your study streak and helps Smart Review schedule weak material.</p></article></div>`,
+ learning:`<div class="guide-card-grid"><article><h3>Support modes</h3><p><strong>Guided</strong> shows readings and furigana. <strong>Standard</strong> reduces help. <strong>Challenge</strong> presents Japanese first.</p></article><article><h3>Mastery</h3><p>Each character or learning item improves as you answer correctly. Complete the required mastery to clear a mine.</p></article><article><h3>Smart Review</h3><p>Missed and weak questions return more often. Use the Mistakes notebook to inspect and resolve difficult material.</p></article><article><h3>Japanese voice</h3><p>Enable Japanese voice and automatic speaking in Settings. Voice availability depends on your browser and installed voices.</p></article></div>`,
+ economy:`<div class="guide-card-grid"><article><h3>Gemstones and Nuggets</h3><p>Every gemstone has a fixed Nugget value. Common stones appear more often, while rare stones are worth much more.</p></article><article><h3>Purchasing</h3><p>The shop automatically spends your stored gemstones by Nugget value and returns change using lower-value stones when possible.</p></article><article><h3>Supplies</h3><p>Buy hints, shields, and heart restores to help during difficult study sessions.</p></article><article><h3>Cosmetics</h3><p>Hair, clothing, pickaxes, companions, settlement upgrades, and wallpapers are permanent account unlocks.</p></article></div>`,
+ progress:`<div class="guide-card-grid"><article><h3>XP and levels</h3><p>Correct answers award XP. Higher player levels represent your total learning progress.</p></article><article><h3>Quests</h3><p>Daily and weekly quests reward consistent practice. Claim completed quests from the Player Center.</p></article><article><h3>Achievements</h3><p>Achievements reward major milestones with Nuggets and collectible titles that can be equipped on your profile.</p></article><article><h3>Statistics</h3><p>Player Stats tracks questions, accuracy, study days, best streak, practice distribution, and mastery by mine.</p></article></div>`,
+ features:`<div class="guide-card-grid"><article><h3>Expedition Hub</h3><p>Explore missions, companions, settlement upgrades, word cards, review tools, and other expanded activities.</p></article><article><h3>Character Studio</h3><p>Customize your miner's hair, skin, clothing, accessories, colors, and earned achievement title.</p></article><article><h3>Account backup</h3><p>Export your save before clearing browser data or moving devices. Import the backup to restore your profile.</p></article><article><h3>Placement test</h3><p>The placement test recommends an appropriate starting mine and support mode based on your current Japanese ability.</p></article></div>`
+};
+function renderGuide(tab='basics'){document.querySelectorAll('[data-guide-tab]').forEach(b=>b.classList.toggle('primary',b.dataset.guideTab===tab));const box=document.getElementById('guideContent');if(box)box.innerHTML=GUIDE_SECTIONS[tab]||GUIDE_SECTIONS.basics;}
+function openGuide(){renderGuide('basics');setUtilityOverlay('guideOverlay',true);}
+function closeGuide(){setUtilityOverlay('guideOverlay',false);}
 document.getElementById('gameMenuBtn')?.addEventListener('click',openGameMenu);
 document.getElementById('closeGameMenuBtn')?.addEventListener('click',closeGameMenu);
 document.getElementById('gameMenuOverlay')?.addEventListener('click',e=>{if(e.target.id==='gameMenuOverlay')closeGameMenu();});
-document.querySelectorAll('[data-menu-action]').forEach(btn=>btn.addEventListener('click',()=>{const a=btn.dataset.menuAction;if(a==='shop')openShop();else if(a==='stats'){closeGameMenu();setStatsDrawer(true);}else if(a==='course'){closeGameMenu();openAcademy();}else if(a==='path')scrollToSection('path');else if(a==='inventory')scrollToSection('gemCollection');else if(a==='mine'){closeGameMenu();document.getElementById('rock')?.scrollIntoView({behavior:'smooth',block:'center'});}}));
+document.getElementById('closeSettingsBtn')?.addEventListener('click',closeSettings);
+document.getElementById('settingsOverlay')?.addEventListener('click',e=>{if(e.target.id==='settingsOverlay')closeSettings();});
+document.getElementById('closeGuideBtn')?.addEventListener('click',closeGuide);
+document.getElementById('guideOverlay')?.addEventListener('click',e=>{if(e.target.id==='guideOverlay')closeGuide();});
+document.querySelectorAll('[data-guide-tab]').forEach(b=>b.addEventListener('click',()=>renderGuide(b.dataset.guideTab)));
+document.getElementById('settingsSupportMode')?.addEventListener('change',e=>{state.supportMode=e.target.value;state.active=null;state.answered=false;document.getElementById('supportMode').value=e.target.value;save();render();});
+[['settingsSoundToggle','soundEnabled','soundToggle'],['settingsVoiceToggle','voiceEnabled','voiceToggle'],['settingsAutoSpeakToggle','autoSpeak','autoSpeakToggle'],['settingsSmartReviewToggle','smartReview','smartReviewToggle']].forEach(([id,key,original])=>document.getElementById(id)?.addEventListener('change',e=>{state[key]=e.target.checked;const source=document.getElementById(original);if(source)source.checked=e.target.checked;save();if(key==='soundEnabled'&&e.target.checked)playFeedbackSound(true);}));
+document.getElementById('settingsVoiceRate')?.addEventListener('input',e=>{state.voiceRate=Number(e.target.value);document.getElementById('settingsVoiceRateLabel').textContent=`${state.voiceRate.toFixed(2)}×`;const source=document.getElementById('voiceRate');if(source)source.value=state.voiceRate;const label=document.getElementById('voiceRateLabel');if(label)label.textContent=`${state.voiceRate.toFixed(2)}×`;save();});
+document.getElementById('settingsTestVoice')?.addEventListener('click',()=>speakJapanese('日本語の勉強を頑張りましょう。',true));
+document.querySelectorAll('[data-setting-theme]').forEach(b=>b.addEventListener('click',()=>{state.colorTheme=b.dataset.settingTheme;document.body.dataset.theme=state.colorTheme;save();render();syncSettingsMenu();}));
+
+document.querySelectorAll('[data-menu-action]').forEach(btn=>btn.addEventListener('click',()=>{const a=btn.dataset.menuAction;if(a==='shop')openShop();else if(a==='stats'){closeGameMenu();setStatsDrawer(true);}else if(a==='settings'){closeGameMenu();openSettings();}else if(a==='guide'){closeGameMenu();openGuide();}else if(a==='course'){closeGameMenu();openAcademy();}else if(a==='path')scrollToSection('path');else if(a==='inventory')scrollToSection('gemCollection');else if(a==='mine'){closeGameMenu();document.getElementById('rock')?.scrollIntoView({behavior:'smooth',block:'center'});}}));
 document.getElementById('closeShopBtn')?.addEventListener('click',closeShop);
 document.getElementById('shopOverlay')?.addEventListener('click',e=>{if(e.target.id==='shopOverlay')closeShop();});
 document.querySelectorAll('[data-shop-tab]').forEach(btn=>btn.addEventListener('click',()=>{activeShopTab=btn.dataset.shopTab;renderShop();}));
@@ -2163,7 +2195,22 @@ if(state?.colorTheme)document.body.dataset.theme=state.colorTheme;
     {id:'streak30',name:'Blazing Focus',title:'Flame Scholar',desc:'Reach a 30-answer streak.',test:()=>state.bestStreak>=30,reward:50000},
     {id:'week',name:'Seven-Day Student',title:'Steady Scholar',desc:'Reach a 7-day study streak.',test:()=>Number(state.practiceStreak||0)>=7,reward:25000},
     {id:'kana',name:'Kana Master',title:'Kana Master',desc:'Clear Hiragana and Katakana.',test:()=>stageComplete(0)&&stageComplete(1),reward:50000},
-    {id:'n5',name:'N5 Graduate',title:'N5 Graduate',desc:'Clear the JLPT N5 mine.',test:()=>stageComplete(2),reward:100000}
+    {id:'n5',name:'N5 Graduate',title:'N5 Graduate',desc:'Clear the JLPT N5 mine.',test:()=>stageComplete(2),reward:100000},
+    {id:'correct50',name:'Clean Vein',title:'Accurate Miner',desc:'Answer 50 questions correctly.',test:()=>state.analytics.correct>=50,reward:7500},
+    {id:'correct500',name:'Precision Excavator',title:'Precision Scholar',desc:'Answer 500 questions correctly.',test:()=>state.analytics.correct>=500,reward:50000},
+    {id:'perfect25',name:'Crystal Clarity',title:'Crystal Mind',desc:'Maintain at least 90% accuracy after 25 answers.',test:()=>state.analytics.answered>=25&&statPercent()>=90,reward:15000},
+    {id:'streak5',name:'Spark of Focus',title:'Rising Focus',desc:'Reach a 5-answer streak.',test:()=>state.bestStreak>=5,reward:3000},
+    {id:'study3',name:'Three-Day Tunnel',title:'Committed Miner',desc:'Reach a 3-day study streak.',test:()=>Number(state.practiceStreak||0)>=3,reward:7500},
+    {id:'study30',name:'Monthly Miner',title:'Daily Scholar',desc:'Study on 30 total days.',test:()=>new Set(state.practiceDates||state.studyDates||[]).size>=30,reward:100000},
+    {id:'level10',name:'Seasoned Miner',title:'Seasoned Miner',desc:'Reach player level 10.',test:()=>Number(state.level||0)>=10,reward:20000},
+    {id:'level25',name:'Master Excavator',title:'Master Excavator',desc:'Reach player level 25.',test:()=>Number(state.level||0)>=25,reward:75000},
+    {id:'n4',name:'N4 Graduate',title:'N4 Graduate',desc:'Clear the JLPT N4 mine.',test:()=>stageComplete(3),reward:175000},
+    {id:'n3',name:'N3 Graduate',title:'N3 Graduate',desc:'Clear the JLPT N3 mine.',test:()=>stageComplete(4),reward:275000},
+    {id:'n2',name:'N2 Graduate',title:'N2 Graduate',desc:'Clear the JLPT N2 mine.',test:()=>stageComplete(5),reward:400000},
+    {id:'n1',name:'Japanese Master',title:'Japanese Master',desc:'Clear the JLPT N1 mine.',test:()=>stageComplete(6),reward:750000},
+    {id:'collector10',name:'Fashion Collector',title:'Stylish Miner',desc:'Own 10 cosmetic items.',test:()=>Array.isArray(state.ownedCosmetics)&&state.ownedCosmetics.length>=10,reward:25000},
+    {id:'wealth100k',name:'Nugget Hoarder',title:'Nugget Baron',desc:'Hold 100,000 Nuggets at once.',test:()=>totalStoneValue()>=100000,reward:25000},
+    {id:'mistakes25',name:'Learning From the Rock',title:'Resilient Scholar',desc:'Record 25 different mistakes for review.',test:()=>Array.isArray(state.mistakes)&&state.mistakes.length>=25,reward:20000}
   ];
   function addNuggets(amount){addStoneChange(amount,Math.min(gemTiers.length-1,Math.max(2,selectedStageIndex()+3)));}
   function claimQuest(type,id){ensureV38();const list=type==='daily'?DAILY_QUESTS:WEEKLY_QUESTS;const q=list.find(x=>x.id===id),bucket=state.questData[type];if(!q||bucket['claimed_'+id]||q.metric()<q.goal)return;bucket['claimed_'+id]=true;addNuggets(q.reward);save();render();renderFeatureCenter(type==='daily'?'quests':'quests');setMessage(`${q.name} completed! +${q.reward.toLocaleString()} Nuggets.`,'correct');}

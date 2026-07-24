@@ -8,9 +8,9 @@
 <meta name="theme-color" content="#101522" />
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
 <link rel="manifest" href="manifest.webmanifest" />
-<link rel="stylesheet" href="styles.css?v=7.0.4" />
-<link rel="stylesheet" href="v5.css?v=7.0.4" />
-<link rel="stylesheet" href="v7-7020.css?v=7.0.4" />
+<link rel="stylesheet" href="styles.css?v=7.1.0" />
+<link rel="stylesheet" href="v5.css?v=7.1.0" />
+<link rel="stylesheet" href="v7-7020.css?v=7.1.0" />
 
 </head>
 <body>
@@ -266,9 +266,32 @@
       <button type="button" data-menu-action="shop"><span>🛍️</span><strong>Shop</strong><small>Skins, wallpapers, and supplies</small></button>
       <button type="button" data-menu-action="inventory"><span>🎒</span><strong>Inventory</strong><small>Hints, shields, and gemstones</small></button>
       <button type="button" data-menu-action="path"><span>🧭</span><strong>Learning Path</strong><small>Review every unlocked mine</small></button>
-      <button type="button" data-menu-action="stats"><span>📊</span><strong>Stats</strong><small>Progress, settings, and calendar</small></button>
+      <button type="button" data-menu-action="stats"><span>📊</span><strong>Stats</strong><small>Progress and study calendar</small></button>
+      <button type="button" data-menu-action="settings"><span>⚙️</span><strong>Settings</strong><small>Sound, voice, support, and theme</small></button>
+      <button type="button" data-menu-action="guide"><span>📖</span><strong>Game Guide</strong><small>Learn how mining and study work</small></button>
       <button type="button" data-menu-action="mine"><span>⛏️</span><strong>Mine</strong><small>Return to your current question</small></button>
     </div>
+  </section>
+</div>
+
+<div id="settingsOverlay" class="utility-overlay" aria-hidden="true">
+  <section class="utility-panel settings-panel" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="utility-head"><div><div class="placement-kicker">Preferences</div><h2 id="settingsTitle">⚙️ Settings</h2><p>Adjust how Japanese Miner looks, sounds, and supports your study.</p></div><button id="closeSettingsBtn" type="button" aria-label="Close settings">×</button></div>
+    <div class="settings-grid">
+      <section class="settings-group"><h3>📚 Learning support</h3><label>Reading assistance<select id="settingsSupportMode"><option value="guided">Guided — readings and furigana</option><option value="standard">Standard — limited assistance</option><option value="challenge">Challenge — Japanese first</option></select></label><p class="settings-help">Changing this starts a fresh question so the new display mode applies correctly.</p></section>
+      <section class="settings-group"><h3>🔊 Sound & voice</h3><label class="settings-switch"><input id="settingsSoundToggle" type="checkbox"> Answer sounds</label><label class="settings-switch"><input id="settingsVoiceToggle" type="checkbox"> Japanese voice</label><label class="settings-switch"><input id="settingsAutoSpeakToggle" type="checkbox"> Speak new questions automatically</label><label>Voice speed <strong id="settingsVoiceRateLabel">0.85×</strong><input id="settingsVoiceRate" type="range" min="0.55" max="1.15" step="0.05"></label><button id="settingsTestVoice" type="button">🔊 Test Japanese Voice</button></section>
+      <section class="settings-group"><h3>🧠 Review</h3><label class="settings-switch"><input id="settingsSmartReviewToggle" type="checkbox"> Smart Review weak questions</label><p class="settings-help">Smart Review brings back missed or weak material more often.</p></section>
+      <section class="settings-group"><h3>🎨 Color theme</h3><div id="settingsThemeChoices" class="settings-theme-grid"><button data-setting-theme="midnight" type="button">🌙 Midnight</button><button data-setting-theme="sunrise" type="button">🌅 Sunrise</button><button data-setting-theme="sakura" type="button">🌸 Sakura</button><button data-setting-theme="aqua" type="button">🌊 Aqua</button><button data-setting-theme="candy" type="button">🍬 Candy</button></div></section>
+    </div>
+    <div id="settingsMessage" class="developer-message" aria-live="polite"></div>
+  </section>
+</div>
+
+<div id="guideOverlay" class="utility-overlay" aria-hidden="true">
+  <section class="utility-panel guide-panel" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+    <div class="utility-head"><div><div class="placement-kicker">Help Center</div><h2 id="guideTitle">📖 Game Guide</h2><p>Everything you need to learn Japanese and progress through the mines.</p></div><button id="closeGuideBtn" type="button" aria-label="Close game guide">×</button></div>
+    <nav class="guide-tabs" aria-label="Game guide sections"><button class="primary" data-guide-tab="basics" type="button">Getting Started</button><button data-guide-tab="learning" type="button">Learning</button><button data-guide-tab="economy" type="button">Nuggets & Shop</button><button data-guide-tab="progress" type="button">Progress</button><button data-guide-tab="features" type="button">Features</button></nav>
+    <div id="guideContent" class="guide-content"></div>
   </section>
 </div>
 
@@ -338,12 +361,12 @@
   </section>
 </div>
 
-<div class="footer">Japanese Miner v7.0.4 — full-screen guardian trials, 12 Miner Boot colors, and study tracking.</div>
+<div class="footer">Japanese Miner v7.1.0 — full-screen guardian trials, 12 Miner Boot colors, and study tracking.</div>
 </div>
 
-<script src="game-7020.js?v=7.0.4" defer></script>
-<script src="v5-7020.js?v=7.0.4" defer></script>
-<script src="v6.js?v=7.0.4" defer></script>
+<script src="game-7020.js?v=7.1.0" defer></script>
+<script src="v5-7020.js?v=7.1.0" defer></script>
+<script src="v6.js?v=7.1.0" defer></script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(items=>items.forEach(item=>item.unregister())).catch(()=>{});}if("caches" in window){caches.keys().then(keys=>Promise.all(keys.map(key=>caches.delete(key)))).catch(()=>{});}</script>
 
 </body>
