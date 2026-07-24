@@ -1,3 +1,18 @@
+Japanese Miner v6.5.3
+
+EXPEDITION SKILL PROGRESSION
+- Every mine now has exactly four learning stops:
+  1. Vocabulary
+  2. Kanji
+  3. Grammar
+  4. Reading
+- Each stop displays its own 0–100% progress.
+- The mine summary displays all four skill percentages.
+- Stops unlock sequentially as the previous skill reaches 100%.
+- Clicking a stop launches questions filtered to that skill.
+- The guardian unlocks only after all four skills reach 100%.
+- Existing question statistics automatically populate the new percentages.
+
 Japanese Miner v6.5.2
 
 NEW: Full-Screen Guardian Trials
