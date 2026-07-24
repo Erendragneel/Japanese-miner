@@ -1,0 +1,230 @@
+/* Japanese Miner v6.0 — The Polish Update */
+/* v6.1.1 approved rendered anime miner; shared by menus, profiles and try-on cards. */
+.miner-avatar .avatar-render{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;z-index:2;pointer-events:none;user-select:none;filter:drop-shadow(0 8px 7px #0007)}
+.miner-avatar>.avatar-shadow,.miner-avatar>.avatar-legs,.miner-avatar>.avatar-body,.miner-avatar>.avatar-neck,.miner-avatar>.avatar-head{display:none!important}
+.rendered-avatar-layers{position:absolute;inset:0;z-index:3;overflow:hidden;pointer-events:none}.rendered-avatar-layers>i{position:absolute;display:block;mix-blend-mode:color;opacity:.28}
+.rendered-skin-tint{inset:0;background:radial-gradient(ellipse 15% 11% at 50% 14%,var(--skin) 0 96%,transparent 100%),radial-gradient(ellipse 4% 3% at 25% 53%,var(--skin) 0 94%,transparent 100%),radial-gradient(ellipse 4% 3% at 75% 53%,var(--skin) 0 94%,transparent 100%);mix-blend-mode:color!important;opacity:.72!important}.rendered-skin-tint:before,.rendered-skin-tint:after{content:"";position:absolute;top:36%;width:7%;height:16%;border-radius:45%;background:var(--skin)}.rendered-skin-tint:before{left:24%;transform:rotate(8deg)}.rendered-skin-tint:after{right:24%;transform:rotate(-8deg)}.miner-avatar[data-skin="light"] .rendered-skin-tint{opacity:.28!important}.miner-avatar[data-skin="warm"] .rendered-skin-tint{opacity:.58!important}.miner-avatar[data-skin="tan"] .rendered-skin-tint{opacity:.74!important}.miner-avatar[data-skin="deep"] .rendered-skin-tint{opacity:.88!important}
+.rendered-hair-tint{left:28%;top:2%;width:44%;height:16%;background:var(--hair);clip-path:ellipse(47% 48% at 50% 48%);opacity:.7!important}
+.rendered-shirt-tint{left:19%;top:17%;width:62%;height:31%;background:var(--shirt);clip-path:polygon(24% 0,76% 0,100% 34%,87% 100%,13% 100%,0 34%);opacity:.68!important}
+.rendered-pants-tint{left:28%;top:43%;width:44%;height:40%;background:var(--pants);clip-path:polygon(0 0,47% 0,50% 48%,55% 0,100% 0,92% 100%,57% 100%,51% 54%,45% 100%,8% 100%);opacity:.72!important}
+.rendered-glove-tint{left:22%;top:45%;width:8%;height:10%;background:transparent;box-shadow:174px 0 transparent;clip-path:polygon(8% 0,92% 0,100% 100%,0 100%)}.miner-avatar[data-gloves="miner"] .rendered-glove-tint{background:#8a5a31;box-shadow:174px 0 #8a5a31;opacity:.38}.miner-avatar[data-gloves="crystal"] .rendered-glove-tint{background:#41d7e7;box-shadow:174px 0 #41d7e7;opacity:.48}
+.rendered-shoe-tint{left:26%;top:84%;width:20%;height:14%;background:transparent;box-shadow:71px 0 transparent;clip-path:polygon(10% 0,88% 0,100% 100%,0 100%)}.miner-avatar[data-shoes="boots"] .rendered-shoe-tint{background:#5d452d;box-shadow:71px 0 #5d452d;opacity:.3}.miner-avatar[data-shoes="sneakers"] .rendered-shoe-tint{background:#e9f1ff;box-shadow:71px 0 #e9f1ff;opacity:.48}.miner-avatar[data-shoes="geta"] .rendered-shoe-tint{background:#ad6a30;box-shadow:71px 0 #ad6a30;opacity:.42}
+.miner-avatar[data-hair-color="black"] .rendered-hair-tint{opacity:.08!important}.miner-avatar[data-hair-color="brown"] .rendered-hair-tint,.miner-avatar[data-hair-color="red"] .rendered-hair-tint,.miner-avatar[data-hair-color="blue"] .rendered-hair-tint,.miner-avatar[data-hair-color="pink"] .rendered-hair-tint,.miner-avatar[data-hair-color="silver"] .rendered-hair-tint,.miner-avatar[data-hair-color="purple"] .rendered-hair-tint,.miner-avatar[data-hair-color="teal"] .rendered-hair-tint,.miner-avatar[data-hair-color="green"] .rendered-hair-tint{opacity:.76!important}
+.miner-avatar[data-shirt="miner"] .rendered-shirt-tint{background:#bd7929}.miner-avatar[data-shirt="academy"] .rendered-shirt-tint{background:#294f9a}.miner-avatar[data-shirt="hoodie"] .rendered-shirt-tint{background:#7850b8}.miner-avatar[data-shirt="festival"] .rendered-shirt-tint{background:#cb455b}.miner-avatar[data-shirt="armor"] .rendered-shirt-tint{background:#3bc7d0;opacity:.4}.miner-avatar[data-shirt="casual"] .rendered-shirt-tint{background:#4c9b62}
+.miner-avatar[data-jacket="haori"] .rendered-shirt-tint{background:#d86692;opacity:.42}.miner-avatar[data-jacket="academy"] .rendered-shirt-tint{background:#294983;opacity:.38}.miner-avatar[data-jacket="explorer"] .rendered-shirt-tint{background:#916135;opacity:.42}
+.miner-avatar[data-pants="denim"] .rendered-pants-tint{background:#355b8d}.miner-avatar[data-pants="black"] .rendered-pants-tint{opacity:.08}.miner-avatar[data-pants="khaki"] .rendered-pants-tint{background:#a38d60}.miner-avatar[data-pants="white"] .rendered-pants-tint{background:#dce5f0}.miner-avatar[data-pants="purple"] .rendered-pants-tint{background:#725094}.miner-avatar[data-pants="red"] .rendered-pants-tint{background:#9e4050}
+.rendered-accessory{mix-blend-mode:normal!important;opacity:1!important}.miner-avatar[data-accessory="glasses"] .rendered-accessory{left:38%;top:12.4%;width:24%;height:4%;border:2px solid #202938;border-radius:10px;box-shadow:inset 11px 0 0 -9px #202938,inset -11px 0 0 -9px #202938}.miner-avatar[data-accessory="headband"] .rendered-accessory{left:32%;top:7.5%;width:36%;height:2%;border-radius:5px;background:#d8465d}.miner-avatar[data-accessory="helmet"] .rendered-accessory{left:28%;top:2.2%;width:44%;height:10%;border:2px solid #34271a;border-radius:50% 50% 12px 12px;background:linear-gradient(145deg,#ce8d26,#ffd268);box-shadow:inset 0 -7px #946421}.miner-avatar[data-accessory="earrings"] .rendered-accessory{left:32%;top:15%;width:4px;height:9px;border-radius:50%;background:#ffd166;box-shadow:88px 0 #ffd166}.miner-avatar[data-accessory="scarf"] .rendered-accessory{left:37%;top:17.5%;width:27%;height:5%;border-radius:9px;background:#c63f57;box-shadow:15px 10px 0 -3px #9e2e45}
+.miner-avatar[data-reaction="happy"] .avatar-render{transform:translateY(-6px) scale(1.015)}.miner-avatar[data-reaction="sad"] .avatar-render{filter:grayscale(.25) brightness(.85)}.miner-avatar[data-reaction="attack"] .avatar-render{transform:rotate(2deg) translateX(5px)}
+.miner-avatar.mini .rendered-avatar-layers{display:block}.header-character-avatar .avatar-render{display:block}
+.miner-avatar{width:250px;height:455px;--v61-ink:#111a26;--v61-teal:#176d72;--v61-copper:#e59039;isolation:isolate}.miner-avatar.large{filter:drop-shadow(0 20px 17px #0009)}
+.miner-avatar .avatar-shadow{left:37px;bottom:0;width:176px;height:18px;background:#050912b8;filter:blur(3px)}.miner-avatar .avatar-head{left:73px;top:6px;width:104px;height:124px;z-index:8}
+.miner-avatar .avatar-face{inset:19px 8px 2px;border:2px solid var(--v61-ink);border-radius:48% 48% 45% 45%/42% 42% 55% 55%;background:radial-gradient(circle at 31% 25%,#fff7 0 4%,transparent 5%),linear-gradient(103deg,color-mix(in srgb,var(--skin) 73%,#a45b43),var(--skin) 36% 78%,color-mix(in srgb,var(--skin) 85%,white));box-shadow:inset -7px -7px 11px #7f3e2525,inset 5px 3px 8px #fff3}
+.miner-avatar .avatar-ear{top:58px;width:16px;height:28px;border:2px solid var(--v61-ink);background:var(--skin)}.miner-avatar .avatar-ear.left{left:1px}.miner-avatar .avatar-ear.right{right:1px}
+.miner-avatar .eye{top:49px;width:16px;height:23px;border:2px solid #161727;border-radius:50%;background:radial-gradient(circle at 34% 28%,#fff 0 11%,transparent 12%),radial-gradient(circle at 62% 68%,#ffcf75 0 10%,transparent 11%),linear-gradient(#432e53 0 35%,#a65c29 62%,#e8a943)}.miner-avatar .eye.left{left:20px}.miner-avatar .eye.right{right:20px}.miner-avatar .eye:before{display:none}
+.miner-avatar .brow{position:absolute;top:40px;width:18px;height:5px;border-top:3px solid color-mix(in srgb,var(--hair) 70%,#1a1720);border-radius:50%;z-index:4}.miner-avatar .brow.left{left:18px;transform:rotate(-5deg)}.miner-avatar .brow.right{right:18px;transform:rotate(5deg)}
+.miner-avatar .avatar-face:before{left:45px;top:69px;width:7px;height:5px;background:#b86b58aa;border-radius:50%;box-shadow:none}.miner-avatar .avatar-face:after{left:19px;right:19px;top:75px;height:9px;background:linear-gradient(90deg,#f2788c55,transparent 30% 70%,#f2788c55);border-radius:50%;filter:blur(1px)}.miner-avatar .mouth{left:39px;top:89px;width:18px;height:9px;border:0;border-bottom:2px solid #8e4054;border-radius:50%;background:none}
+.miner-avatar .avatar-hair.front{left:3px;top:0;width:98px;height:55px;border:2px solid var(--v61-ink);border-bottom:0;border-radius:50px 50px 12px 12px;background:linear-gradient(105deg,color-mix(in srgb,var(--hair) 48%,#101620),var(--hair) 40% 70%,color-mix(in srgb,var(--hair) 68%,#5bb4b1));clip-path:polygon(0 0,100% 0,100% 70%,87% 60%,76% 93%,62% 64%,48% 96%,34% 61%,19% 88%,0 68%);filter:drop-shadow(0 2px 0 var(--v61-ink));z-index:5}
+.miner-avatar .avatar-hair-streak{position:absolute;left:58px;top:7px;width:19px;height:47px;z-index:7;border-radius:60% 25% 60% 30%;background:linear-gradient(100deg,#a94724,#f2a03f 55%,#ffd37a);clip-path:polygon(23% 0,100% 0,69% 100%,0 76%);opacity:.95}.miner-avatar[data-hair-style="buzz"] .avatar-hair-streak{height:24px}
+.miner-avatar .avatar-neck{left:108px;top:116px;width:34px;height:31px;border:2px solid var(--v61-ink);border-radius:8px 8px 12px 12px;background:linear-gradient(90deg,color-mix(in srgb,var(--skin) 70%,#814934),var(--skin) 60%,color-mix(in srgb,var(--skin) 82%,white));z-index:3}
+.miner-avatar .avatar-body,.miner-avatar[data-jacket="haori"] .avatar-body,.miner-avatar[data-jacket="academy"] .avatar-body,.miner-avatar[data-jacket="explorer"] .avatar-body{left:57px;top:140px;width:136px;height:165px;border:2px solid var(--v61-ink);border-radius:24px 24px 9px 9px;clip-path:polygon(14% 0,86% 0,100% 97%,92% 100%,8% 100%,0 97%);background:linear-gradient(105deg,#16232e 0 23%,var(--v61-teal) 24% 49%,#222b36 50% 76%,#101821 77%);box-shadow:inset -18px 0 #0003,inset 0 -18px #0003,0 10px 13px #0007;z-index:4}
+.miner-avatar .avatar-body:before{content:"";position:absolute;inset:0 8px auto;height:70px;border:0;background:linear-gradient(133deg,#283641 0 43%,transparent 44%) left/51% 100% no-repeat,linear-gradient(227deg,#18232d 0 43%,transparent 44%) right/51% 100% no-repeat;filter:drop-shadow(0 2px 1px #0006)}.miner-avatar .avatar-body:after{content:"";position:absolute;left:7px;right:7px;bottom:16px;height:10px;border:2px solid #111821;border-radius:5px;background:linear-gradient(90deg,#202b36,#d58a31 10% 14%,#364657 15% 47%,#e2a341 48% 54%,#364657 55% 86%,#d58a31 87% 91%,#202b36);box-shadow:0 3px 4px #0008}
+.miner-avatar .avatar-shirt-detail{left:64px;top:6px;width:7px;height:139px;border-radius:4px;background:linear-gradient(#efa645,#a85324 58%,#ffffff17);z-index:2}.miner-avatar .avatar-shirt-detail:before,.miner-avatar .avatar-shirt-detail:after{display:none}
+.miner-avatar .avatar-collar{position:absolute;left:34px;top:0;width:68px;height:50px;z-index:3;background:linear-gradient(135deg,#b9d8d3 0 15%,#246a6d 16% 43%,transparent 44%) left/51% 100% no-repeat,linear-gradient(225deg,#b9d8d3 0 15%,#26333e 16% 43%,transparent 44%) right/51% 100% no-repeat;filter:drop-shadow(0 2px 1px #0008)}
+.miner-avatar .avatar-pendant{position:absolute;left:61px;top:49px;width:13px;height:17px;z-index:5;background:linear-gradient(145deg,#b9ffff,#42c7cf 55%,#176b7d);clip-path:polygon(50% 0,100% 35%,77% 100%,23% 100%,0 35%);filter:drop-shadow(0 0 4px #7af6ff)}.miner-avatar .avatar-pendant:before{content:"";position:absolute;left:5px;top:-17px;width:2px;height:18px;background:#e5b558}
+.miner-avatar .avatar-utility-belt{position:absolute;left:15px;right:15px;bottom:13px;height:17px;z-index:5}.miner-avatar .avatar-utility-belt i{position:absolute;bottom:-18px;width:22px;height:27px;border:2px solid #111923;border-radius:3px;background:linear-gradient(145deg,#365061,#172431);box-shadow:inset 0 4px #ffffff16}.miner-avatar .avatar-utility-belt i:first-child{left:5px}.miner-avatar .avatar-utility-belt i:last-child{right:5px}
+.miner-avatar .avatar-arm{top:14px;width:25px;height:143px;border:2px solid var(--v61-ink);border-radius:14px 14px 10px 10px;background:linear-gradient(90deg,#131d27,#247a7c 48%,#3aa3a0 63%,#17212b);box-shadow:inset -5px 0 #0004}.miner-avatar .avatar-arm.left{left:-22px;transform:rotate(4deg)}.miner-avatar .avatar-arm.right{right:-22px;transform:rotate(-4deg)}.miner-avatar .avatar-arm:before{content:"";position:absolute;left:-2px;right:-2px;bottom:17px;height:28px;border:2px solid #111821;border-radius:6px;background:repeating-linear-gradient(0deg,#293b48 0 5px,#e29335 5px 8px,#18242e 8px 12px);box-shadow:0 2px 4px #0006}.miner-avatar .avatar-arm:after{left:2px;bottom:-10px;width:17px;height:23px;border:2px solid var(--v61-ink);background:linear-gradient(90deg,color-mix(in srgb,var(--skin) 70%,#75422e),var(--skin) 58%,color-mix(in srgb,var(--skin) 85%,white))}
+.miner-avatar .avatar-legs{left:74px;bottom:25px;gap:24px}.miner-avatar .avatar-legs i{width:39px;height:159px;border:2px solid var(--v61-ink);border-radius:8px 8px 14px 14px;background:linear-gradient(96deg,#111b25,color-mix(in srgb,var(--pants) 55%,#14212c) 40% 68%,color-mix(in srgb,var(--pants) 74%,#57808a));box-shadow:inset -8px 0 #0004,inset 0 -22px #070c1266}.miner-avatar .avatar-legs i:after{left:2px;right:2px;top:65px;height:32px;border:2px solid #111821;border-radius:9px;background:linear-gradient(145deg,#244752,#182633);box-shadow:inset 0 4px #51aaa622,0 3px 4px #0006}.miner-avatar .avatar-legs i:before{left:-6px;bottom:-9px;width:46px;height:25px;border:2px solid #101720;border-radius:11px 16px 7px 7px;background:linear-gradient(145deg,#1b5256,#17232b 55% 72%,#d58a31 73% 83%,#10171d 84%);box-shadow:5px 4px 0 #080c11,0 4px 5px #0009}
+.miner-avatar[data-shirt="academy"] .avatar-body{background:linear-gradient(105deg,#14233e 0 25%,#31518b 26% 49%,#182640 50% 76%,#0d1629 77%)}.miner-avatar[data-shirt="hoodie"] .avatar-body{background:linear-gradient(105deg,#2d2351 0 24%,#7358b2 25% 49%,#3c2d68 50% 76%,#1e1835 77%)}.miner-avatar[data-shirt="festival"] .avatar-body{background:linear-gradient(105deg,#551f2b 0 24%,#bd4556 25% 49%,#722938 50% 76%,#351720 77%)}.miner-avatar[data-shirt="armor"] .avatar-body{background:linear-gradient(105deg,#10333d 0 23%,#3da8ae 24% 49%,#1b5d67 50% 76%,#0a2a33 77%);box-shadow:inset 0 0 18px #6ff5ff44,0 10px 14px #0007}.miner-avatar[data-shirt="casual"] .avatar-body{background:linear-gradient(105deg,#173020 0 24%,#559062 25% 49%,#294c33 50% 76%,#112419 77%)}
+.miner-avatar[data-jacket="haori"] .avatar-body{background:linear-gradient(105deg,#452039 0 24%,#ce6d91 25% 49%,#70344f 50% 76%,#2c1525 77%)}.miner-avatar[data-jacket="academy"] .avatar-body{background:linear-gradient(105deg,#111b31 0 24%,#304d87 25% 49%,#1b2b4d 50% 76%,#0b1222 77%)}.miner-avatar[data-jacket="explorer"] .avatar-body{background:linear-gradient(105deg,#332416 0 24%,#8b6235 25% 49%,#4b3520 50% 76%,#23180f 77%)}
+.miner-avatar[data-gloves="miner"] .avatar-arm:before{background:repeating-linear-gradient(0deg,#593f2c 0 5px,#d28a35 5px 8px,#2b211b 8px 12px)}.miner-avatar[data-gloves="crystal"] .avatar-arm:before{background:linear-gradient(#8af4ff,#277e94);box-shadow:0 0 10px #63edff}
+.miner-avatar[data-accessory="glasses"] .avatar-accessory{left:12px;top:49px;width:74px}.miner-avatar[data-accessory="headband"] .avatar-accessory{left:5px;top:24px;width:88px}.miner-avatar[data-accessory="helmet"] .avatar-accessory{left:-1px;top:-7px;width:101px;height:43px}.miner-avatar[data-accessory="earrings"] .avatar-accessory:after{left:91px}.miner-avatar[data-accessory="scarf"] .avatar-accessory{left:16px;top:105px;width:67px}
+@keyframes v61MinerIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}.character-preview-card>.miner-avatar.large,.game-menu-character>.miner-avatar.large{animation:v61MinerIdle 3.4s ease-in-out infinite}body[data-reduced-motion="true"] .miner-avatar{animation:none!important}
+:root[data-text-size="large"]{font-size:18px}:root[data-text-size="xlarge"]{font-size:20px}
+body[data-reduced-motion="true"] *,body[data-reduced-motion="true"] *:before,body[data-reduced-motion="true"] *:after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.001ms!important}
+body[data-high-contrast="true"]{--text:#fff;--muted:#dce6f7;--line:#8196bd;--panel:#09101f;--panel2:#111d34}body[data-high-contrast="true"] button{border-width:2px}
+body[data-color-assist="true"] .correct:before{content:"✓ ";font-weight:900}body[data-color-assist="true"] .wrong:before{content:"✕ ";font-weight:900}body[data-color-assist="true"] .locked:after{content:" LOCKED";font-size:9px}
+.v6-overlay{position:fixed;inset:0;z-index:4100;display:none;align-items:center;justify-content:center;padding:14px;background:#030611ed}.v6-overlay.open{display:flex}.v6-dialog{width:min(760px,100%);max-height:calc(100dvh - 28px);overflow:auto;padding:22px;border:2px solid #5d76a4;border-radius:28px;background:radial-gradient(circle at 92% 3%,#714ccc38,transparent 28%),linear-gradient(145deg,#192640,#0f1729);box-shadow:0 30px 100px #000e;color:var(--text)}.v6-dialog>header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}.v6-dialog>header span,.v6-tour-dialog>div>span{color:#75e7b8;font-size:11px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}.v6-dialog h2{margin:4px 0}.v6-close{width:48px;height:48px;padding:0;font-size:27px}.v6-tour-dialog{width:min(520px,100%);position:relative;text-align:center}.v6-tour-dialog>.v6-close{position:absolute;right:14px;top:14px}.v6-tour-progress{height:7px;margin:4px 55px 22px;border-radius:99px;overflow:hidden;background:#263654}.v6-tour-progress i{display:block;height:100%;background:linear-gradient(90deg,#57d59d,#6e73ff);transition:.3s}.v6-tour-icon{font-size:82px;margin:8px;filter:drop-shadow(0 9px 10px #0007)}.v6-tour-dialog h2{font-size:28px;margin:7px}.v6-tour-dialog p{color:var(--muted);font-size:16px;line-height:1.6}.v6-tour-actions{display:grid;grid-template-columns:1fr 1.5fr;gap:9px;margin-top:20px}.v6-link{border:0;background:transparent;color:var(--muted);text-decoration:underline}
+.v6-coach-card{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;max-height:0;margin:0;padding:0 20px;border:0 solid #57d8aa;border-radius:22px;overflow:hidden;opacity:0;transform:translateY(-10px) scale(.98);pointer-events:none;background:radial-gradient(circle at 10% 50%,#4bd4a833,transparent 24%),linear-gradient(130deg,#193a48,#24365e 58%,#3b2d6c);box-shadow:0 12px 30px #0005;transition:max-height .35s ease,margin .35s ease,padding .35s ease,opacity .25s ease,transform .35s ease,border-width .2s ease}.v6-coach-card.visible{max-height:210px;margin:14px 0;padding:17px 20px;border-width:2px;opacity:1;transform:none;pointer-events:auto}.v6-gnome{position:relative;width:72px;height:82px;filter:drop-shadow(0 7px 5px #0007)}.gnome-hat{position:absolute;z-index:5;left:8px;top:0;width:56px;height:45px;background:linear-gradient(135deg,#ff5d72,#a92950);clip-path:polygon(49% 0,100% 82%,70% 75%,63% 100%,20% 83%,0 88%);border-radius:45%}.gnome-face{position:absolute;z-index:3;left:19px;top:33px;width:38px;height:31px;border-radius:48%;background:#efb184;box-shadow:inset 0 -5px #d88b68}.gnome-nose{position:absolute;z-index:7;left:31px;top:45px;width:16px;height:14px;border-radius:50%;background:#f4bd90}.gnome-beard{position:absolute;z-index:6;left:15px;top:52px;width:47px;height:28px;background:#f4f1e8;clip-path:polygon(0 0,100% 0,79% 100%,52% 73%,31% 100%);border-radius:8px}.gnome-body{position:absolute;z-index:1;left:15px;bottom:0;width:47px;height:31px;border-radius:18px 18px 8px 8px;background:linear-gradient(90deg,#25588c,#3e83bd)}.v6-coach-speech{position:relative}.v6-coach-speech:before{content:"";position:absolute;left:-25px;top:24px;border:9px solid transparent;border-right-color:#ffffff18}.v6-coach-card span{color:#7ceac0;font-size:10px;font-weight:900;letter-spacing:.13em}.v6-coach-card h2{margin:3px 0;font-size:22px}.v6-coach-card p{margin:0;color:#cfdaed}.v6-coach-card>button{min-width:150px}
+.v6-coach-card.informational{grid-template-columns:auto 1fr}.v6-coach-card.informational>div:nth-child(2){padding-right:8px}
+.v6-answer-explanation{margin:12px 0;padding:16px;border:1px solid #5573a6;border-left:5px solid #63dfaa;border-radius:15px;background:linear-gradient(135deg,#13243a,#10182a);animation:v6ExplainIn .3s ease}.v6-answer-explanation>span{color:#70e3b2;font-size:10px;font-weight:900;letter-spacing:.12em}.v6-answer-explanation h3{margin:5px 0}.v6-answer-explanation p{margin:6px 0;color:#d5deed}.v6-answer-explanation>div{display:flex;gap:8px;margin-top:11px}@keyframes v6ExplainIn{from{opacity:0;transform:translateY(8px)}}
+.v6-settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.v6-settings-grid label,.v6-save-recovery{display:grid;gap:7px;padding:13px;border:1px solid #3e5278;border-radius:15px;background:#101a2e}.v6-settings-grid select,.v6-settings-grid input[type="range"],.v6-dialog textarea,.v6-dialog select{width:100%;padding:11px;border:1px solid #4c628d;border-radius:10px;background:#172640;color:#fff}.v6-switch{grid-template-columns:auto 1fr;align-items:center}.v6-switch input{width:23px;height:23px}.v6-save-recovery{margin-top:14px}.v6-save-recovery h3,.v6-save-recovery p{margin:0}.v6-save-recovery p{color:var(--muted)}#v6SnapshotList{display:grid;gap:7px}#v6SnapshotList button{display:flex;justify-content:space-between;text-align:left}#v6SnapshotList small{color:var(--muted)}
+#v6FeedbackContent>label{display:grid;gap:6px;margin:12px 0}.v6-feedback-actions{display:flex;gap:8px}.v6-feedback-history{display:grid;gap:7px;max-height:230px;overflow:auto}.v6-feedback-history article{padding:11px;border:1px solid #3b5076;border-radius:12px;background:#10192c}.v6-feedback-history p{margin:5px 0}.v6-feedback-history small{color:var(--muted)}
+.v6-story-toast{position:fixed;right:18px;top:18px;z-index:3900;width:min(360px,calc(100vw - 36px));padding:16px;border:2px solid #ffd166;border-radius:18px;background:linear-gradient(135deg,#352547,#14223a);box-shadow:0 18px 45px #000b;opacity:0;pointer-events:none;transform:translateY(-20px);transition:.3s}.v6-story-toast.show{opacity:1;transform:none}.v6-story-toast span{color:#ffd166;font-size:9px;font-weight:900;letter-spacing:.12em}.v6-story-toast strong{display:block;font-size:20px;margin:3px 0}.v6-story-toast p{margin:0;color:#d8ddec}
+button,.panel,.v5-card,.cosmetic-card{transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}button:not(:disabled):hover{transform:translateY(-2px)}button:focus-visible{outline:3px solid #ffe070;outline-offset:3px}.panel:hover,.v5-card:hover,.cosmetic-card:hover{border-color:#536e9d}
+@media(max-width:700px){.v6-dialog{padding:14px;border-radius:20px}.v6-coach-card{grid-template-columns:auto 1fr;padding-left:13px;padding-right:13px}.v6-coach-card.visible{padding-top:13px;padding-bottom:13px}.v6-coach-card>button{grid-column:1/-1;width:100%}.v6-gnome{width:58px;height:70px;transform:scale(.82);transform-origin:center}.v6-coach-card h2{font-size:18px}.v6-coach-card p{font-size:12px}.v6-settings-grid{grid-template-columns:1fr}.v6-tour-icon{font-size:65px}.v6-tour-dialog h2{font-size:23px}.v6-story-toast{right:8px;top:8px;width:calc(100vw - 16px)}}
+
+/* v6.0.2 collapsible character-shop sections */
+.character-option{border:1px solid #34496f;border-radius:16px;background:#0d172a;overflow:hidden;margin-bottom:10px}.character-option-toggle{width:100%;min-height:54px;padding:11px 14px;border:0;border-radius:0;display:flex;align-items:center;justify-content:space-between;text-align:left;background:linear-gradient(135deg,#263b61,#1b2947);color:#fff}.character-option-toggle span{font-size:16px;font-weight:900}.character-option-toggle b{width:34px;height:34px;display:grid;place-items:center;border:1px solid #6980a8;border-radius:50%;font-size:24px;line-height:1;transition:transform .2s;background:#111d34}.character-option>.character-choice-grid{padding:12px;max-height:2000px;opacity:1;transition:max-height .28s ease,opacity .2s ease,padding .28s ease}.character-option.collapsed>.character-choice-grid{max-height:0;opacity:0;overflow:hidden;padding-top:0;padding-bottom:0}.character-option.collapsed .character-option-toggle b{transform:rotate(-90deg)}.character-option-toggle:focus-visible{outline-offset:-4px}
+
+/* v6.1.3: pixel-fitted cosmetic masks derived from the rendered miner artwork. */
+.rendered-avatar-layers>i:not(.rendered-accessory){inset:0!important;width:auto!important;height:auto!important;border:0!important;border-radius:0!important;clip-path:none!important;box-shadow:none!important;background-repeat:no-repeat!important;background-position:center!important;background-size:contain!important;-webkit-mask-repeat:no-repeat;-webkit-mask-position:center;-webkit-mask-size:contain;mask-repeat:no-repeat;mask-position:center;mask-size:contain;mix-blend-mode:color!important}
+.rendered-skin-tint{background:var(--skin)!important;opacity:.55!important;-webkit-mask-image:var(--mask-skin);mask-image:var(--mask-skin)}
+.rendered-skin-tint:before,.rendered-skin-tint:after{display:none!important}
+.rendered-hair-tint{background:var(--hair)!important;opacity:.9!important;-webkit-mask-image:var(--mask-hair);mask-image:var(--mask-hair)}
+.rendered-shirt-tint{opacity:.78!important;-webkit-mask-image:var(--mask-jacket);mask-image:var(--mask-jacket)}
+.rendered-pants-tint{opacity:.72!important;-webkit-mask-image:var(--mask-pants);mask-image:var(--mask-pants)}
+.rendered-glove-tint{opacity:.8!important;-webkit-mask-image:var(--mask-gloves);mask-image:var(--mask-gloves)}
+.rendered-shoe-tint{opacity:.76!important;-webkit-mask-image:var(--mask-shoes);mask-image:var(--mask-shoes)}
+.miner-avatar[data-skin="light"] .rendered-skin-tint{opacity:.28!important}.miner-avatar[data-skin="warm"] .rendered-skin-tint{opacity:.42!important}.miner-avatar[data-skin="tan"] .rendered-skin-tint{opacity:.56!important}.miner-avatar[data-skin="deep"] .rendered-skin-tint{opacity:.68!important}.miner-avatar[data-hair-color] .rendered-hair-tint{opacity:.9!important}.miner-avatar[data-pants] .rendered-pants-tint{opacity:.72!important}
+
+/* v6.2.2: previews use one deliberate replacement-color layer instead of
+   stacking translucent highlights for every equipped cosmetic. */
+.preview-avatar[data-preview-key="hairStyle"] .rendered-avatar-layers{display:none!important}
+.preview-avatar[data-preview-key="hairColor"] .rendered-avatar-layers>i:not(.rendered-hair-tint),
+.preview-avatar[data-preview-key="shirt"] .rendered-avatar-layers>i:not(.rendered-shirt-tint),
+.preview-avatar[data-preview-key="jacket"] .rendered-avatar-layers>i:not(.rendered-shirt-tint),
+.preview-avatar[data-preview-key="pants"] .rendered-avatar-layers>i:not(.rendered-pants-tint),
+.preview-avatar[data-preview-key="gloves"] .rendered-avatar-layers>i:not(.rendered-glove-tint),
+.preview-avatar[data-preview-key="shoes"] .rendered-avatar-layers>i:not(.rendered-shoe-tint),
+.preview-avatar[data-preview-key="accessory"] .rendered-avatar-layers>i:not(.rendered-accessory){display:none!important}
+.preview-avatar[data-preview-key="hairColor"] .rendered-hair-tint,
+.preview-avatar[data-preview-key="shirt"] .rendered-shirt-tint,
+.preview-avatar[data-preview-key="jacket"] .rendered-shirt-tint,
+.preview-avatar[data-preview-key="pants"] .rendered-pants-tint,
+.preview-avatar[data-preview-key="gloves"] .rendered-glove-tint,
+.preview-avatar[data-preview-key="shoes"] .rendered-shoe-tint{mix-blend-mode:color!important;opacity:1!important}
+
+/* v6.2.3: hue replacement keeps the luminance already painted into the PNG.
+   Folds, seams, hair strands and edge lighting remain visible instead of being
+   covered by a flat opaque color. */
+.rendered-hair-tint,.rendered-shirt-tint,.rendered-pants-tint,.rendered-glove-tint,.rendered-shoe-tint{mix-blend-mode:hue!important;opacity:.94!important}
+.miner-avatar[data-hair-color="black"] .rendered-hair-tint{background:#252936!important;mix-blend-mode:color!important;opacity:.7!important}
+.miner-avatar[data-hair-color="blonde"] .rendered-hair-tint{background:#d9ad45!important;mix-blend-mode:color!important;opacity:.78!important}
+.miner-avatar[data-hair-color="silver"] .rendered-hair-tint{background:#aeb9c9!important;mix-blend-mode:color!important;opacity:.72!important}
+.miner-avatar[data-pants="black"] .rendered-pants-tint{background:#252b38!important;mix-blend-mode:color!important;opacity:.68!important}
+.miner-avatar[data-pants="white"] .rendered-pants-tint{background:#c8d3df!important;mix-blend-mode:color!important;opacity:.7!important}
+.preview-avatar[data-preview-key="hairColor"] .rendered-hair-tint,
+.preview-avatar[data-preview-key="shirt"] .rendered-shirt-tint,
+.preview-avatar[data-preview-key="jacket"] .rendered-shirt-tint,
+.preview-avatar[data-preview-key="pants"] .rendered-pants-tint,
+.preview-avatar[data-preview-key="gloves"] .rendered-glove-tint,
+.preview-avatar[data-preview-key="shoes"] .rendered-shoe-tint{mix-blend-mode:hue!important;opacity:.94!important}
+.preview-avatar[data-preview-key="hairColor"][data-hair-color="black"] .rendered-hair-tint,
+.preview-avatar[data-preview-key="hairColor"][data-hair-color="blonde"] .rendered-hair-tint,
+.preview-avatar[data-preview-key="hairColor"][data-hair-color="silver"] .rendered-hair-tint,
+.preview-avatar[data-preview-key="pants"][data-pants="black"] .rendered-pants-tint,
+.preview-avatar[data-preview-key="pants"][data-pants="white"] .rendered-pants-tint{mix-blend-mode:color!important}
+
+/* v6.2.4: browser blend modes are replaced by artwork-derived WebP layers.
+   Each transparent layer contains the original material luminance, so texture
+   is preserved without a translucent highlight or flat paint block. */
+.rendered-hair-tint,.rendered-shirt-tint,.rendered-pants-tint,.rendered-glove-tint,.rendered-shoe-tint{background-color:transparent!important;background-repeat:no-repeat!important;background-position:center!important;background-size:contain!important;-webkit-mask-image:none!important;mask-image:none!important;mix-blend-mode:normal!important;opacity:1!important}
+.rendered-hair-tint{background-image:var(--recolor-hair)!important}
+.rendered-shirt-tint{background-image:var(--recolor-shirt)!important}
+.rendered-pants-tint{background-image:var(--recolor-pants)!important}
+.rendered-glove-tint{background-image:var(--recolor-gloves)!important}
+.rendered-shoe-tint{background-image:var(--recolor-shoes)!important}
+
+/* v6.2.11: ensure artwork layers win over legacy full-canvas color fills. */
+.miner-avatar[data-hair-color] .rendered-hair-tint,
+.miner-avatar[data-hair-color="black"] .rendered-hair-tint,
+.miner-avatar[data-hair-color="blonde"] .rendered-hair-tint,
+.miner-avatar[data-hair-color="silver"] .rendered-hair-tint{
+  background-color:transparent!important;
+  background-image:var(--recolor-hair)!important;
+  mix-blend-mode:normal!important;
+  opacity:1!important;
+}
+.preview-avatar[data-preview-key="hairColor"] .rendered-hair-tint{
+  background-color:transparent!important;
+  background-image:var(--recolor-hair)!important;
+  mix-blend-mode:normal!important;
+  opacity:1!important;
+}
+
+/* Crystal armor receives readable crystalline plates without tinting the body. */
+.miner-avatar[data-shirt="armor"] .rendered-shirt-tint{
+  filter:drop-shadow(0 0 5px #65f3ff) saturate(1.18) brightness(1.08);
+}
+.miner-avatar[data-shirt="armor"] .rendered-shirt-tint:before,
+.miner-avatar[data-shirt="armor"] .rendered-shirt-tint:after{
+  content:"";
+  position:absolute;
+  top:25%;
+  width:13%;
+  height:18%;
+  background:linear-gradient(145deg,#d8ffff 0 12%,#54e7f3 13% 46%,#176b88 47% 76%,#85f8ff 77%);
+  clip-path:polygon(50% 0,100% 25%,83% 100%,17% 100%,0 25%);
+  box-shadow:0 0 9px #5befff;
+  opacity:.88;
+}
+.miner-avatar[data-shirt="armor"] .rendered-shirt-tint:before{left:25%;transform:rotate(-12deg)}
+.miner-avatar[data-shirt="armor"] .rendered-shirt-tint:after{right:25%;transform:rotate(12deg)}
+
+/* Head-fitted hard hat: crown, brim, lamp and highlights. */
+.miner-avatar[data-accessory="helmet"] .rendered-accessory{
+  left:31%!important;
+  top:7.1%!important;
+  width:38%!important;
+  height:7.2%!important;
+  border:2px solid #4a3216!important;
+  border-radius:50% 50% 18% 18%/72% 72% 28% 28%!important;
+  background:linear-gradient(105deg,#ad6d19,#f0b438 42%,#ffd86c 66%,#b7731b)!important;
+  box-shadow:inset 0 -5px #8d5719,0 3px 3px #0008!important;
+}
+.miner-avatar[data-accessory="helmet"] .rendered-accessory:before{
+  content:"";
+  position:absolute;
+  left:-9%;
+  right:-9%;
+  bottom:-3px;
+  height:19%;
+  border:2px solid #493117;
+  border-radius:999px;
+  background:linear-gradient(#ffd267,#c68120);
+  box-shadow:0 2px 2px #0007;
+}
+.miner-avatar[data-accessory="helmet"] .rendered-accessory:after{
+  content:"";
+  position:absolute;
+  left:40%;
+  top:24%;
+  width:20%;
+  height:39%;
+  border:2px solid #26313b;
+  border-radius:50%;
+  background:radial-gradient(circle at 42% 38%,#fff 0 18%,#bffaff 19% 45%,#4299ad 46% 70%,#1c3440 71%);
+  box-shadow:0 0 7px #b9fbff;
+}
+
+/* v6.2.12: skin is rendered artwork, not a translucent color wash. */
+.rendered-skin-tint,
+.miner-avatar[data-skin] .rendered-skin-tint{
+  inset:0!important;
+  background-color:transparent!important;
+  background-image:var(--recolor-skin)!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:contain!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  mix-blend-mode:normal!important;
+  opacity:1!important;
+}
+
+/* Fit the hard hat to the painted hairline instead of the full image canvas. */
+.miner-avatar[data-accessory="helmet"] .rendered-accessory{
+  left:37%!important;
+  top:9.8%!important;
+  width:26%!important;
+  height:5.8%!important;
+}
+.miner-avatar[data-accessory="helmet"] .rendered-accessory:before{left:-5%!important;right:-5%!important}
+
+/* v6.3.0 character-native wardrobe: real transparent images, no tint effects. */
+.native-wardrobe-layers{position:absolute;inset:0;z-index:3;overflow:hidden;pointer-events:none}
+.native-cosmetic-layer{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:contain;object-position:center bottom;mix-blend-mode:normal;opacity:1}
+.native-wardrobe-layers .rendered-accessory{position:absolute;display:block;mix-blend-mode:normal!important;opacity:1!important}
+.preview-avatar[data-preview-key="hairStyle"] .native-wardrobe-layers{display:none!important}
+.preview-avatar[data-preview-key="hairColor"] .native-cosmetic-layer:not(.native-hair-layer),
+.preview-avatar[data-preview-key="skin"] .native-cosmetic-layer:not(.native-skin-layer),
+.preview-avatar[data-preview-key="shirt"] .native-cosmetic-layer:not(.native-shirt-layer),
+.preview-avatar[data-preview-key="jacket"] .native-cosmetic-layer:not(.native-shirt-layer),
+.preview-avatar[data-preview-key="pants"] .native-cosmetic-layer:not(.native-pants-layer),
+.preview-avatar[data-preview-key="gloves"] .native-cosmetic-layer:not(.native-gloves-layer),
+.preview-avatar[data-preview-key="shoes"] .native-cosmetic-layer:not(.native-shoes-layer){display:none!important}
+.preview-avatar[data-preview-key="accessory"] .native-cosmetic-layer{display:none!important}
+
+
+/* v6.5.0 upgrades */
+.menu-player-summary{display:grid;gap:12px;margin:14px 0 18px}.menu-quick-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.menu-quick-stats>div{padding:10px;border:1px solid #ffffff20;border-radius:12px;background:#ffffff0b}.menu-quick-stats span{display:block;font-size:.76rem;opacity:.72}.menu-quick-stats strong{display:block;margin-top:3px}.menu-player-character{display:flex;align-items:center;gap:14px;min-height:116px;padding:10px 14px;border:1px solid #ffffff20;border-radius:16px;background:linear-gradient(135deg,#1d2738,#121a28)}.menu-player-character .miner-avatar.mini{width:82px;height:110px;flex:0 0 82px}.menu-player-character span,.menu-player-character small{display:block;opacity:.72}.menu-player-character strong{display:block;font-size:1.15rem;margin:3px 0}.back-to-game-menu{margin-right:8px;white-space:nowrap}.boss-trial-metrics{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin:12px 0}.boss-timer{font-variant-numeric:tabular-nums}.expedition-category-summary{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.expedition-category-summary span{font-size:.72rem;padding:4px 7px;border-radius:999px;background:#ffffff12;border:1px solid #ffffff1c}.boss-gate-note{font-size:.78rem;margin:8px 0 0;color:#ffd37a}.pronunciation .listening{color:#7de5ff}.study-calendar-stats{grid-template-columns:repeat(4,minmax(0,1fr))!important}@media(max-width:620px){.menu-quick-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.study-calendar-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}.back-to-game-menu{order:-1}.menu-player-character{min-height:100px}}
