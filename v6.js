@@ -1,7 +1,7 @@
 // Japanese Miner v6.0 — The Polish Update
 (()=>{
 'use strict';
-const VERSION='6.4.32-menu-button-restored', SNAPSHOT_PREFIX='jm_v6_snapshots_', FEEDBACK_INBOX_KEY='jm_v6_admin_feedback_inbox', FEEDBACK_INBOX_LIMIT=200;
+const VERSION='6.4.33-advanced-pickaxe-icon', SNAPSHOT_PREFIX='jm_v6_snapshots_', FEEDBACK_INBOX_KEY='jm_v6_admin_feedback_inbox', FEEDBACK_INBOX_LIMIT=200;
 let deferredInstallPrompt=null;
 const TOUR=[
  {section:'Getting started',icon:'⛏️',title:'Welcome to Japanese Miner',text:'Answer Japanese questions, build mastery, collect scientific gemstones, and progress from Hiragana through JLPT N1.',tips:['Create or sign in to a local player profile so every feature uses the same save.','Tap New Question or the mine rock to begin the selected course route.','Use the round menu button at the bottom-right whenever you need another game area.']},
@@ -70,6 +70,7 @@ function coachAction(a){if(a==='mine'){mine();document.getElementById('challenge
 // v6.4.28 - Matched Kōji's launcher dimensions to the round menu button.
 // v6.4.29 - Removed the separate N5 learning-track selector and its UI wiring.
 // v6.4.30 - Tutor curriculum controls are created only for the authenticated owner account.
+// v6.4.33 - Advanced forged pickaxe artwork replaces the original launcher icon.
 // v6.4.32 - Menu access remains available when optional quick-stat controls are absent.
 // v6.4.31 - Review now refreshes the previous study session without microphone or speaking tests.
 // v6.4.26 - Boss Gate and lesson-review questions advance automatically after answers.

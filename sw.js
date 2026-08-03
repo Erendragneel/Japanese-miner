@@ -1,4 +1,4 @@
-const CACHE_NAME='japanese-miner-v6.4.32-menu-button-restored';
+const CACHE_NAME='japanese-miner-v6.4.33-advanced-pickaxe-icon';
 const APP_SHELL=[
   './',
   './index.html',
@@ -13,8 +13,7 @@ const APP_SHELL=[
   './manifest.webmanifest',
   './icon-180.png',
   './icon-192.png',
-  './icon-512.png',
-  './favicon.svg'
+  './icon-512.png'
 ];
 
 self.addEventListener('install',event=>{
