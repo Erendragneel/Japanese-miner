@@ -1,4 +1,4 @@
-const CACHE_NAME='japanese-miner-v6.4.25-admin-feedback-notifications';
+const CACHE_NAME='japanese-miner-v6.4.27-web-scroll-restored';
 const APP_SHELL=[
   './',
   './index.html',

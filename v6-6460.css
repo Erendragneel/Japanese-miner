@@ -276,6 +276,7 @@ body[data-reduced-motion="true"] .v6-coach-character,body[data-reduced-motion="t
 .jlpt-review-question{margin:18px 0;padding:22px;border:1px solid #6378ad;border-radius:20px;background:radial-gradient(circle at 50% 0,#6955aa2b,transparent 52%),linear-gradient(145deg,#1d2948,#151e36)}
 .jlpt-review-question-display{min-height:72px;display:grid;place-items:center;padding:12px;font-size:34px;font-weight:900;line-height:1.35;text-align:center;overflow-wrap:anywhere}
 .jlpt-review-question>p{margin:4px 0 18px;color:#dce6fb;font-size:18px;font-weight:800;text-align:center}
+.jlpt-review-auto-advance{display:inline-flex;align-items:center;min-height:44px;padding:9px 13px;border:1px solid #6bdcaf;border-radius:12px;background:#15382f;color:#8debc5;font-size:12px;font-weight:900}
 .jlpt-review-quiz-result{max-width:700px;margin:24px auto;padding:30px;border:2px solid #e07887;border-radius:24px;background:linear-gradient(145deg,#3e2231,#202d4d);text-align:center;box-shadow:0 16px 34px #090b1766}
 .jlpt-review-quiz-result.passed{border-color:#61d7a5;background:linear-gradient(145deg,#183d39,#202d4d)}
 .jlpt-review-quiz-result h3{margin:8px 0;font-size:30px}.jlpt-review-quiz-result p{color:#cbd7e7}.jlpt-review-result-score{margin:8px 0;color:#ffe079;font-size:64px;font-weight:900;line-height:1}
@@ -283,14 +284,16 @@ body[data-reduced-motion="true"] .v6-coach-character,body[data-reduced-motion="t
 @media(max-width:600px){.jlpt-review-quiz>header{align-items:stretch;flex-direction:column}.jlpt-review-timer{align-self:flex-start;min-width:100px;font-size:24px}.jlpt-review-question{padding:16px 12px}.jlpt-review-question-display{min-height:56px;font-size:27px}.jlpt-review-quiz-result{padding:24px 15px}.jlpt-review-result-score{font-size:52px}}
 
 /* v6.4.18 keep Kōji permanently aligned above the round menu button */
-.v6-coach-dock{position:fixed;inset:0;z-index:945}
+.v6-coach-dock{position:fixed;inset:0;z-index:945;pointer-events:none}
+.v6-coach-character,.v6-coach-dock.open .v6-coach-popover{pointer-events:auto}
 .v6-coach-character{position:fixed;right:11px;bottom:90px}
 .v6-coach-popover{position:fixed;right:105px;bottom:90px}
 @media(max-width:600px){.v6-coach-character{position:fixed;right:10px;bottom:82px}.v6-coach-popover{position:fixed;right:8px;bottom:198px}}
 
 /* v6.4.19 phone-first installable app */
-html{min-width:0;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%;background:#101522}
-body{min-width:0;min-height:100dvh;overflow-x:hidden;overscroll-behavior-y:contain;padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+html{min-width:0;min-height:100%;height:auto;overflow-x:hidden;overflow-y:auto;-webkit-text-size-adjust:100%;text-size-adjust:100%;background:#101522}
+body{min-width:0;min-height:100dvh;height:auto;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:auto;touch-action:pan-y;padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+html.page-scroll-locked,body.page-scroll-locked{overflow:hidden;touch-action:none}
 button,a,input,select,textarea{touch-action:manipulation}
 button{min-height:44px}
 input,select,textarea{font:inherit;font-size:16px}

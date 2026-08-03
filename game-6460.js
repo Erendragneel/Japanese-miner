@@ -1333,6 +1333,33 @@ function floatText(t){
   document.body.appendChild(d);setTimeout(()=>d.remove(),900);
 }
 
+const PAGE_SCROLL_LOCK_SELECTOR=[
+  '#authOverlay:not(.hidden):not(.auth-dismissed):not([hidden])',
+  '.placement-overlay.open','.academy-overlay.open','.game-menu-overlay.open','.shop-overlay.open',
+  '.feature-center-overlay.open','.developer-overlay.open','.study-calendar-overlay.open',
+  '.utility-overlay.open','.cosmetic-preview-overlay.open','.v5-overlay.open','.v6-overlay.open'
+].join(',');
+let pageScrollObserver=null;
+function syncPageScrollLock(){
+  if(!document.body||!document.documentElement)return false;
+  const drawerOpen=!!document.getElementById('statsDrawer')?.classList.contains('open');
+  document.body.classList.toggle('stats-open',drawerOpen);
+  const locked=drawerOpen||!!document.querySelector(PAGE_SCROLL_LOCK_SELECTOR);
+  document.documentElement.classList.toggle('page-scroll-locked',locked);
+  document.body.classList.toggle('page-scroll-locked',locked);
+  document.body.style.removeProperty('overflow');
+  document.documentElement.style.removeProperty('overflow');
+  return locked;
+}
+function initPageScrollGuard(){
+  if(pageScrollObserver||!document.body)return;
+  pageScrollObserver=new MutationObserver(syncPageScrollLock);
+  pageScrollObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});
+  syncPageScrollLock();
+}
+window.syncJapaneseMinerPageScroll=syncPageScrollLock;
+initPageScrollGuard();
+
 function setStatsDrawer(open){
   if(open) syncSelectedStageUI();
   const drawer=document.getElementById("statsDrawer");
@@ -1341,6 +1368,7 @@ function setStatsDrawer(open){
   drawer.classList.toggle("open",open);
   overlay.classList.toggle("open",open);
   document.body.classList.toggle("stats-open",open);
+  syncPageScrollLock();
   drawer.setAttribute("aria-hidden",String(!open));
   quick.setAttribute("aria-expanded",String(open));
 }
@@ -1374,13 +1402,13 @@ function openDeveloperPanel(){
   const overlay=document.getElementById("developerOverlay");
   overlay.classList.add("open");overlay.setAttribute("aria-hidden","false");
   document.getElementById("adminInfiniteHearts").checked=!!state.developerInfiniteHearts;
-  document.body.style.overflow="hidden";
+  syncPageScrollLock();
 }
 function closeDeveloperPanel(){
   const overlay=document.getElementById("developerOverlay");
   if(!overlay) return;
   overlay.classList.remove("open");overlay.setAttribute("aria-hidden","true");
-  document.body.style.overflow="";
+  syncPageScrollLock();
 }
 function developerMessage(text,error=false){
   const el=document.getElementById("developerMessage");if(!el)return;
@@ -2112,11 +2140,11 @@ const WALLPAPERS=[
 ];
 let activeShopTab='pickaxes';
 function applyWallpaper(){document.body.dataset.wallpaper=state.equippedWallpaper||'midnight';}
-function openGameMenu(){document.getElementById('gameMenuOverlay')?.classList.add('open');document.getElementById('gameMenuOverlay')?.setAttribute('aria-hidden','false');document.getElementById('gameMenuBtn')?.setAttribute('aria-expanded','true');document.body.style.overflow='hidden';}
-function closeGameMenu(){document.getElementById('gameMenuOverlay')?.classList.remove('open');document.getElementById('gameMenuOverlay')?.setAttribute('aria-hidden','true');document.getElementById('gameMenuBtn')?.setAttribute('aria-expanded','false');document.body.style.overflow='';}
+function openGameMenu(){setStatsDrawer(false);document.getElementById('gameMenuOverlay')?.classList.add('open');document.getElementById('gameMenuOverlay')?.setAttribute('aria-hidden','false');document.getElementById('gameMenuBtn')?.setAttribute('aria-expanded','true');syncPageScrollLock();}
+function closeGameMenu(){document.getElementById('gameMenuOverlay')?.classList.remove('open');document.getElementById('gameMenuOverlay')?.setAttribute('aria-hidden','true');document.getElementById('gameMenuBtn')?.setAttribute('aria-expanded','false');syncPageScrollLock();}
 function returnToGameMenu(closeCurrent){if(typeof closeCurrent==='function')closeCurrent();openGameMenu();}
-function openShop(tab='pickaxes'){activeShopTab=tab;closeGameMenu();document.getElementById('shopOverlay')?.classList.add('open');document.getElementById('shopOverlay')?.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';renderShop();}
-function closeShop(){document.getElementById('shopOverlay')?.classList.remove('open');document.getElementById('shopOverlay')?.setAttribute('aria-hidden','true');document.body.style.overflow='';}
+function openShop(tab='pickaxes'){activeShopTab=tab;closeGameMenu();document.getElementById('shopOverlay')?.classList.add('open');document.getElementById('shopOverlay')?.setAttribute('aria-hidden','false');syncPageScrollLock();renderShop();}
+function closeShop(){document.getElementById('shopOverlay')?.classList.remove('open');document.getElementById('shopOverlay')?.setAttribute('aria-hidden','true');syncPageScrollLock();}
 function renderShop(){
  const balance=document.getElementById('shopNuggetBalance');if(balance)balance.textContent=totalStoneValue().toLocaleString();
  document.querySelectorAll('[data-shop-tab]').forEach(b=>b.classList.toggle('primary',b.dataset.shopTab===activeShopTab));
@@ -2304,10 +2332,10 @@ if(state?.colorTheme)document.body.dataset.theme=state.colorTheme;
     document.querySelectorAll('[data-feature-tab]').forEach(b=>b.addEventListener('click',()=>renderFeatureCenter(b.dataset.featureTab)));
   }
   let featureTab='quests';
-  function openFeatureCenter(tab='quests'){featureShell();featureTab=tab==='mistakes'?'notebook':tab;document.getElementById('featureCenterOverlay').classList.add('open');document.body.style.overflow='hidden';renderFeatureCenter(featureTab);}
+  function openFeatureCenter(tab='quests'){featureShell();featureTab=tab==='mistakes'?'notebook':tab;document.getElementById('featureCenterOverlay').classList.add('open');syncPageScrollLock();renderFeatureCenter(featureTab);}
   window.openJapaneseMinerNotebook=()=>openFeatureCenter('notebook');
   window.openJapaneseMinerQuests=()=>openFeatureCenter('quests');
-  function closeFeatureCenter(){document.getElementById('featureCenterOverlay')?.classList.remove('open');document.body.style.overflow='';}
+  function closeFeatureCenter(){document.getElementById('featureCenterOverlay')?.classList.remove('open');syncPageScrollLock();}
   function progressCard(q,type){const value=Math.min(q.goal,q.metric()),claimed=state.questData[type]['claimed_'+q.id],reward=questRewardText(q);return `<article class="quest-card"><div><strong>${q.name}</strong><p>${q.desc}</p><small class="quest-reward-line">Reward: ${reward}</small></div><div class="quest-progress"><span>${value}/${q.goal}</span><div class="mini-progress"><i style="width:${Math.round(value/q.goal*100)}%"></i></div></div><button data-claim-quest="${type}:${q.id}" ${value<q.goal||claimed?'disabled':''}>${claimed?'Claimed':value>=q.goal?'Claim rewards':'In progress'}</button></article>`;}
 
   const CHARACTER_OPTIONS={
@@ -2445,7 +2473,9 @@ const JLPT_VOCABULARY_UNLOCK_MASTERY=75;
 const JLPT_REVIEW_QUIZ_QUESTION_COUNT=25;
 const JLPT_REVIEW_QUIZ_TIME_MS=2*60*1000;
 const JLPT_REVIEW_QUIZ_PASS_SCORE=75;
+const JLPT_REVIEW_AUTO_ADVANCE_DELAY_MS=650;
 let jlptReviewQuizInterval=null;
+let jlptReviewAutoAdvanceTimer=null;
 const JLPT_SECTION_SPECS=[
   {id:"vocabulary",name:"Vocabulary",icon:"語"},
   {id:"kanji",name:"Kanji",icon:"字"},
@@ -2997,7 +3027,17 @@ repairActiveKanaQuestion();
 if(activeProfileId)render();
 
 // v6.4.17 - Required two-lesson review checkpoints for every JLPT course section.
-function clearJlptReviewQuizClock(){if(jlptReviewQuizInterval){clearInterval(jlptReviewQuizInterval);jlptReviewQuizInterval=null;}}
+function clearJlptReviewAutoAdvance(){if(jlptReviewAutoAdvanceTimer){clearTimeout(jlptReviewAutoAdvanceTimer);jlptReviewAutoAdvanceTimer=null;}}
+function clearJlptReviewQuizClock(){if(jlptReviewQuizInterval){clearInterval(jlptReviewQuizInterval);jlptReviewQuizInterval=null;}clearJlptReviewAutoAdvance();}
+function advanceJlptReviewCheckpoint(){
+  const quiz=academyView.checkpointQuiz;if(!quiz||quiz.finished||!quiz.answered)return false;clearJlptReviewAutoAdvance();
+  if(quiz.current>=JLPT_REVIEW_QUIZ_QUESTION_COUNT-1)return finishJlptReviewCheckpoint("completed");
+  quiz.current+=1;quiz.answered=false;quiz.selected=null;renderAcademy();return true;
+}
+function scheduleJlptReviewAutoAdvance(quiz=academyView.checkpointQuiz){
+  clearJlptReviewAutoAdvance();if(!quiz||quiz.finished||!quiz.answered)return false;const current=Number(quiz.current);
+  jlptReviewAutoAdvanceTimer=setTimeout(()=>{jlptReviewAutoAdvanceTimer=null;if(academyView.checkpointQuiz!==quiz||quiz.finished||!quiz.answered||Number(quiz.current)!==current)return;if(jlptReviewQuizRemainingMs(quiz)<=0)finishJlptReviewCheckpoint("timeout");else advanceJlptReviewCheckpoint();},JLPT_REVIEW_AUTO_ADVANCE_DELAY_MS);return true;
+}
 function syncJlptReviewQuizTabs(disabled){document.querySelectorAll("[data-academy-tab]").forEach(button=>{button.disabled=!!disabled;button.setAttribute("aria-disabled",String(!!disabled));});}
 function jlptReviewQuizRemainingMs(quiz=academyView.checkpointQuiz){return quiz&&!quiz.finished?Math.max(0,Number(quiz.deadline)-Date.now()):0;}
 function jlptReviewQuizTimeLabel(ms){const total=Math.max(0,Math.ceil(Number(ms||0)/1000));return `${String(Math.floor(total/60)).padStart(2,"0")}:${String(total%60).padStart(2,"0")}`;}
@@ -3022,7 +3062,7 @@ function renderJlptReviewCheckpointQuiz(){
     return `<section class="jlpt-review-quiz-result ${quiz.passed?'passed':'failed'}"><div class="lesson-review-check">${quiz.passed?'✓':'!'}</div><div class="course-kicker">${vocabularyCourseLabel(quiz.stage)} ${spec.name} · ${pair} checkpoint</div><h3>${quiz.passed?'Review quiz passed':'Review quiz needs another try'}</h3><div class="jlpt-review-result-score">${quiz.score}%</div><p>${quiz.correct}/${JLPT_REVIEW_QUIZ_QUESTION_COUNT} correct · ${unanswered} unanswered · ${elapsed} seconds used</p><strong>${quiz.passed?(nextExists?`Lesson ${quiz.evenLesson+1} is now available.`:'Final lesson-pair review complete.'):gatePassed?'This checkpoint remains passed from your earlier score.':'Score at least 75% (19 correct answers) to unlock the next lesson.'}</strong><div class="lesson-preview-actions"><button data-checkpoint-back type="button">← All lessons</button><button data-checkpoint-retry type="button">Try another random set</button>${gatePassed&&nextExists?`<button data-checkpoint-continue class="primary" type="button">Continue to Lesson ${quiz.evenLesson+1}</button>`:""}</div></section>`;
   }
   const question=quiz.questions[quiz.current],remaining=jlptReviewQuizRemainingMs(quiz),progress=(quiz.current+1)/JLPT_REVIEW_QUIZ_QUESTION_COUNT*100;
-  return `<section class="course-focus jlpt-review-quiz"><header><div><div class="course-kicker">${vocabularyCourseLabel(quiz.stage)} ${spec.name} · ${pair} Review Quiz</div><h3>Question ${quiz.current+1} of ${JLPT_REVIEW_QUIZ_QUESTION_COUNT}</h3><p>${quiz.correct} correct so far · 75% required to pass</p></div><strong id="jlptReviewQuizTimer" class="jlpt-review-timer ${remaining<=30000?'urgent':''}" aria-live="polite">${jlptReviewQuizTimeLabel(remaining)}</strong></header>${progressBar(progress)}<article class="jlpt-review-question"><div class="jlpt-review-question-display">${v3Esc(question.display)}</div><p>${v3Esc(question.prompt)}</p><div class="course-answer-grid">${question.options.map((option,index)=>{const correct=quiz.answered&&option===question.answer,wrong=quiz.answered&&option===quiz.selected&&option!==question.answer;return `<button data-checkpoint-answer="${index}" class="${correct?'answer-good':wrong?'answer-bad':''}" type="button" ${quiz.answered?'disabled':''}>${v3Esc(option)}</button>`;}).join("")}</div><div class="course-feedback" aria-live="polite">${quiz.answered?(quiz.selected===question.answer?'✅ Correct!':`❌ Correct answer: <strong>${v3Esc(question.answer)}</strong>`):"Choose the best answer before time runs out."}</div></article><div class="lesson-preview-actions"><button data-checkpoint-quit type="button">Quit quiz</button>${quiz.answered?`<button data-checkpoint-next class="primary" type="button">${quiz.current===JLPT_REVIEW_QUIZ_QUESTION_COUNT-1?'See results':'Next question →'}</button>`:""}</div></section>`;
+  return `<section class="course-focus jlpt-review-quiz"><header><div><div class="course-kicker">${vocabularyCourseLabel(quiz.stage)} ${spec.name} · ${pair} Review Quiz</div><h3>Question ${quiz.current+1} of ${JLPT_REVIEW_QUIZ_QUESTION_COUNT}</h3><p>${quiz.correct} correct so far · 75% required to pass</p></div><strong id="jlptReviewQuizTimer" class="jlpt-review-timer ${remaining<=30000?'urgent':''}" aria-live="polite">${jlptReviewQuizTimeLabel(remaining)}</strong></header>${progressBar(progress)}<article class="jlpt-review-question"><div class="jlpt-review-question-display">${v3Esc(question.display)}</div><p>${v3Esc(question.prompt)}</p><div class="course-answer-grid">${question.options.map((option,index)=>{const correct=quiz.answered&&option===question.answer,wrong=quiz.answered&&option===quiz.selected&&option!==question.answer;return `<button data-checkpoint-answer="${index}" class="${correct?'answer-good':wrong?'answer-bad':''}" type="button" ${quiz.answered?'disabled':''}>${v3Esc(option)}</button>`;}).join("")}</div><div class="course-feedback" aria-live="polite">${quiz.answered?(quiz.selected===question.answer?'✅ Correct!':`❌ Correct answer: <strong>${v3Esc(question.answer)}</strong>`):"Choose the best answer before time runs out."}</div></article><div class="lesson-preview-actions"><button data-checkpoint-quit type="button">Quit quiz</button>${quiz.answered?'<span class="jlpt-review-auto-advance" role="status">Next question loading automatically…</span>':""}</div></section>`;
 }
 function leaveJlptReviewCheckpoint(){clearJlptReviewQuizClock();academyView.checkpointQuiz=null;syncJlptReviewQuizTabs(false);resetJlptLessonView();renderAcademy();}
 function openJlptReviewCheckpoint(stage,section,evenLesson){
@@ -3036,9 +3076,9 @@ function handleJlptReviewCheckpointAction(target){
   const quiz=academyView.checkpointQuiz;if(!target||!quiz)return false;
   if(target.matches("[data-checkpoint-answer]")){
     if(quiz.finished||quiz.answered)return true;if(jlptReviewQuizRemainingMs(quiz)<=0){finishJlptReviewCheckpoint("timeout");return true;}
-    const question=quiz.questions[quiz.current],option=question.options[Number(target.dataset.checkpointAnswer)];quiz.selected=option;quiz.answered=true;quiz.answeredCount=Number(quiz.answeredCount||0)+1;if(option===question.answer)quiz.correct=Number(quiz.correct||0)+1;playFeedbackSound(option===question.answer);renderAcademy();return true;
+    const question=quiz.questions[quiz.current],option=question.options[Number(target.dataset.checkpointAnswer)];quiz.selected=option;quiz.answered=true;quiz.answeredCount=Number(quiz.answeredCount||0)+1;if(option===question.answer)quiz.correct=Number(quiz.correct||0)+1;playFeedbackSound(option===question.answer);renderAcademy();scheduleJlptReviewAutoAdvance(quiz);return true;
   }
-  if(target.matches("[data-checkpoint-next]")){if(!quiz.answered)return true;if(quiz.current>=JLPT_REVIEW_QUIZ_QUESTION_COUNT-1)finishJlptReviewCheckpoint("completed");else{quiz.current+=1;quiz.answered=false;quiz.selected=null;renderAcademy();}return true;}
+  if(target.matches("[data-checkpoint-next]")){advanceJlptReviewCheckpoint();return true;}
   if(target.matches("[data-checkpoint-retry]")){openJlptReviewCheckpoint(quiz.stage,quiz.section,quiz.evenLesson);return true;}
   if(target.matches("[data-checkpoint-continue]")){const {stage,section,evenLesson}=quiz;clearJlptReviewQuizClock();academyView.checkpointQuiz=null;syncJlptReviewQuizTabs(false);openJlptSectionLessonReview(stage,section,evenLesson);return true;}
   if(target.matches("[data-checkpoint-back],[data-checkpoint-quit]")){leaveJlptReviewCheckpoint();return true;}
