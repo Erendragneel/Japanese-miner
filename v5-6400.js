@@ -24,7 +24,7 @@ const BUILDINGS=[
  {id:'home',name:'Miner Lodge',icon:'🏡',base:4500000,desc:'Expands your settlement and fashion collection space.'}
 ];
 const SETTLEMENT_LEVEL_REQUIREMENTS=[
- 5,12,22,35,50
+ 50,75,100,125,150
 ];
 const FASHION={
  jacket:[['none','No jacket',0],['haori','Festival Haori',18000],['academy','Academy Blazer',22000],['explorer','Cave Explorer',30000]],

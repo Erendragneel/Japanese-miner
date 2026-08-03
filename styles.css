@@ -445,7 +445,6 @@ body[data-wallpaper="emoji"]{background:linear-gradient(135deg,#fb6fab,#7053df 5
 .wallpaper-preview[style*="#ff78b9"]{position:relative}.wallpaper-preview[style*="#ff78b9"]:after{content:"😀 ⭐ 💎 🔥 🎉";position:absolute;inset:0;display:grid;place-items:center;font-size:23px;letter-spacing:5px;text-shadow:0 2px 4px #0005}
 
 /* Always-visible v5 expansion launcher; kept in the core stylesheet for diagnostics. */
-.v5-launch-card{max-width:1100px;margin:14px auto 0;padding:16px 18px;border:2px solid #71e0b5;border-radius:20px;background:radial-gradient(circle at 90% 10%,#7557ff55,transparent 34%),linear-gradient(135deg,#183b42,#202650);box-shadow:0 12px 30px #0005;display:flex;align-items:center;justify-content:space-between;gap:16px}.v5-launch-card h2{margin:4px 0;font-size:24px}.v5-launch-card p{margin:0;color:#d4def2}.v5-launch-card>div>span{font-size:12px;color:#ffd166;font-weight:900;text-transform:uppercase;letter-spacing:.07em}.v5-launch-card.loaded{border-color:#7affc9}.v5-launch-card.loaded>div>span{color:#7affc9}.v5-launch-card button{min-width:210px;font-size:16px}.v5-launch-card button:disabled{opacity:.65}@media(max-width:700px){.v5-launch-card{margin:10px 8px 0;display:grid}.v5-launch-card button{width:100%}}
 
 /* v6.4.9 — consistent parent navigation for every full-screen game menu. */
 .menu-header-copy{flex:1;min-width:0}

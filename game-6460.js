@@ -327,7 +327,7 @@ const DEFAULT_STATE = {
   n5AcademyMastery:{}, academyTestBest:0, academyReviewDate:"", recentQuestionIds:[], onboardingComplete:false, placementResult:null, placementTestCompleted:false,
   gems:0, hearts:3, maxHearts:3, level:1, xp:0, streak:0, bestStreak:0, practiceStreak:0,
   hints:2, shields:1, active:null, answered:false, shieldArmed:false, lastPracticeDate:null,
-  kanaStats:{}, gemInventory:{}, gemCheckpointClaims:{}, kanaTab:"hiragana", lastKana:null, lastGem:null, hiraganaXp:0,
+  kanaStats:{}, gemInventory:{}, gemCheckpointClaims:{}, gemUnlockRewards:{}, kanaTab:"hiragana", lastKana:null, lastGem:null, hiraganaXp:0,
   heartRecoveryEnd:null, ownedPickaxeSkins:["standard"], equippedPickaxeSkin:"standard", ownedWallpapers:["midnight"], equippedWallpaper:"midnight", placementUnlockedThrough:0, developerInfiniteHearts:false,
   selectedStage:0, jlptSectionSelection:{}, jlptVocabularyLevel:{}, jlptReviewCheckpoints:{}, soundEnabled:true, voiceEnabled:true, autoSpeak:true, voiceRate:.85, smartReview:true, sessionGoal:20, sessionAnswered:0, sessionCorrect:0, stageXp:[0,0,0,0,0,0,0], clearedStages:[], questionStats:{}
 };
@@ -386,6 +386,7 @@ function normalizeState(raw){
   next.kanaStats=next.kanaStats||{};
   next.gemInventory=next.gemInventory||{};
   next.gemCheckpointClaims=next.gemCheckpointClaims&&typeof next.gemCheckpointClaims==="object"&&!Array.isArray(next.gemCheckpointClaims)?next.gemCheckpointClaims:{};
+  next.gemUnlockRewards=next.gemUnlockRewards&&typeof next.gemUnlockRewards==="object"&&!Array.isArray(next.gemUnlockRewards)?next.gemUnlockRewards:{};
   next.kanaTab=next.kanaTab||"hiragana";
   next.lastKana=next.lastKana||null;
   next.lastGem=next.lastGem||null;
@@ -454,14 +455,16 @@ function loadProfile(profile){
   state=normalizeState(raw);
   const tutorStateRepaired=repairTutorAccessState();
   const dailyStateChanged=applyDailyDecay();
+  const unlockedGemRewards=grantUnlockedGemRewards();
   document.getElementById("activePlayerName").textContent=profile.name;
   const developerBtn=document.getElementById("developerBtn");
   if(developerBtn) developerBtn.hidden=!isDeveloperSession;
   const developerName=document.getElementById("developerProfileName");
   if(developerName) developerName.textContent=profile.name;
-  if(tutorStateRepaired||dailyStateChanged) save();
+  if(tutorStateRepaired||dailyStateChanged||unlockedGemRewards.length) save();
   if(!appStarted){appStarted=true;render();startRecoveryClock();}
   else render();
+  if(unlockedGemRewards.length)setMessage(`Mine access reward: ${unlockedGemRewards.length} unlocked gemstone${unlockedGemRewards.length===1?' was':'s were'} added to this save. Use the heart upgrades in Practice Health when ready.`,"correct");
   requestAnimationFrame(()=>{if(activeProfileId)setAuthOverlayVisible(false);});
 }
 function logout(){
@@ -828,6 +831,7 @@ function buyMaxHeart(){
   state.gemInventory[stone]=owned-1;
   state.maxHearts++;
   state.hearts++;
+  save();
   setMessage(`${stone} consumed. Maximum health increased to ${state.maxHearts}.`,"correct");
   render();
 }
@@ -836,6 +840,19 @@ function gemCheckpointThreshold(stage,checkpoint){const requirement=Number(STAGE
 function gemCheckpointDrop(gemName){return GEM_CHECKPOINT_DROPS.find(drop=>drop.gem===gemName)||null;}
 function gemCheckpointClaimed(drop){return !!drop&&!!state.gemCheckpointClaims?.[gemCheckpointKey(drop.stage,drop.checkpoint)];}
 function gemArtMarkup(gemName,extraClass=""){const index=gemTiers.findIndex(gem=>gem.name===gemName),col=Math.max(0,index%5),row=Math.max(0,Math.floor(index/5));return `<span class="scientific-gem-art ${extraClass}" style="background-position:${col*25}% ${row*50}%" role="img" aria-label="${gemName} gemstone"></span>`;}
+function grantUnlockedGemRewards(){
+  state.gemInventory=state.gemInventory&&typeof state.gemInventory==="object"?state.gemInventory:{};
+  state.gemUnlockRewards=state.gemUnlockRewards&&typeof state.gemUnlockRewards==="object"&&!Array.isArray(state.gemUnlockRewards)?state.gemUnlockRewards:{};
+  const awarded=[];
+  gemTiers.forEach(gem=>{
+    if(!isStageUnlocked(gem.minStage)||state.gemUnlockRewards[gem.name])return;
+    state.gemInventory[gem.name]=Number(state.gemInventory[gem.name]||0)+1;
+    state.gemUnlockRewards[gem.name]=Date.now();
+    awarded.push(gem);
+  });
+  if(awarded.length){const gem=awarded.at(-1),drop=gemCheckpointDrop(gem.name);state.lastGem={name:gem.name,icon:gem.icon,stage:gem.minStage,checkpoint:drop?.checkpoint||0,source:"mine-unlock"};}
+  return awarded;
+}
 function claimReachedGemCheckpoints(stage,previousXp=0,currentXp=Number(state.stageXp?.[stage]||0)){state.gemCheckpointClaims=state.gemCheckpointClaims&&typeof state.gemCheckpointClaims==="object"?state.gemCheckpointClaims:{};const awarded=[];GEM_CHECKPOINT_DROPS.filter(drop=>drop.stage===Number(stage)).forEach(drop=>{const threshold=gemCheckpointThreshold(drop.stage,drop.checkpoint),key=gemCheckpointKey(drop.stage,drop.checkpoint);if(currentXp<threshold||state.gemCheckpointClaims[key])return;const gem=gemTiers.find(item=>item.name===drop.gem);if(!gem)return;state.gemCheckpointClaims[key]=Date.now();state.gemInventory[gem.name]=Number(state.gemInventory[gem.name]||0)+1;state.lastGem={name:gem.name,icon:gem.icon,stage:drop.stage,checkpoint:drop.checkpoint,source:"checkpoint"};awarded.push({...drop,threshold,gem,previousXp,currentXp});});return awarded;}
 function kanaFromQuestion(q){
   if(!q) return null;
@@ -907,9 +924,9 @@ function renderGemCollection(){
     const d=document.createElement("div"); d.className="gem-row"+(state.lastGem&&state.lastGem.name===g.name?" recent":"");
     const unlocked=isStageUnlocked(g.minStage);
     const source=g.minStage===0?"Hiragana":g.minStage===1?"Katakana":g.minStage===2?"JLPT N5":stages[g.minStage]?.label||"Advanced";
-    const drop=gemCheckpointDrop(g.name),claimed=gemCheckpointClaimed(drop),threshold=drop?gemCheckpointThreshold(drop.stage,drop.checkpoint):0,currentXp=Number(state.stageXp?.[drop?.stage]||0),progress=threshold?Math.min(100,Math.round(currentXp/threshold*100)):0;
+    const drop=gemCheckpointDrop(g.name),claimed=gemCheckpointClaimed(drop),starterGranted=!!state.gemUnlockRewards?.[g.name],threshold=drop?gemCheckpointThreshold(drop.stage,drop.checkpoint):0,currentXp=Number(state.stageXp?.[drop?.stage]||0),progress=threshold?Math.min(100,Math.round(currentXp/threshold*100)):0;
     d.classList.toggle("locked",!unlocked);
-    d.innerHTML=`<div class="gem-identity">${gemArtMarkup(g.name)}<div><strong>${g.name}</strong><div class="small">${g.desc}</div><div class="gem-checkpoint-status ${claimed?'claimed':''}">${claimed?'✓ Checkpoint drop claimed':unlocked?`Checkpoint ${drop.checkpoint} · ${drop.checkpoint*20}% ${source} progress`:`🔒 Unlocks in ${source}`}</div>${unlocked&&!claimed?`<div class="gem-checkpoint-progress"><i style="width:${progress}%"></i></div>`:''}</div></div><div class="gem-row-value"><strong>x${count}</strong><div class="gem-value">${g.value.toLocaleString()} Nuggets each</div><div class="small">${source} checkpoint ${drop.checkpoint}</div></div>`;
+    d.innerHTML=`<div class="gem-identity">${gemArtMarkup(g.name)}<div><strong>${g.name}</strong><div class="small">${g.desc}</div>${starterGranted?'<div class="gem-checkpoint-status claimed">✓ Mine-access starter specimen rewarded</div>':''}<div class="gem-checkpoint-status ${claimed?'claimed':''}">${claimed?'✓ Checkpoint drop claimed':unlocked?`Checkpoint ${drop.checkpoint} · ${drop.checkpoint*20}% ${source} progress`:`🔒 Unlocks in ${source}`}</div>${unlocked&&!claimed?`<div class="gem-checkpoint-progress"><i style="width:${progress}%"></i></div>`:''}</div></div><div class="gem-row-value"><strong>x${count}</strong><div class="gem-value">${g.value.toLocaleString()} Nuggets each</div><div class="small">${source} checkpoint ${drop.checkpoint}</div></div>`;
     box.appendChild(d);
   });
   document.getElementById("totalGemstones").textContent=total;
@@ -917,7 +934,7 @@ function renderGemCollection(){
   document.getElementById("uniqueGemstones").textContent=unique;
   document.getElementById("gemSpeciesTotal").textContent=gemTiers.length;
   const latest=document.getElementById("latestGemProgress");
-  if(state.lastGem){const latestDrop=gemCheckpointDrop(state.lastGem.name);latest.style.display="flex";latest.innerHTML=`${gemArtMarkup(state.lastGem.name,'latest-gem-art')}<span>Latest checkpoint drop: <strong>${state.lastGem.name}</strong> from ${stages[latestDrop?.stage]?.label||'the mine'} checkpoint ${latestDrop?.checkpoint||state.lastGem.checkpoint||'—'}. Collection count: <strong>x${state.gemInventory[state.lastGem.name]||0}</strong>.</span>`; }
+  if(state.lastGem){const latestDrop=gemCheckpointDrop(state.lastGem.name),starter=state.lastGem.source==="mine-unlock";latest.style.display="flex";latest.innerHTML=`${gemArtMarkup(state.lastGem.name,'latest-gem-art')}<span>${starter?'Latest mine-access reward':'Latest checkpoint drop'}: <strong>${state.lastGem.name}</strong> from ${stages[latestDrop?.stage]?.label||'the mine'}${starter?'':` checkpoint ${latestDrop?.checkpoint||state.lastGem.checkpoint||'—'}`}. Collection count: <strong>x${state.gemInventory[state.lastGem.name]||0}</strong>.</span>`; }
   else latest.style.display="none";
 }
 
@@ -1211,6 +1228,7 @@ function answer(opt,button){
       state.clearedStages.push(answeredStage);
       addStoneChange(STAGE_CLEAR_REWARDS[answeredStage],Math.min(gemTiers.length-1,answeredStage*2+3));
     }
+    const unlockedGemRewards=grantUnlockedGemRewards();
 
     const kanaProgress=recordKana(true);
     markPracticeToday();
@@ -1235,7 +1253,8 @@ function answer(opt,button){
     const clearText=justCleared?` 🎉 ${stages[answeredStage].name} course cleared with ${currentMastery}% mastery! ${answeredStage<stages.length-1?`The guardian gate is ready in Expedition Hub: score 25/25 within 60 seconds to unlock ${stages[answeredStage+1].name}. `:"The final guardian gate is ready in Expedition Hub. "}+${STAGE_CLEAR_REWARDS[answeredStage].toLocaleString()} bonus Nuggets.`:"";
     const nextCheckpointDrop=GEM_CHECKPOINT_DROPS.find(drop=>drop.stage===answeredStage&&!gemCheckpointClaimed(drop));
     const checkpointText=checkpointDrops.length?` 💎 Checkpoint reward: ${checkpointDrops.map(drop=>`${drop.gem.icon} ${drop.gem.name}`).join(", ")}.`:nextCheckpointDrop?` Next gem drop: ${nextCheckpointDrop.gem} at checkpoint ${nextCheckpointDrop.checkpoint} (${nextCheckpointDrop.checkpoint*20}% course XP).`:" All gemstone checkpoints in this mine are claimed.";
-    setMessage(`Correct! +${xpGain} Mine XP. Mine mastery: ${currentMastery}/${STAGE_MASTERY_REQUIREMENTS[answeredStage]}%.${checkpointText}${masteryText}${clearText}`,"correct");
+    const unlockRewardText=unlockedGemRewards.length?` Mine access reward: ${unlockedGemRewards.length} newly unlocked gemstone${unlockedGemRewards.length===1?'':'s'} added to your save.`:"";
+    setMessage(`Correct! +${xpGain} Mine XP. Mine mastery: ${currentMastery}/${STAGE_MASTERY_REQUIREMENTS[answeredStage]}%.${checkpointText}${unlockRewardText}${masteryText}${clearText}`,"correct");
     try{ floatText(checkpointDrops.length?`${checkpointDrops.at(-1).gem.icon} Checkpoint drop!`:`+${xpGain} XP`); }catch(err){ console.error("Reward animation failed",err); }
   }else{
     playFeedbackSound(false);
@@ -1291,14 +1310,15 @@ function buy(type){
   render();
 }
 function resetSave(){
-  if(!activeProfileId) return;
-  if(confirm("Reset all progress for this player profile?")){
-    state=normalizeState(structuredClone(DEFAULT_STATE));
-    save();
-    setMessage("This player profile has been reset.","");
-    render();
-  }
+  if(!activeProfileId) return false;
+  if(!confirm("Reset all progress for this player profile?")) return false;
+  state=normalizeState(structuredClone(DEFAULT_STATE));
+  save();
+  setMessage("This player profile has been reset.","");
+  render();
+  return true;
 }
+window.resetJapaneseMinerSave=resetSave;
 function nextMine(){
   state.active=null; state.answered=false; state.shieldArmed=false;
   document.getElementById("challengeArea").innerHTML='<div class="small">Tap the rock to mine another challenge.</div>';
@@ -1347,7 +1367,6 @@ document.getElementById("rock").onclick=mine;
 document.getElementById("hintBtn").onclick=useHint;
 document.getElementById("shieldBtn").onclick=armShield;
 document.getElementById("nextBtn").onclick=nextMine;
-document.getElementById("resetBtn").onclick=resetSave;
 document.getElementById("logoutBtn").onclick=logout;
 
 function openDeveloperPanel(){
@@ -1569,7 +1588,7 @@ function renderAcademy(){
  const box=document.getElementById('academyContent');if(!box)return;document.querySelectorAll('[data-academy-tab]').forEach(b=>b.classList.toggle('primary',b.dataset.academyTab===academyTab));const c=academyCounts();
  if(academyTab==='overview')box.innerHTML=`<div class="n5-hub-actions"><button id="hubEnterMineBtn" class="primary" type="button">⛏️ Enter N5 Mine</button><span class="small">Mine questions update the same vocabulary, kanji, grammar, and reading mastery shown here${tutorAccessGranted()?', including your private Tutor Curriculum':''}.</span></div><div class="academy-metrics"><div><strong>${c.readiness}%</strong><span>Estimated readiness</span></div><div><strong>${c.vocabKnown}</strong><span>Vocabulary mastered</span></div><div><strong>${c.kanjiKnown}</strong><span>Kanji mastered</span></div><div><strong>${c.grammarKnown}</strong><span>Grammar mastered</span></div></div><div class="academy-roadmap">${[['Vocabulary',c.vocabKnown,1000],['Kanji',c.kanjiKnown,120],['Grammar',c.grammarKnown,90],['Reading',c.readingKnown,N5_READING_PASSAGES.length]].map(([n,v,t])=>`<div><div class="progress-label"><span>${n}</span><strong>${v}/${t}</strong></div>${progressBar(v/t*100)}</div>`).join('')}</div><div class="academy-callout"><strong>Recommended next step</strong><p>${c.kanjiKnown<30?'Study the first kanji set and answer its mine questions.':c.grammarKnown<20?'Continue the core grammar path.':'Complete today’s review and try a mini test.'}</p></div>`;
  if(academyTab==='vocabulary'){
-  const words=academyVocabularyBank();box.innerHTML=`<div class="academy-toolbar"><strong>Vocabulary course</strong><span>${words.length} reference words currently loaded • progression target: 1,000</span></div><div class="lesson-grid">${Array.from({length:20},(_,i)=>{const start=i*50,end=start+50,known=Object.keys(state.n5AcademyMastery||{}).filter(k=>k.startsWith('vocab:')&&Number(k.split(':')[1])>=start&&Number(k.split(':')[1])<end&&academyItemMastery(k)>=75).length;return `<button class="lesson-button" data-vocab-lesson="${i}" type="button"><strong>Lesson ${i+1}</strong><span>${known}/50 mastered</span>${progressBar(known/50*100)}</button>`}).join('')}</div><div id="vocabLessonWords" class="study-grid"><p class="small">Choose a lesson. Loaded reference words fill the earliest lessons; later slots preserve the complete 1,000-word progression structure.</p></div>`;
+  const words=academyVocabularyBank();box.innerHTML=`<div class="academy-toolbar"><strong>Vocabulary course</strong><span>${words.length} reference words currently loaded • progression target: 1,000</span></div><div class="lesson-grid">${Array.from({length:40},(_,i)=>{const start=i*25,end=start+25,known=Object.keys(state.n5AcademyMastery||{}).filter(k=>k.startsWith('vocab:')&&Number(k.split(':')[1])>=start&&Number(k.split(':')[1])<end&&academyItemMastery(k)>=75).length;return `<button class="lesson-button" data-vocab-lesson="${i}" type="button"><strong>Lesson ${i+1}</strong><span>${known}/25 mastered</span>${progressBar(known/25*100)}</button>`}).join('')}</div><div id="vocabLessonWords" class="study-grid"><p class="small">Choose a lesson. Each session contains 25 words from the complete 1,000-word progression.</p></div>`;
  }
  if(academyTab==='kanji')box.innerHTML=`<div class="academy-toolbar"><strong>120 Essential Kanji</strong><span>Tap any kanji for readings, meaning, examples, and mastery.</span></div><div class="kanji-academy-grid">${N5_KANJI_LIST.slice(0,120).map(k=>{const m=academyItemMastery('kanji:'+k);return `<button data-kanji-card="${k}" class="kanji-academy-cell" type="button"><strong>${k}</strong><span>${m}%</span></button>`}).join('')}</div><div id="kanjiDetail"></div>`;
  if(academyTab==='grammar')box.innerHTML=`<div class="academy-toolbar"><strong>90 N5 Grammar Points</strong><span>Reference cards and mine-ready examples.</span></div><div class="study-grid">${N5_GRAMMAR_POINTS.slice(0,90).map((g,i)=>academyCard('grammar:'+i,g[0],g[1],`<p class="jp-example">${g[2]}</p>`)).join('')}</div>`;
@@ -1586,7 +1605,7 @@ function renderAcademy(){
  box.querySelectorAll('[data-review-id]').forEach(b=>b.addEventListener('click',()=>academyMaster(b.dataset.reviewId,25)));
  box.querySelectorAll('[data-start-test]').forEach(b=>b.addEventListener('click',()=>startAcademyTest(Number(b.dataset.startTest))));
 }
-function showVocabLesson(i){const words=academyVocabularyBank().slice(i*50,i*50+50),box=document.getElementById('vocabLessonWords');if(!box)return;box.innerHTML=words.length?words.map((w,j)=>academyCard('vocab:'+(i*50+j),w.jp,w.reading,`<p>${w.en}</p>`)).join(''):`<p class="academy-callout">This lesson is reserved in the 1,000-word progression. Additions to the course bank will populate it without changing player progress.</p>`;box.querySelectorAll('[data-master-id]').forEach(b=>b.addEventListener('click',()=>academyMaster(b.dataset.masterId)));}
+function showVocabLesson(i){const words=academyVocabularyBank().slice(i*25,i*25+25),box=document.getElementById('vocabLessonWords');if(!box)return;box.innerHTML=words.length?words.map((w,j)=>academyCard('vocab:'+(i*25+j),w.jp,w.reading,`<p>${w.en}</p>`)).join(''):`<p class="academy-callout">This lesson is reserved in the 1,000-word progression. Additions to the course bank will populate it without changing player progress.</p>`;box.querySelectorAll('[data-master-id]').forEach(b=>b.addEventListener('click',()=>academyMaster(b.dataset.masterId)));}
 function showKanjiDetail(k){const info=N5_KANJI_INFO[k]||['—','repetition mark'];const i=N5_KANJI_LIST.indexOf(k),examples=(typeof n5Vocab!=='undefined'?n5Vocab:[]).filter(x=>x[0].includes(k)).slice(0,4);const box=document.getElementById('kanjiDetail');box.innerHTML=academyCard('kanji:'+k,`<span class="kanji-hero">${k}</span>`,`${i+1} of 120`,`<p><strong>Readings:</strong> ${info[0]}</p><p><strong>Meaning:</strong> ${info[1]}</p><p><strong>Example words:</strong> ${examples.length?examples.map(x=>`${x[0]} (${x[1]}) — ${x[2]}`).join('<br>'):'Reference examples unlock as vocabulary grows.'}</p><p class="small">Stroke-order reference: write top-to-bottom and left-to-right, following standard kanji stroke principles.</p>`);box.querySelector('[data-master-id]').addEventListener('click',()=>academyMaster('kanji:'+k));}
 
 function startAcademyTest(count){const pool=questions.filter(q=>q.stage===2&&questionAllowedForSession(q));if(!pool.length)return;let score=0;for(let i=0;i<count;i++){const q=pool[Math.floor(Math.random()*pool.length)];if(Math.random()<(questionMasteryScore(state.questionStats[q.id])/100*.6+.25))score++;}const pct=Math.round(score/count*100);state.academyTestBest=Math.max(state.academyTestBest,pct);save();alert(`Practice simulation complete: ${score}/${count} (${pct}%).\n\nThis simulation estimates performance from your recorded mastery. Mine questions directly to improve it.`);renderAcademy();}
@@ -1659,7 +1678,7 @@ renderAcademy=function(){
   else if(t.matches('[data-reading-quiz]')){const i=Number(t.dataset.readingQuiz),p=N5_READING_PASSAGES[i],wrong=shuffle(N5_READING_PASSAGES.filter((_,j)=>j!==i).map(x=>x[3])).slice(0,3);v3QuizCard(p[2],[p[3],...wrong],p[3],good=>v3SetMastery('reading:'+i,good?25:-5));}
   else if(t.matches('[data-course-answer]'))v3HandleQuizAnswer(t.dataset.courseAnswer,t);
   else if(t.matches('[data-course-back]')){academyView.quiz=null;renderAcademy();}
-  else if(t.matches('[data-review-type]')){const type=t.dataset.reviewType,index=t.dataset.reviewIndex;if(type==='word'){academyTab='vocabulary';academyView.lesson=Math.floor(Number(index)/50);academyView.word=Number(index);}else if(type==='grammar'){academyTab='grammar';academyView.grammar=Number(index);}else{academyTab='kanji';renderAcademyV2();setTimeout(()=>showKanjiDetail(index),0);return;}renderAcademy();}
+  else if(t.matches('[data-review-type]')){const type=t.dataset.reviewType,index=t.dataset.reviewIndex;if(type==='word'){academyTab='vocabulary';academyView.lesson=Math.floor(Number(index)/25);academyView.word=Number(index);}else if(type==='grammar'){academyTab='grammar';academyView.grammar=Number(index);}else{academyTab='kanji';renderAcademyV2();setTimeout(()=>showKanjiDetail(index),0);return;}renderAcademy();}
  };
 };
 
@@ -2047,7 +2066,7 @@ function grantPlacementReward(routeStage,overall){
 }
 const finishPlacementTestV34=finishPlacementTest;
 finishPlacementTest=function(){const scores={};['hiragana','katakana','n5','n4','n3','n2','n1'].forEach(s=>scores[s]=placementSectionScore(s));let stage=0;if(scores.hiragana>=70)stage=1;if(stage===1&&scores.katakana>=70)stage=2;if(stage===2&&scores.n5>=65)stage=3;if(stage===3&&scores.n4>=65)stage=4;if(stage===4&&scores.n3>=65)stage=5;if(stage===5&&scores.n2>=65)stage=6; // N1 score refines reward/readiness but N1 remains the highest placement.
- unlockThroughStage(stage);state.selectedStage=stage;state.supportMode=stage>=4?'challenge':stage>=2?'standard':'guided';state.n5Tier=scores.n5>=75?'advanced':scores.n5>=45?'intermediate':'beginner';state.onboardingComplete=true;state.placementTestCompleted=true;state.active=null;state.answered=false;const overall=Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/7);const reward=grantPlacementReward(stage,overall);state.placementResult={date:Date.now(),route:stages[stage].label.toLowerCase(),overall,...scores,reward};save();render();placementSession.required=false;document.getElementById('placementCloseBtn').hidden=false;const scoreCards=Object.entries(scores).map(([k,v])=>`<div class="placement-score"><strong>${v}%</strong><span>${k==='hiragana'?'Hiragana':k==='katakana'?'Katakana':'JLPT '+k.toUpperCase()}</span></div>`).join('');const placementBonus=reward.bonusPercent?` <strong>Mastery bonus: +${reward.bonusPercent}% Nuggets.</strong>`:'';document.getElementById('placementContent').innerHTML=`<div class="placement-results"><div class="placement-score-grid">${scoreCards}</div><div class="placement-recommendation"><h3>🧭 Start in the ${stages[stage].name}</h3><p>Your one-time placement result is saved. Every earlier mine remains available for review.</p></div><div class="placement-note"><strong>${stages[stage].label} placement reward:</strong> ${reward.nuggets.toLocaleString()} Nuggets, ${reward.hints} hints, and ${reward.shields} shields.${placementBonus}</div><div class="placement-result-actions"><button id="acceptPlacementBtn" class="primary" type="button">Begin ${stages[stage].label}</button></div></div>`;document.getElementById('acceptPlacementBtn').addEventListener('click',()=>{syncPlacementTestButton();closePlacementOnboarding();document.getElementById('rock')?.scrollIntoView({behavior:'smooth',block:'center'});});};
+ unlockThroughStage(stage);const unlockedGemRewards=grantUnlockedGemRewards();state.selectedStage=stage;state.supportMode=stage>=4?'challenge':stage>=2?'standard':'guided';state.n5Tier=scores.n5>=75?'advanced':scores.n5>=45?'intermediate':'beginner';state.onboardingComplete=true;state.placementTestCompleted=true;state.active=null;state.answered=false;const overall=Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/7);const reward=grantPlacementReward(stage,overall);state.placementResult={date:Date.now(),route:stages[stage].label.toLowerCase(),overall,...scores,reward,unlockedGemRewards:unlockedGemRewards.map(gem=>gem.name)};save();render();placementSession.required=false;document.getElementById('placementCloseBtn').hidden=false;const scoreCards=Object.entries(scores).map(([k,v])=>`<div class="placement-score"><strong>${v}%</strong><span>${k==='hiragana'?'Hiragana':k==='katakana'?'Katakana':'JLPT '+k.toUpperCase()}</span></div>`).join('');const placementBonus=reward.bonusPercent?` <strong>Mastery bonus: +${reward.bonusPercent}% Nuggets.</strong>`:'';const gemBonus=unlockedGemRewards.length?` <strong>Mine access bonus: ${unlockedGemRewards.length} unlocked gemstones added for heart upgrades.</strong>`:'';document.getElementById('placementContent').innerHTML=`<div class="placement-results"><div class="placement-score-grid">${scoreCards}</div><div class="placement-recommendation"><h3>🧭 Start in the ${stages[stage].name}</h3><p>Your one-time placement result is saved. Every earlier mine remains available for review.</p></div><div class="placement-note"><strong>${stages[stage].label} placement reward:</strong> ${reward.nuggets.toLocaleString()} Nuggets, ${reward.hints} hints, and ${reward.shields} shields.${placementBonus}${gemBonus}</div><div class="placement-result-actions"><button id="acceptPlacementBtn" class="primary" type="button">Begin ${stages[stage].label}</button></div></div>`;document.getElementById('acceptPlacementBtn').addEventListener('click',()=>{syncPlacementTestButton();closePlacementOnboarding();document.getElementById('rock')?.scrollIntoView({behavior:'smooth',block:'center'});});};
 
 // v3.4 polish: correct advanced placement labels and make the launch button honor the selected JLPT mine.
 const enterSelectedMineButton=document.getElementById('enterN5MineBtn');
@@ -2420,7 +2439,8 @@ if(activeProfileId)render();
 
 
 // v6.4.11 - Course-synced JLPT vocabulary lessons with a required word preview.
-const JLPT_VOCABULARY_LESSON_SIZE=50;
+const JLPT_VOCABULARY_LESSON_SIZE=25;
+const JLPT_VOCABULARY_LAYOUT_VERSION=25;
 const JLPT_VOCABULARY_UNLOCK_MASTERY=75;
 const JLPT_REVIEW_QUIZ_QUESTION_COUNT=25;
 const JLPT_REVIEW_QUIZ_TIME_MS=2*60*1000;
@@ -2445,6 +2465,7 @@ function ensureJlptSectionState(target=state){
   if(!target.jlptVocabularyLevel||typeof target.jlptVocabularyLevel!=="object"||Array.isArray(target.jlptVocabularyLevel))target.jlptVocabularyLevel={};
   if(!target.jlptSectionLevel||typeof target.jlptSectionLevel!=="object"||Array.isArray(target.jlptSectionLevel))target.jlptSectionLevel={};
   if(!target.jlptReviewCheckpoints||typeof target.jlptReviewCheckpoints!=="object"||Array.isArray(target.jlptReviewCheckpoints))target.jlptReviewCheckpoints={};
+  migrateJlptVocabularyLessonLayout(target);
   for(let stage=2;stage<stages.length;stage++){
     const section=String(target.jlptSectionSelection[stage]||"vocabulary");
     target.jlptSectionSelection[stage]=JLPT_SECTION_IDS.has(section)?section:"vocabulary";
@@ -2454,6 +2475,17 @@ function ensureJlptSectionState(target=state){
     target.jlptSectionLevel[stage].vocabulary=target.jlptVocabularyLevel[stage];
   }
   return target;
+}
+function migrateJlptVocabularyLessonLayout(target){
+  if(Number(target.jlptVocabularyLessonSize)===JLPT_VOCABULARY_LAYOUT_VERSION)return false;
+  const oldCheckpoints=target.jlptReviewCheckpoints&&typeof target.jlptReviewCheckpoints==="object"?target.jlptReviewCheckpoints:{},migrated={};
+  Object.entries(oldCheckpoints).forEach(([key,record])=>{
+    const [stage,section,evenLessonText]=key.split(":"),evenLesson=Number(evenLessonText);
+    if(section!=="vocabulary"||evenLesson<2||evenLesson%2!==0){migrated[key]=record;return;}
+    [evenLesson*2-2,evenLesson*2].forEach(newEvenLesson=>{migrated[`${stage}:vocabulary:${newEvenLesson}`]={...(record&&typeof record==="object"?record:{}),migratedFrom50WordLessons:true};});
+  });
+  if(target.jlptVocabularyLevel&&typeof target.jlptVocabularyLevel==="object")Object.keys(target.jlptVocabularyLevel).forEach(stage=>{target.jlptVocabularyLevel[stage]=Math.max(0,Number(target.jlptVocabularyLevel[stage])||0)*2;});
+  target.jlptReviewCheckpoints=migrated;target.jlptVocabularyLessonSize=JLPT_VOCABULARY_LAYOUT_VERSION;return true;
 }
 function currentJlptSection(stage=selectedStageIndex()){
   ensureJlptSectionState();
@@ -2685,7 +2717,7 @@ function handleVocabularyCourseAction(target,stage=academyStage){
 
 // v6.4.14 - Give Kanji, Grammar, and Reading the same lesson flow as Vocabulary.
 const JLPT_SECTION_LESSON_CONFIG={
-  vocabulary:{size:50,singular:"word",plural:"words"},
+  vocabulary:{size:25,singular:"word",plural:"words"},
   kanji:{size:20,singular:"kanji",plural:"kanji"},
   grammar:{size:10,singular:"grammar point",plural:"grammar points"},
   reading:{size:4,singular:"reading",plural:"readings"}
