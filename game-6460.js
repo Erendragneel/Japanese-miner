@@ -34,6 +34,18 @@ const stages = [
 const STAGE_XP_REQUIREMENTS=[18240,18240,25000,35000,50000,75000,100000];
 const STAGE_MASTERY_REQUIREMENTS=[90,90,85,85,85,85,85];
 const STAGE_CLEAR_REWARDS=[2500,5000,10000,20000,40000,80000,160000];
+// Placement starters follow the same five-times-deeper economy used by
+// mine treasure chests. This keeps every starting route useful at its own
+// shop-price tier instead of giving advanced players an early-mine payout.
+const PLACEMENT_REWARD_TIERS=[
+  {nuggets:2500,hints:1,shields:0},
+  {nuggets:15000,hints:2,shields:0},
+  {nuggets:75000,hints:3,shields:1},
+  {nuggets:375000,hints:5,shields:2},
+  {nuggets:1875000,hints:8,shields:3},
+  {nuggets:9375000,hints:12,shields:5},
+  {nuggets:46875000,hints:20,shields:10}
+];
 
 const gemTiers = [
  {name:"Agate", icon:"🟤", value:1, minStage:0, weight:55, desc:"Hiragana gemstone • required for the 4th heart."},
@@ -193,8 +205,8 @@ const n5Sentences=[
 ];
 function rubyWord(kanji,reading){return `<ruby>${kanji}<rt>${reading}</rt></ruby>`;}
 n5Vocab.forEach(([kanji,reading,meaning])=>{
-  addQuestion({stage:2,tier:"beginner",support:"guided",q:reading,displayGuided:reading,displayStandard:rubyWord(kanji,reading),displayChallenge:kanji,prompt:"Choose the meaning.",a:meaning,opts:wordOptions(n5Vocab,meaning,2),help:`${kanji} is read ${reading} and means “${meaning}.”`,kind:"vocabulary"});
-  addQuestion({stage:2,tier:"beginner",support:"guided",q:`Which word means “${meaning}”?`,prompt:"Choose the reading.",a:reading,opts:wordOptions(n5Vocab,reading,1),help:`${kanji} is read ${reading}.`,kind:"vocabulary"});
+  addQuestion({stage:2,tier:"beginner",support:"guided",q:reading,displayGuided:reading,displayStandard:rubyWord(kanji,reading),displayChallenge:kanji,prompt:"Choose the meaning.",a:meaning,opts:wordOptions(n5Vocab,meaning,2),help:`${kanji} is read ${reading} and means “${meaning}.”`,kind:"vocabulary",vocabularyKey:kanji});
+  addQuestion({stage:2,tier:"beginner",support:"guided",q:`Which word means “${meaning}”?`,prompt:"Choose the reading.",a:reading,opts:wordOptions(n5Vocab,reading,1),help:`${kanji} is read ${reading}.`,kind:"vocabulary",vocabularyKey:kanji});
   addQuestion({stage:2,tier:"intermediate",support:"standard",q:kanji,concealedPrompt:kanji,displayChallenge:kanji,prompt:"Choose the correct reading.",a:reading,opts:wordOptions(n5Vocab,reading,1),help:`Meaning: ${meaning}. Reading: ${reading}.`,kind:"reading"});
 });
 n5Grammar.forEach(([sentence,particle,meaning,note])=>{
@@ -230,8 +242,8 @@ function tutorOpts(index,value){
   return shuffle([value,...shuffle(vals).slice(0,3)]);
 }
 tutorVocabulary.forEach(([english,japanese,romaji])=>{
-  addQuestion({stage:2,curriculum:"tutor",tutorTrack:"vocabulary",tier:"beginner",q:english,prompt:"Choose the Japanese word from your tutor vocabulary.",a:japanese,opts:tutorOpts(1,japanese),help:`${english} = ${japanese} (${romaji})`,kind:"tutor-vocabulary"});
-  addQuestion({stage:2,curriculum:"tutor",tutorTrack:"vocabulary",tier:"beginner",q:japanese,prompt:"Choose the English meaning.",a:english,opts:tutorOpts(0,english),help:`${japanese} is ${romaji} and means “${english}.”`,kind:"tutor-vocabulary"});
+  addQuestion({stage:2,curriculum:"tutor",tutorTrack:"vocabulary",tier:"beginner",q:english,prompt:"Choose the Japanese word from your tutor vocabulary.",a:japanese,opts:tutorOpts(1,japanese),help:`${english} = ${japanese} (${romaji})`,kind:"tutor-vocabulary",vocabularyKey:japanese});
+  addQuestion({stage:2,curriculum:"tutor",tutorTrack:"vocabulary",tier:"beginner",q:japanese,prompt:"Choose the English meaning.",a:english,opts:tutorOpts(0,english),help:`${japanese} is ${romaji} and means “${english}.”`,kind:"tutor-vocabulary",vocabularyKey:japanese});
 });
 
 const tutorVerbForms = [
@@ -317,7 +329,7 @@ const DEFAULT_STATE = {
   hints:2, shields:1, active:null, answered:false, shieldArmed:false, lastPracticeDate:null,
   kanaStats:{}, gemInventory:{}, gemCheckpointClaims:{}, kanaTab:"hiragana", lastKana:null, lastGem:null, hiraganaXp:0,
   heartRecoveryEnd:null, ownedPickaxeSkins:["standard"], equippedPickaxeSkin:"standard", ownedWallpapers:["midnight"], equippedWallpaper:"midnight", placementUnlockedThrough:0, developerInfiniteHearts:false,
-  selectedStage:0, jlptSectionSelection:{}, jlptVocabularyLevel:{}, soundEnabled:true, voiceEnabled:true, autoSpeak:true, voiceRate:.85, smartReview:true, sessionGoal:20, sessionAnswered:0, sessionCorrect:0, stageXp:[0,0,0,0,0,0,0], clearedStages:[], questionStats:{}
+  selectedStage:0, jlptSectionSelection:{}, jlptVocabularyLevel:{}, jlptReviewCheckpoints:{}, soundEnabled:true, voiceEnabled:true, autoSpeak:true, voiceRate:.85, smartReview:true, sessionGoal:20, sessionAnswered:0, sessionCorrect:0, stageXp:[0,0,0,0,0,0,0], clearedStages:[], questionStats:{}
 };
 const PROFILE_INDEX_KEY="jm_profiles";
 const ACTIVE_PROFILE_KEY="jm_active_profile";
@@ -441,13 +453,13 @@ function loadProfile(profile){
   try{raw=JSON.parse(localStorage.getItem(profileStorageKey(profile.id)));}catch{}
   state=normalizeState(raw);
   const tutorStateRepaired=repairTutorAccessState();
-  applyDailyDecay();
+  const dailyStateChanged=applyDailyDecay();
   document.getElementById("activePlayerName").textContent=profile.name;
   const developerBtn=document.getElementById("developerBtn");
   if(developerBtn) developerBtn.hidden=!isDeveloperSession;
   const developerName=document.getElementById("developerProfileName");
   if(developerName) developerName.textContent=profile.name;
-  if(tutorStateRepaired) save();
+  if(tutorStateRepaired||dailyStateChanged) save();
   if(!appStarted){appStarted=true;render();startRecoveryClock();}
   else render();
   requestAnimationFrame(()=>{if(activeProfileId)setAuthOverlayVisible(false);});
@@ -780,13 +792,18 @@ function dayDifference(a,b){
   return Math.round((y-x)/86400000);
 }
 function applyDailyDecay(){
-  if(state.developerInfiniteHearts){state.hearts=state.maxHearts;return;}
-  if(!state.lastPracticeDate) return;
-  const missed=Math.max(0,dayDifference(state.lastPracticeDate,dateKey())-1);
-  if(missed>0){
-    state.hearts=Math.max(0,state.hearts-missed);
-    state.practiceStreak=0;
+  if(state.developerInfiniteHearts){
+    const changed=state.hearts!==state.maxHearts;
+    state.hearts=state.maxHearts;
+    return changed;
   }
+  if(!state.lastPracticeDate)return false;
+  // Time away may reset a practice streak, but it never removes hearts.
+  if(dayDifference(state.lastPracticeDate,dateKey())>1&&state.practiceStreak!==0){
+    state.practiceStreak=0;
+    return true;
+  }
+  return false;
 }
 function markPracticeToday(){
   const today=dateKey();
@@ -1546,10 +1563,7 @@ function closeAcademy(){document.getElementById('academyOverlay').classList.remo
 function progressBar(value){return `<div class="academy-progress"><div style="width:${Math.max(0,Math.min(100,value))}%"></div></div>`;}
 function academyCard(id,title,sub,body){const m=academyItemMastery(id);return `<article class="study-card"><div class="study-card-head"><div><strong>${title}</strong><div class="small">${sub}</div></div><span class="badge">${m}%</span></div>${progressBar(m)}<div class="study-card-body">${body}</div><button class="academy-study-btn" data-master-id="${id}" type="button">Study +25%</button></article>`;}
 function academyVocabularyBank(){
- const map=new Map();
- if(typeof n5Vocab!=='undefined')n5Vocab.forEach(([jp,r,en])=>map.set(jp,{jp,reading:r,en}));
- if(tutorAccessGranted()&&typeof tutorVocabulary!=='undefined')tutorVocabulary.forEach(([en,jp,r])=>map.set(jp,{jp,reading:r,en,tutor:true}));
- return [...map.values()];
+ return n5CompleteVocabulary.map(([jp,reading,en])=>({jp,reading,en}));
 }
 function renderAcademy(){
  const box=document.getElementById('academyContent');if(!box)return;document.querySelectorAll('[data-academy-tab]').forEach(b=>b.classList.toggle('primary',b.dataset.academyTab===academyTab));const c=academyCounts();
@@ -1592,7 +1606,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAcademy();});
 const originalRenderV21=render;render=function(){originalRenderV21();try{renderAcademySummary();const section=document.getElementById('n5AcademySection');if(section){const unlocked=isStageUnlocked(2);section.classList.toggle('locked-course',!unlocked);section.querySelectorAll('button').forEach(b=>b.disabled=!unlocked);section.title=unlocked?'N5 Mine course and progression':'Complete Katakana to unlock the N5 Mine course';}}catch(e){console.error('N5 course summary failed',e);}};
 
 // Japanese Miner v3.0 — fully interactive N5 course
-let academyView={lesson:null,word:null,grammar:null,reading:null,quiz:null};
+let academyView={lesson:null,word:null,grammar:null,reading:null,quiz:null,preview:null,lessonPreviewComplete:false};
 function v3Stars(m){const n=Math.max(0,Math.min(5,Math.ceil(m/20)));return '★'.repeat(n)+'☆'.repeat(5-n);}
 function v3Esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function v3VocabId(index){return 'vocab:'+index;}
@@ -1614,10 +1628,7 @@ function v3QuizCard(question,options,answer,onDone){
 function v3RenderQuiz(){const q=academyView.quiz;return `<section class="course-focus quiz-focus"><button class="course-back" data-course-back type="button">← Back</button><div class="course-kicker">Quick practice</div><h3>${v3Esc(q.question)}</h3><div class="course-answer-grid">${q.options.map(o=>`<button data-course-answer="${v3Esc(o)}" type="button">${v3Esc(o)}</button>`).join('')}</div><div id="courseQuizFeedback" class="course-feedback"></div></section>`;}
 function v3HandleQuizAnswer(value,button){const q=academyView.quiz;if(!q)return;const good=value===q.answer;document.querySelectorAll('[data-course-answer]').forEach(b=>b.disabled=true);button.classList.add(good?'answer-good':'answer-bad');const fb=document.getElementById('courseQuizFeedback');if(fb)fb.innerHTML=good?'✅ Correct! Mastery increased.':`❌ The correct answer is <strong>${v3Esc(q.answer)}</strong>. This item was added to review.`;q.onDone?.(good);setTimeout(()=>{academyView.quiz=null;renderAcademy();},850);}
 function v3RenderVocabulary(){
- const words=academyVocabularyBank();
- if(academyView.word!==null){const i=academyView.word,w=words[i];if(!w){academyView.word=null;return v3RenderVocabulary();}const id=v3VocabId(i),m=academyItemMastery(id),examples=v3WordExamples(w);return `<section class="course-focus"><button class="course-back" data-word-back type="button">← Lesson ${Math.floor(i/50)+1}</button><div class="course-kicker">Vocabulary ${i+1} of 1,000</div><div class="word-hero">${v3Esc(w.jp)}</div><div class="word-reading">${v3Esc(w.reading)}</div><div class="word-meaning">${v3Esc(w.en)}</div><div class="mastery-banner"><span>${v3Stars(m)}</span><strong>${m}% mastery</strong></div><div class="detail-grid"><article><h4>Examples</h4>${examples.map(x=>`<p class="jp-example">${v3Esc(x)}</p>`).join('')}</article><article><h4>Study actions</h4><button data-word-speak="${i}" type="button">▶ Hear pronunciation</button><button data-word-quiz="${i}" class="primary" type="button">Practice this word</button><p class="small">Correct practice raises mastery. Incorrect answers place the word into Daily Review.</p></article></div></section>`;}
- if(academyView.lesson!==null){const lesson=academyView.lesson,start=lesson*50,items=words.slice(start,start+50);return `<section><div class="course-subhead"><button class="course-back" data-lessons-back type="button">← All lessons</button><div><h3>Vocabulary Lesson ${lesson+1}</h3><p>${items.length} loaded words • tap a word to study it</p></div></div><div class="word-list">${items.map((w,j)=>{const i=start+j,m=academyItemMastery(v3VocabId(i));return `<button class="word-row" data-word-index="${i}" type="button"><span class="word-main"><strong>${v3Esc(w.jp)}</strong><small>${v3Esc(w.reading)} · ${v3Esc(w.en)}</small></span><span class="word-mastery"><b>${v3Stars(m)}</b><small>${m}%</small></span></button>`}).join('')||'<div class="academy-callout">This lesson is reserved for future verified N5 vocabulary.</div>'}</div></section>`;}
- return `<div class="academy-toolbar"><strong>Vocabulary course</strong><span>${words.length} verified reference words loaded • target: 1,000</span></div><p class="course-instruction">Tap a lesson to open it. Lessons with loaded words are highlighted.</p><div class="lesson-grid">${Array.from({length:20},(_,i)=>{const start=i*50,loaded=Math.max(0,Math.min(50,words.length-start)),known=Array.from({length:loaded},(_,j)=>academyItemMastery(v3VocabId(start+j))>=75).filter(Boolean).length;return `<button class="lesson-button ${loaded?'lesson-loaded':'lesson-empty'}" data-vocab-lesson="${i}" type="button"><strong>Lesson ${i+1}</strong><span>${known}/${loaded||50} mastered ${loaded?`· ${loaded} words loaded`:'· planned'}</span>${progressBar(loaded?known/loaded*100:0)}</button>`}).join('')}</div>`;
+ return renderVocabularyCourse(2);
 }
 function v3RenderGrammar(){
  if(academyView.grammar!==null){const i=academyView.grammar,g=N5_GRAMMAR_POINTS[i],id='grammar:'+i,m=academyItemMastery(id);return `<section class="course-focus"><button class="course-back" data-grammar-back type="button">← Grammar list</button><div class="course-kicker">Grammar ${i+1} of 90</div><h2>${v3Esc(g[0])}</h2><p class="grammar-meaning">${v3Esc(g[1])}</p><div class="mastery-banner"><span>${v3Stars(m)}</span><strong>${m}% mastery</strong></div><article class="grammar-example"><h4>Example</h4><p class="jp-example">${v3Esc(g[2])}</p></article><button data-grammar-quiz="${i}" class="primary wide-action" type="button">Practice this grammar</button></section>`;}
@@ -1639,13 +1650,8 @@ renderAcademy=function(){
  else {renderAcademyV2();return;}
  box.onclick=e=>{
   const t=e.target.closest('button');if(!t)return;
-  if(t.matches('[data-vocab-lesson]')){academyView.lesson=Number(t.dataset.vocabLesson);academyView.word=null;renderAcademy();}
-  else if(t.matches('[data-lessons-back]')){academyView.lesson=null;renderAcademy();}
-  else if(t.matches('[data-word-index]')){academyView.word=Number(t.dataset.wordIndex);renderAcademy();}
-  else if(t.matches('[data-word-back]')){academyView.word=null;renderAcademy();}
-  else if(t.matches('[data-word-speak]'))speakJapanese(academyVocabularyBank()[Number(t.dataset.wordSpeak)].reading);
-  else if(t.matches('[data-word-quiz]')){const i=Number(t.dataset.wordQuiz),w=academyVocabularyBank()[i],wrong=shuffle(academyVocabularyBank().filter((_,j)=>j!==i).map(x=>x.en)).slice(0,3);v3QuizCard(`What does ${w.jp} mean?`,[w.en,...wrong],w.en,good=>{v3SetMastery(v3VocabId(i),good?25:-5);});}
-  else if(t.matches('[data-grammar-index]')){academyView.grammar=Number(t.dataset.grammarIndex);renderAcademy();}
+  if(handleVocabularyCourseAction(t,academyStage))return;
+  if(t.matches('[data-grammar-index]')){academyView.grammar=Number(t.dataset.grammarIndex);renderAcademy();}
   else if(t.matches('[data-grammar-back]')){academyView.grammar=null;renderAcademy();}
   else if(t.matches('[data-grammar-quiz]')){const i=Number(t.dataset.grammarQuiz),g=N5_GRAMMAR_POINTS[i],wrong=shuffle(N5_GRAMMAR_POINTS.filter((_,j)=>j!==i).map(x=>x[0])).slice(0,3);v3QuizCard(`Which grammar point is used in: ${g[2]}`,[g[0],...wrong],g[0],good=>v3SetMastery('grammar:'+i,good?25:-5));}
   else if(t.matches('[data-reading-index]')){academyView.reading=Number(t.dataset.readingIndex);renderAcademy();}
@@ -1659,7 +1665,7 @@ renderAcademy=function(){
 
 // Connect N5 mine answers to the same Academy mastery records.
 const answerV2=answer;
-answer=function(opt,button){const q=state.active,correct=q&&opt===q.a;answerV2(opt,button);if(!q||Number(q.stage)!==2)return;let id=null;if(q.kind==='academy-kanji')id='kanji:'+q.q;if(q.kind==='academy-grammar'){const i=N5_GRAMMAR_POINTS.findIndex(g=>g[0]===q.a);if(i>=0)id='grammar:'+i;}if(q.kind==='academy-reading'){const i=N5_READING_PASSAGES.findIndex(p=>p[1]===q.q);if(i>=0)id='reading:'+i;}if(id){v3SetMastery(id,correct?10:-3);}}
+answer=function(opt,button){const q=state.active,correct=q&&opt===q.a;answerV2(opt,button);if(!q||Number(q.stage)!==2)return;if(q.vocabularyKey)recordVocabularyQuestionMastery(q,correct);let id=null;if(q.kind==='academy-kanji')id='kanji:'+q.q;if(q.kind==='academy-grammar'){const i=N5_GRAMMAR_POINTS.findIndex(g=>g[0]===q.a);if(i>=0)id='grammar:'+i;}if(q.kind==='academy-reading'){const i=N5_READING_PASSAGES.findIndex(p=>p[1]===q.q);if(i>=0)id='reading:'+i;}if(id){v3SetMastery(id,correct?10:-3);}}
 
 // v3.1 New-player onboarding and interactive placement test
 const PLACEMENT_TEST_QUESTIONS=[
@@ -1912,7 +1918,7 @@ const JLPT_COURSES={
 
 Object.entries(JLPT_COURSES).forEach(([stage,c])=>{
   const s=Number(stage);
-  c.vocab.forEach((w,i)=>questions.push({stage:s,q:w[0],prompt:'Choose the best meaning.',a:w[2],opts:shuffle([w[2],...shuffle(c.vocab.filter((_,j)=>j!==i).map(x=>x[2])).slice(0,3)]),kind:'advanced-vocab',courseId:`jlpt${s}:vocab:${i}`}));
+  c.vocab.forEach((w,i)=>questions.push({stage:s,q:w[0],prompt:'Choose the best meaning.',a:w[2],opts:shuffle([w[2],...shuffle(c.vocab.filter((_,j)=>j!==i).map(x=>x[2])).slice(0,3)]),kind:'advanced-vocab',courseId:`jlpt${s}:vocab:${i}`,vocabularyKey:w[0]}));
   c.kanji.forEach((k,i)=>questions.push({stage:s,q:k[0],prompt:'Choose this kanji’s meaning.',a:k[2],opts:shuffle([k[2],...shuffle(c.kanji.filter((_,j)=>j!==i).map(x=>x[2])).slice(0,3)]),kind:'advanced-kanji',courseId:`jlpt${s}:kanji:${i}`}));
   c.grammar.forEach((g,i)=>questions.push({stage:s,q:g[2],prompt:'Which grammar pattern is used?',a:g[0],opts:shuffle([g[0],...shuffle(c.grammar.filter((_,j)=>j!==i).map(x=>x[0])).slice(0,3)]),kind:'advanced-grammar',courseId:`jlpt${s}:grammar:${i}`}));
   c.reading.forEach((r,i)=>questions.push({stage:s,q:r[1],prompt:r[2],a:r[3],opts:shuffle([r[3],...shuffle(c.reading.filter((_,j)=>j!==i).map(x=>x[3])).slice(0,3)]),kind:'advanced-reading',courseId:`jlpt${s}:reading:${i}`}));
@@ -1920,6 +1926,21 @@ Object.entries(JLPT_COURSES).forEach(([stage,c])=>{
 // Questions added by the later JLPT course expansion also need stable IDs so
 // randomized guardian decks can be saved and resumed without changing order.
 questions.forEach((question,index)=>{if(!question.id)question.id=`course-${question.stage}-${index}`;});
+
+// v6.4.13 - Complete 1,000-word N5 course. New questions are appended only
+// after all legacy IDs are assigned so existing player question history stays intact.
+const n5CompleteVocabulary=Array.isArray(window.N5_VOCABULARY_1000)?window.N5_VOCABULARY_1000.map(entry=>[...entry]):[];
+if(n5CompleteVocabulary.length!==1000)throw new Error("The complete N5 vocabulary course did not load.");
+const standardN5VocabularyKeys=new Set(questions.filter(question=>Number(question.stage)===2&&question.vocabularyKey&&!tutorQuestion(question)).map(question=>String(question.vocabularyKey)));
+n5CompleteVocabulary.forEach(([word,reading,meaning],courseIndex)=>{
+  if(standardN5VocabularyKeys.has(word))return;
+  addQuestion({id:`n5-course-${courseIndex}-meaning`,stage:2,q:reading,displayGuided:reading,displayStandard:rubyWord(word,reading),displayChallenge:word,prompt:"Choose the meaning.",a:meaning,opts:wordOptions(n5CompleteVocabulary,meaning,2),help:`${word} is read ${reading} and means “${meaning}.”`,kind:"vocabulary",vocabularyKey:word});
+  if(word===reading){
+    addQuestion({id:`n5-course-${courseIndex}-word`,stage:2,q:`Which Japanese word means “${meaning}”?`,prompt:"Choose the Japanese word.",a:word,opts:wordOptions(n5CompleteVocabulary,word,0),help:`${word} means “${meaning}.”`,kind:"vocabulary",vocabularyKey:word});
+  }else{
+    addQuestion({id:`n5-course-${courseIndex}-reading`,stage:2,q:word,concealedPrompt:word,displayChallenge:word,prompt:"Choose the correct reading.",a:reading,opts:wordOptions(n5CompleteVocabulary,reading,1),help:`${word} is read ${reading} and means “${meaning}.”`,kind:"vocabulary",vocabularyKey:word});
+  }
+});
 
 let academyStage=2;
 function jlptCourseForStage(stage=academyStage){return stage===2?null:JLPT_COURSES[stage];}
@@ -1929,7 +1950,7 @@ function jlptSetMastery(type,index,delta,stage=academyStage){v3SetMastery(jlptMa
 function advancedCounts(stage=academyStage){const c=JLPT_COURSES[stage];const count=(type,arr)=>arr.filter((_,i)=>jlptItemMastery(type,i,stage)>=75).length;const v=count('vocab',c.vocab),k=count('kanji',c.kanji),g=count('grammar',c.grammar),r=count('reading',c.reading);return {v,k,g,r,readiness:Math.round((v/c.vocab.length*.3+k/c.kanji.length*.25+g/c.grammar.length*.25+r/c.reading.length*.2)*100)};}
 function updateAcademyChrome(){const label=academyStage===2?'N5':JLPT_COURSES[academyStage].label;const title=document.getElementById('academyTitle');if(title)title.textContent=`⛏️ JLPT ${label} Mine — Course & Progress`;const p=title?.nextElementSibling;if(p)p.textContent=`The mine and every ${label} study tool share the same progress and mastery.`;const first=document.querySelector('[data-academy-tab="overview"]');if(first)first.textContent=`${label} Hub`;}
 const openAcademyV34=openAcademy;
-openAcademy=function(stage=state.selectedStage){stage=Number(stage);if(stage<2)stage=2;if(!isStageUnlocked(stage)){setMessage(`${stages[stage].label} is still locked.`,'wrong');return;}academyStage=stage;academyTab='overview';academyView={lesson:null,word:null,grammar:null,reading:null,quiz:null};updateAcademyChrome();document.getElementById('academyOverlay').classList.add('open');document.getElementById('academyOverlay').setAttribute('aria-hidden','false');renderAcademy();};
+openAcademy=function(stage=state.selectedStage){stage=Number(stage);if(stage<2)stage=2;if(!isStageUnlocked(stage)){setMessage(`${stages[stage].label} is still locked.`,'wrong');return;}academyStage=stage;academyTab='overview';academyView={lesson:null,word:null,grammar:null,reading:null,quiz:null,preview:null,lessonPreviewComplete:false};updateAcademyChrome();document.getElementById('academyOverlay').classList.add('open');document.getElementById('academyOverlay').setAttribute('aria-hidden','false');renderAcademy();};
 const selectStageV34=selectStage;
 selectStage=function(index,openCourse=false){selectStageV34(index,false);if(openCourse&&Number(index)>=2&&isStageUnlocked(Number(index)))openAcademy(Number(index));};
 const renderPathV34=renderPath;
@@ -1940,14 +1961,14 @@ document.getElementById('openAcademyBtn')?.addEventListener('click',()=>openAcad
 function renderAdvancedAcademy(){const c=JLPT_COURSES[academyStage],counts=advancedCounts(),box=document.getElementById('academyContent');if(!box)return;document.querySelectorAll('[data-academy-tab]').forEach(b=>b.classList.toggle('primary',b.dataset.academyTab===academyTab));
  const card=(type,i,title,sub,body='')=>`<article class="study-card"><strong>${v3Esc(title)}</strong><span class="small">${v3Esc(sub)}</span>${body}<div class="mastery-banner"><span>${v3Stars(jlptItemMastery(type,i))}</span><strong>${jlptItemMastery(type,i)}%</strong></div><button data-adv-practice="${type}:${i}" type="button">Practice</button></article>`;
  if(academyTab==='overview')box.innerHTML=`<div class="n5-hub-actions"><button id="hubEnterMineBtn" class="primary" type="button">⛏️ Enter ${c.label} Mine</button><span class="small">Mine answers update the same course mastery shown here.</span></div><div class="academy-metrics"><div><strong>${counts.readiness}%</strong><span>Estimated readiness</span></div><div><strong>${counts.v}</strong><span>Vocabulary mastered</span></div><div><strong>${counts.k}</strong><span>Kanji mastered</span></div><div><strong>${counts.g}</strong><span>Grammar mastered</span></div></div><div class="academy-roadmap">${[['Vocabulary',counts.v,c.vocabTarget],['Kanji',counts.k,c.kanjiTarget],['Grammar',counts.g,c.grammarTarget],['Reading',counts.r,c.reading.length]].map(([n,v,t])=>`<div><div class="progress-label"><span>${n}</span><strong>${v}/${t}</strong></div>${progressBar(Math.min(100,v/Math.max(1,(n==='Reading'?t:(n==='Vocabulary'?c.vocab.length:n==='Kanji'?c.kanji.length:c.grammar.length)))*100))}</div>`).join('')}</div><div class="academy-callout"><strong>Course bank status</strong><p>${c.vocab.length} verified vocabulary items, ${c.kanji.length} kanji, ${c.grammar.length} grammar patterns, and ${c.reading.length} readings are interactive now. The progression targets preserve room for the full level curriculum.</p></div>`;
- if(academyTab==='vocabulary')box.innerHTML=`<div class="academy-toolbar"><strong>${c.label} Vocabulary</strong><span>${c.vocab.length} interactive words • target ${c.vocabTarget.toLocaleString()}</span></div><div class="study-grid">${c.vocab.map((w,i)=>card('vocab',i,w[0],`${w[1]} · ${w[2]}`)).join('')}</div>`;
+ if(academyTab==='vocabulary')box.innerHTML=renderVocabularyCourse(academyStage);
  if(academyTab==='kanji')box.innerHTML=`<div class="academy-toolbar"><strong>${c.label} Kanji</strong><span>${c.kanji.length} interactive kanji • target ${c.kanjiTarget.toLocaleString()}</span></div><div class="study-grid">${c.kanji.map((k,i)=>card('kanji',i,k[0],`${k[1]} · ${k[2]}`)).join('')}</div>`;
  if(academyTab==='grammar')box.innerHTML=`<div class="academy-toolbar"><strong>${c.label} Grammar</strong><span>${c.grammar.length} interactive patterns • target ${c.grammarTarget}</span></div><div class="study-grid">${c.grammar.map((g,i)=>card('grammar',i,g[0],g[1],`<p class="jp-example">${v3Esc(g[2])}</p>`)).join('')}</div>`;
  if(academyTab==='reading')box.innerHTML=`<div class="academy-toolbar"><strong>${c.label} Reading</strong><span>Read and answer comprehension questions.</span></div><div class="study-grid">${c.reading.map((r,i)=>card('reading',i,r[0],r[2],`<p class="jp-passage">${v3Esc(r[1])}</p>`)).join('')}</div>`;
  if(academyTab==='listening')box.innerHTML=`<div class="academy-toolbar"><strong>${c.label} Listening</strong><span>Uses Japanese browser speech when available.</span></div><div class="study-grid">${c.reading.map((r,i)=>`<article class="study-card"><strong>Listening ${i+1}</strong><p class="jp-passage listening-hidden" id="advListen${i}">${v3Esc(r[1])}</p><button data-adv-speak="${i}" type="button">▶ Play Japanese</button><button data-adv-reveal="${i}" type="button">Reveal text</button></article>`).join('')}</div>`;
  if(academyTab==='review'){const due=[...c.vocab.map((x,i)=>['vocab',i,x[0]]),...c.kanji.map((x,i)=>['kanji',i,x[0]]),...c.grammar.map((x,i)=>['grammar',i,x[0]])].filter(([t,i])=>jlptItemMastery(t,i)<75).sort((a,b)=>jlptItemMastery(a[0],a[1])-jlptItemMastery(b[0],b[1])).slice(0,20);box.innerHTML=`<div class="academy-toolbar"><strong>Today's ${c.label} Review</strong><span>${due.length} priority cards</span></div><div class="review-list">${due.map(([t,i,l])=>`<button data-adv-practice="${t}:${i}" type="button"><span>${v3Esc(l)}</span><strong>${jlptItemMastery(t,i)}%</strong></button>`).join('')||'<p>Everything due today is mastered.</p>'}</div>`;}
  if(academyTab==='tests')box.innerHTML=`<div class="academy-test-grid"><article class="study-card"><h3>Mini ${c.label} Test</h3><p>20 mixed questions from this level.</p><button data-adv-test="20" class="primary" type="button">Start test</button></article><article class="study-card"><h3>Extended ${c.label} Test</h3><p>40 mixed questions from this level.</p><button data-adv-test="40" type="button">Start test</button></article></div>`;
- box.onclick=e=>{const t=e.target.closest('button');if(!t)return;if(t.id==='hubEnterMineBtn'){closeAcademy();selectStage(academyStage,false);document.getElementById('rock')?.scrollIntoView({behavior:'smooth',block:'center'});}else if(t.dataset.advSpeak!==undefined)speakJapanese(c.reading[Number(t.dataset.advSpeak)][1]);else if(t.dataset.advReveal!==undefined)document.getElementById(`advListen${t.dataset.advReveal}`)?.classList.remove('listening-hidden');else if(t.dataset.advPractice){const [type,raw]=t.dataset.advPractice.split(':'),i=Number(raw);let prompt,answer,wrong;if(type==='vocab'){prompt=`What does ${c.vocab[i][0]} mean?`;answer=c.vocab[i][2];wrong=c.vocab.filter((_,j)=>j!==i).map(x=>x[2]);}if(type==='kanji'){prompt=`What does ${c.kanji[i][0]} mean?`;answer=c.kanji[i][2];wrong=c.kanji.filter((_,j)=>j!==i).map(x=>x[2]);}if(type==='grammar'){prompt=`Which pattern appears in: ${c.grammar[i][2]}`;answer=c.grammar[i][0];wrong=c.grammar.filter((_,j)=>j!==i).map(x=>x[0]);}if(type==='reading'){prompt=c.reading[i][2];answer=c.reading[i][3];wrong=c.reading.filter((_,j)=>j!==i).map(x=>x[3]);}v3QuizCard(prompt,[answer,...shuffle(wrong).slice(0,3)],answer,good=>jlptSetMastery(type,i,good?25:-5));}else if(t.dataset.courseAnswer!==undefined)v3HandleQuizAnswer(t.dataset.courseAnswer,t);else if(t.dataset.courseBack!==undefined){academyView.quiz=null;renderAcademy();}else if(t.dataset.advTest){academyView.quiz=null;const pool=questions.filter(q=>q.stage===academyStage);const q=pool[Math.floor(Math.random()*pool.length)];v3QuizCard(q.prompt+' '+q.q,q.opts,q.a,good=>{if(q.courseId){const [,type,i]=q.courseId.split(':');jlptSetMastery(type,Number(i),good?15:-4);}});}};
+ box.onclick=e=>{const t=e.target.closest('button');if(!t)return;if(handleVocabularyCourseAction(t,academyStage))return;if(t.id==='hubEnterMineBtn'){closeAcademy();selectStage(academyStage,false);document.getElementById('rock')?.scrollIntoView({behavior:'smooth',block:'center'});}else if(t.dataset.advSpeak!==undefined)speakJapanese(c.reading[Number(t.dataset.advSpeak)][1]);else if(t.dataset.advReveal!==undefined)document.getElementById(`advListen${t.dataset.advReveal}`)?.classList.remove('listening-hidden');else if(t.dataset.advPractice){const [type,raw]=t.dataset.advPractice.split(':'),i=Number(raw);let prompt,answer,wrong;if(type==='vocab'){prompt=`What does ${c.vocab[i][0]} mean?`;answer=c.vocab[i][2];wrong=c.vocab.filter((_,j)=>j!==i).map(x=>x[2]);}if(type==='kanji'){prompt=`What does ${c.kanji[i][0]} mean?`;answer=c.kanji[i][2];wrong=c.kanji.filter((_,j)=>j!==i).map(x=>x[2]);}if(type==='grammar'){prompt=`Which pattern appears in: ${c.grammar[i][2]}`;answer=c.grammar[i][0];wrong=c.grammar.filter((_,j)=>j!==i).map(x=>x[0]);}if(type==='reading'){prompt=c.reading[i][2];answer=c.reading[i][3];wrong=c.reading.filter((_,j)=>j!==i).map(x=>x[3]);}v3QuizCard(prompt,[answer,...shuffle(wrong).slice(0,3)],answer,good=>jlptSetMastery(type,i,good?25:-5));}else if(t.dataset.courseAnswer!==undefined)v3HandleQuizAnswer(t.dataset.courseAnswer,t);else if(t.dataset.courseBack!==undefined){academyView.quiz=null;renderAcademy();}else if(t.dataset.advTest){academyView.quiz=null;const pool=questions.filter(q=>q.stage===academyStage);const q=pool[Math.floor(Math.random()*pool.length)];v3QuizCard(q.prompt+' '+q.q,q.opts,q.a,good=>{if(q.courseId){const [,type,i]=q.courseId.split(':');jlptSetMastery(type,Number(i),good?15:-4);}});}};
 }
 const renderAcademyV34=renderAcademy;
 renderAcademy=function(){updateAcademyChrome();if(academyStage===2)return renderAcademyV34();if(academyView.quiz){const box=document.getElementById('academyContent');box.innerHTML=v3RenderQuiz();box.onclick=e=>{const t=e.target.closest('button');if(t?.dataset.courseAnswer!==undefined)v3HandleQuizAnswer(t.dataset.courseAnswer,t);else if(t?.dataset.courseBack!==undefined){academyView.quiz=null;renderAcademy();}};return;}renderAdvancedAcademy();};
@@ -2011,10 +2032,22 @@ function repairPlacementUnlocks(){
   state.selectedStage=Math.max(Number(state.selectedStage)||0,placed);
   return before!==JSON.stringify([state.stageXp,state.clearedStages,state.questionStats,state.kanaStats,state.placementUnlockedThrough]);
 }
-function grantPlacementReward(routeStage,overall){if(state.placementRewardClaimed)return {nuggets:0,hints:0,shields:0};let nuggets=2500,hints=1,shields=0;if(routeStage>=2){nuggets=10000;hints=3;shields=1;}if(routeStage>=3){nuggets=25000;hints=5;shields=2;}if(routeStage>=4){nuggets=50000;hints=8;shields=3;}if(routeStage>=5){nuggets=100000;hints=12;shields=5;}if(routeStage>=6){nuggets=250000;hints=20;shields=10;}if(overall>=90)nuggets=Math.round(nuggets*1.25);addStoneChange(nuggets,Math.min(gemTiers.length-1,routeStage+6));state.hints=Number(state.hints||0)+hints;state.shields=Number(state.shields||0)+shields;state.placementRewardClaimed=true;return {nuggets,hints,shields};}
+function grantPlacementReward(routeStage,overall){
+  if(state.placementRewardClaimed)return {nuggets:0,hints:0,shields:0,bonusPercent:0};
+  const stage=Math.max(0,Math.min(PLACEMENT_REWARD_TIERS.length-1,Number(routeStage)||0));
+  const tier=PLACEMENT_REWARD_TIERS[stage];
+  const bonusPercent=Number(overall)>=90?25:0;
+  const nuggets=Math.round(tier.nuggets*(1+bonusPercent/100));
+  const hints=tier.hints,shields=tier.shields;
+  addStoneChange(nuggets,Math.min(gemTiers.length-1,stage+6));
+  state.hints=Number(state.hints||0)+hints;
+  state.shields=Number(state.shields||0)+shields;
+  state.placementRewardClaimed=true;
+  return {nuggets,hints,shields,bonusPercent};
+}
 const finishPlacementTestV34=finishPlacementTest;
 finishPlacementTest=function(){const scores={};['hiragana','katakana','n5','n4','n3','n2','n1'].forEach(s=>scores[s]=placementSectionScore(s));let stage=0;if(scores.hiragana>=70)stage=1;if(stage===1&&scores.katakana>=70)stage=2;if(stage===2&&scores.n5>=65)stage=3;if(stage===3&&scores.n4>=65)stage=4;if(stage===4&&scores.n3>=65)stage=5;if(stage===5&&scores.n2>=65)stage=6; // N1 score refines reward/readiness but N1 remains the highest placement.
- unlockThroughStage(stage);state.selectedStage=stage;state.supportMode=stage>=4?'challenge':stage>=2?'standard':'guided';state.n5Tier=scores.n5>=75?'advanced':scores.n5>=45?'intermediate':'beginner';state.onboardingComplete=true;state.placementTestCompleted=true;state.active=null;state.answered=false;const overall=Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/7);const reward=grantPlacementReward(stage,overall);state.placementResult={date:Date.now(),route:stages[stage].label.toLowerCase(),overall,...scores,reward};save();render();placementSession.required=false;document.getElementById('placementCloseBtn').hidden=false;const scoreCards=Object.entries(scores).map(([k,v])=>`<div class="placement-score"><strong>${v}%</strong><span>${k==='hiragana'?'Hiragana':k==='katakana'?'Katakana':'JLPT '+k.toUpperCase()}</span></div>`).join('');document.getElementById('placementContent').innerHTML=`<div class="placement-results"><div class="placement-score-grid">${scoreCards}</div><div class="placement-recommendation"><h3>🧭 Start in the ${stages[stage].name}</h3><p>Your one-time placement result is saved. Every earlier mine remains available for review.</p></div><div class="placement-note"><strong>Placement reward:</strong> ${reward.nuggets.toLocaleString()} Nuggets, ${reward.hints} hints, and ${reward.shields} shields.</div><div class="placement-result-actions"><button id="acceptPlacementBtn" class="primary" type="button">Begin ${stages[stage].label}</button></div></div>`;document.getElementById('acceptPlacementBtn').addEventListener('click',()=>{syncPlacementTestButton();closePlacementOnboarding();document.getElementById('rock')?.scrollIntoView({behavior:'smooth',block:'center'});});};
+ unlockThroughStage(stage);state.selectedStage=stage;state.supportMode=stage>=4?'challenge':stage>=2?'standard':'guided';state.n5Tier=scores.n5>=75?'advanced':scores.n5>=45?'intermediate':'beginner';state.onboardingComplete=true;state.placementTestCompleted=true;state.active=null;state.answered=false;const overall=Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/7);const reward=grantPlacementReward(stage,overall);state.placementResult={date:Date.now(),route:stages[stage].label.toLowerCase(),overall,...scores,reward};save();render();placementSession.required=false;document.getElementById('placementCloseBtn').hidden=false;const scoreCards=Object.entries(scores).map(([k,v])=>`<div class="placement-score"><strong>${v}%</strong><span>${k==='hiragana'?'Hiragana':k==='katakana'?'Katakana':'JLPT '+k.toUpperCase()}</span></div>`).join('');const placementBonus=reward.bonusPercent?` <strong>Mastery bonus: +${reward.bonusPercent}% Nuggets.</strong>`:'';document.getElementById('placementContent').innerHTML=`<div class="placement-results"><div class="placement-score-grid">${scoreCards}</div><div class="placement-recommendation"><h3>🧭 Start in the ${stages[stage].name}</h3><p>Your one-time placement result is saved. Every earlier mine remains available for review.</p></div><div class="placement-note"><strong>${stages[stage].label} placement reward:</strong> ${reward.nuggets.toLocaleString()} Nuggets, ${reward.hints} hints, and ${reward.shields} shields.${placementBonus}</div><div class="placement-result-actions"><button id="acceptPlacementBtn" class="primary" type="button">Begin ${stages[stage].label}</button></div></div>`;document.getElementById('acceptPlacementBtn').addEventListener('click',()=>{syncPlacementTestButton();closePlacementOnboarding();document.getElementById('rock')?.scrollIntoView({behavior:'smooth',block:'center'});});};
 
 // v3.4 polish: correct advanced placement labels and make the launch button honor the selected JLPT mine.
 const enterSelectedMineButton=document.getElementById('enterN5MineBtn');
@@ -2386,9 +2419,13 @@ if(activeProfileId)render();
 
 
 
-// v6.4.9 - JLPT course-section stops and vocabulary sublevels.
-const JLPT_VOCABULARY_LEVEL_SIZE=10;
-const JLPT_VOCABULARY_UNLOCK_MASTERY=20;
+// v6.4.11 - Course-synced JLPT vocabulary lessons with a required word preview.
+const JLPT_VOCABULARY_LESSON_SIZE=50;
+const JLPT_VOCABULARY_UNLOCK_MASTERY=75;
+const JLPT_REVIEW_QUIZ_QUESTION_COUNT=25;
+const JLPT_REVIEW_QUIZ_TIME_MS=2*60*1000;
+const JLPT_REVIEW_QUIZ_PASS_SCORE=75;
+let jlptReviewQuizInterval=null;
 const JLPT_SECTION_SPECS=[
   {id:"vocabulary",name:"Vocabulary",icon:"語"},
   {id:"kanji",name:"Kanji",icon:"字"},
@@ -2406,10 +2443,15 @@ function jlptQuestionSection(question){
 function ensureJlptSectionState(target=state){
   if(!target.jlptSectionSelection||typeof target.jlptSectionSelection!=="object"||Array.isArray(target.jlptSectionSelection))target.jlptSectionSelection={};
   if(!target.jlptVocabularyLevel||typeof target.jlptVocabularyLevel!=="object"||Array.isArray(target.jlptVocabularyLevel))target.jlptVocabularyLevel={};
+  if(!target.jlptSectionLevel||typeof target.jlptSectionLevel!=="object"||Array.isArray(target.jlptSectionLevel))target.jlptSectionLevel={};
+  if(!target.jlptReviewCheckpoints||typeof target.jlptReviewCheckpoints!=="object"||Array.isArray(target.jlptReviewCheckpoints))target.jlptReviewCheckpoints={};
   for(let stage=2;stage<stages.length;stage++){
     const section=String(target.jlptSectionSelection[stage]||"vocabulary");
     target.jlptSectionSelection[stage]=JLPT_SECTION_IDS.has(section)?section:"vocabulary";
     target.jlptVocabularyLevel[stage]=Math.max(0,Number(target.jlptVocabularyLevel[stage])||0);
+    if(!target.jlptSectionLevel[stage]||typeof target.jlptSectionLevel[stage]!=="object"||Array.isArray(target.jlptSectionLevel[stage]))target.jlptSectionLevel[stage]={};
+    JLPT_SECTION_SPECS.forEach(({id})=>{target.jlptSectionLevel[stage][id]=Math.max(0,Number(target.jlptSectionLevel[stage][id])||0);});
+    target.jlptSectionLevel[stage].vocabulary=target.jlptVocabularyLevel[stage];
   }
   return target;
 }
@@ -2441,19 +2483,46 @@ function jlptPoolMastery(pool){
   if(!Array.isArray(pool)||!pool.length)return 0;
   return Math.round(pool.reduce((sum,question)=>sum+questionMasteryScore(state.questionStats?.[question.id]),0)/pool.length);
 }
-function jlptSectionMastery(stage,section){return jlptPoolMastery(jlptSectionQuestionPool(stage,section));}
+function jlptVocabularyTarget(stage){return Number(stage)===2?1000:Number(JLPT_COURSES[Number(stage)]?.vocabTarget||0);}
+function jlptVocabularyWords(stage){
+  stage=Number(stage);
+  if(stage===2){
+    return academyVocabularyBank().map((word,sourceIndex)=>({jp:word.jp,reading:word.reading,en:word.en,sourceIndex,masteryId:v3VocabId(sourceIndex),key:String(word.jp),index:sourceIndex}));
+  }
+  const availableKeys=new Set(jlptSectionQuestionPool(stage,"vocabulary").map(question=>String(question.vocabularyKey||"" )).filter(Boolean));
+  const course=JLPT_COURSES[stage];
+  return (course?.vocab||[]).map((word,sourceIndex)=>({jp:word[0],reading:word[1],en:word[2],sourceIndex,masteryId:jlptMasteryId("vocab",sourceIndex,stage),key:String(word[0])})).filter(word=>availableKeys.has(word.key)).map((word,index)=>({...word,index}));
+}
+function jlptVocabularyWordMastery(word){return word?academyItemMastery(word.masteryId):0;}
+function averageMastery(ids){return ids.length?Math.round(ids.reduce((sum,id)=>sum+academyItemMastery(id),0)/ids.length):0;}
+function jlptSectionMastery(stage,section){
+  stage=Number(stage);section=String(section||"");
+  if(section==="vocabulary")return averageMastery(jlptVocabularyWords(stage).map(word=>word.masteryId));
+  if(stage===2){
+    if(section==="kanji")return averageMastery(N5_KANJI_LIST.slice(0,120).map(kanji=>`kanji:${kanji}`));
+    if(section==="grammar")return averageMastery(N5_GRAMMAR_POINTS.slice(0,90).map((_,index)=>`grammar:${index}`));
+    if(section==="reading")return averageMastery(N5_READING_PASSAGES.map((_,index)=>`reading:${index}`));
+    return 0;
+  }
+  const course=JLPT_COURSES[stage],items=course?.[section]||[];
+  return averageMastery(items.map((_,index)=>jlptMasteryId(section,index,stage)));
+}
 function jlptVocabularyLevels(stage){
-  const pool=jlptSectionQuestionPool(stage,"vocabulary");
+  const pool=jlptVocabularyWords(stage);
   const levels=[];
-  for(let index=0;index<pool.length;index+=JLPT_VOCABULARY_LEVEL_SIZE)levels.push(pool.slice(index,index+JLPT_VOCABULARY_LEVEL_SIZE));
+  for(let index=0;index<pool.length;index+=JLPT_VOCABULARY_LESSON_SIZE)levels.push(pool.slice(index,index+JLPT_VOCABULARY_LESSON_SIZE));
   return levels;
 }
-function jlptVocabularyLevelMastery(stage,index){return jlptPoolMastery(jlptVocabularyLevels(stage)[Number(index)]||[]);}
+function jlptVocabularyLevelMastery(stage,index){return averageMastery((jlptVocabularyLevels(stage)[Number(index)]||[]).map(word=>word.masteryId));}
+function jlptVocabularyLevelQuestions(stage,index){
+  const keys=new Set((jlptVocabularyLevels(stage)[Number(index)]||[]).map(word=>word.key));
+  const pool=Number(stage)===2?questions.filter(question=>Number(question.stage)===2&&!tutorQuestion(question)&&jlptQuestionSection(question)==="vocabulary"):jlptSectionQuestionPool(stage,"vocabulary");
+  return pool.filter(question=>keys.has(String(question.vocabularyKey||"")));
+}
 function jlptVocabularyLevelUnlocked(stage,index){
   stage=Number(stage);index=Number(index);
   if(index<=0)return isStageUnlocked(stage);
-  if(state.clearedStages?.includes(stage)||Number(state.placementUnlockedThrough||0)>stage)return true;
-  return isStageUnlocked(stage)&&jlptVocabularyLevelMastery(stage,index-1)>=JLPT_VOCABULARY_UNLOCK_MASTERY;
+  return isStageUnlocked(stage)&&jlptVocabularyLevelMastery(stage,index-1)>=JLPT_VOCABULARY_UNLOCK_MASTERY&&(index%2!==0||jlptReviewCheckpointPassed(stage,"vocabulary",index));
 }
 function highestUnlockedJlptVocabularyLevel(stage){
   const levels=jlptVocabularyLevels(stage);let highest=0;
@@ -2473,7 +2542,7 @@ function filterJlptPoolForSelection(pool,stage){
   let selected=(Array.isArray(pool)?pool:[]).filter(question=>jlptQuestionSection(question)===section);
   const fullSectionPool=jlptSectionQuestionPool(stage,section);
   if(section==="vocabulary"){
-    const levelIndex=currentJlptVocabularyLevel(stage),level=jlptVocabularyLevels(stage)[levelIndex]||[];
+    const levelIndex=currentJlptVocabularyLevel(stage),level=jlptVocabularyLevelQuestions(stage,levelIndex);
     const ids=new Set(level.map(question=>String(question.id)));
     selected=selected.filter(question=>ids.has(String(question.id)));
     if(!selected.length)selected=level;
@@ -2491,14 +2560,14 @@ function validJlptQuestionForSelection(question){
   const section=currentJlptSection(stage);
   if(jlptQuestionSection(question)!==section)return false;
   if(section!=="vocabulary")return true;
-  const level=jlptVocabularyLevels(stage)[currentJlptVocabularyLevel(stage)]||[];
+  const level=jlptVocabularyLevelQuestions(stage,currentJlptVocabularyLevel(stage));
   return level.some(candidate=>String(candidate.id)===String(question.id));
 }
 function repairActiveJlptQuestion(){
   if(!state.active||selectedStageIndex()<2||validJlptQuestionForSelection(state.active))return false;
   state.active=null;state.answered=false;state.shieldArmed=false;
   const area=document.getElementById("challengeArea");
-  if(area)area.innerHTML='<div class="empty">Choose a JLPT course section and level, then tap the rock to begin.</div>';
+  if(area)area.innerHTML='<div class="empty">Choose a JLPT course section and lesson, review its items, then tap the rock to begin.</div>';
   return true;
 }
 function clearJlptRouteQuestion(){
@@ -2512,7 +2581,7 @@ function selectJlptSection(stage,section){
   clearJlptRouteQuestion();
   const label=JLPT_SECTION_SPECS.find(item=>item.id===section)?.name||section;
   const area=document.getElementById("challengeArea");
-  if(area)area.innerHTML=`<div class="empty"><strong>${label}</strong><br>${section==="vocabulary"?"Choose a vocabulary level in the Expedition Hub.":"Tap the rock to begin this course section."}</div>`;
+  if(area)area.innerHTML=`<div class="empty"><strong>${label}</strong><br>Choose a ${label.toLowerCase()} lesson in the Course or Expedition Hub, review every item, then begin practice.</div>`;
   save();render();
   setMessage(`${stages[stage].label} ${label} selected.`,"correct");
   return true;
@@ -2526,20 +2595,331 @@ function selectJlptVocabularyLevel(stage,index){
   state.jlptVocabularyLevel[stage]=index;
   clearJlptRouteQuestion();
   const area=document.getElementById("challengeArea");
-  if(area)area.innerHTML=`<div class="empty"><strong>Vocabulary Level ${index+1}</strong><br>${levels[index].length} course questions · ${jlptVocabularyLevelMastery(stage,index)}% mastery<br>Tap the rock to begin.</div>`;
+  if(area)area.innerHTML=`<div class="empty"><strong>Vocabulary Lesson ${index+1}</strong><br>${levels[index].length} words · ${jlptVocabularyLevelMastery(stage,index)}% mastery<br>Word preview complete. Tap the rock to continue this lesson.</div>`;
   save();render();
-  setMessage(`${stages[stage].label} Vocabulary Level ${index+1} selected.`,"correct");
+  setMessage(`${stages[stage].label} Vocabulary Lesson ${index+1} selected.`,"correct");
   return true;
 }
+function vocabularyCourseLabel(stage){return Number(stage)===2?"N5":String(JLPT_COURSES[Number(stage)]?.label||stages[Number(stage)]?.label||"JLPT");}
+function setVocabularyWordMastery(word,delta){
+  if(!word)return;
+  state.n5AcademyMastery[word.masteryId]=Math.max(0,Math.min(100,academyItemMastery(word.masteryId)+Number(delta||0)));
+  save();renderAcademySummary();
+}
+function recordVocabularyQuestionMastery(question,correct){
+  const stage=Number(question?.stage),key=String(question?.vocabularyKey||"");
+  const word=jlptVocabularyWords(stage).find(item=>item.key===key);
+  if(word)setVocabularyWordMastery(word,correct?10:-3);
+}
+function vocabularyMasteryIdForQuestion(question){
+  const stage=Number(question?.stage),key=String(question?.vocabularyKey||"");
+  if(!key)return "";
+  if(stage===2){const index=academyVocabularyBank().findIndex(word=>String(word.jp)===key);return index>=0?v3VocabId(index):"";}
+  const index=(JLPT_COURSES[stage]?.vocab||[]).findIndex(word=>String(word[0])===key);
+  return index>=0?jlptMasteryId("vocab",index,stage):"";
+}
+function importVocabularyQuestionProgress(target){
+  if(!target||!target.questionStats)return false;
+  target.n5AcademyMastery=target.n5AcademyMastery&&typeof target.n5AcademyMastery==="object"?target.n5AcademyMastery:{};
+  const grouped=new Map();
+  questions.filter(question=>question.vocabularyKey).forEach(question=>{const id=vocabularyMasteryIdForQuestion(question),stats=target.questionStats[question.id];if(!id||!stats)return;const values=grouped.get(id)||[];values.push(questionMasteryScore(stats));grouped.set(id,values);});
+  let changed=false;
+  grouped.forEach((values,id)=>{const imported=Math.round(values.reduce((sum,value)=>sum+value,0)/values.length),current=Math.max(0,Number(target.n5AcademyMastery[id])||0);if(imported>current){target.n5AcademyMastery[id]=imported;changed=true;}});
+  return changed;
+}
+function renderVocabularyLessonPreview(stage,lesson,items){
+  const label=vocabularyCourseLabel(stage),complete=academyView.lessonPreviewComplete===true;
+  if(complete){
+    return `<section class="lesson-preview-complete"><div class="lesson-review-check">✓</div><div class="course-kicker">${label} Vocabulary · Lesson ${lesson+1}</div><h3>Word review complete</h3><p>You reviewed all ${items.length} words in this lesson. Practice will now use this same word set.</p><div class="lesson-preview-actions"><button data-lessons-back type="button">← All lessons</button><button data-vocab-preview-list type="button">View word list</button><button data-vocab-review-again type="button">Review again</button><button data-vocab-start class="primary" type="button">Start Lesson ${lesson+1}</button></div></section>`;
+  }
+  const index=Math.max(0,Math.min(items.length-1,Number(academyView.preview)||0)),word=items[index],mastery=jlptVocabularyWordMastery(word),last=index===items.length-1;
+  return `<section class="lesson-preview"><div class="lesson-preview-head"><button class="course-back" data-lessons-back type="button">← All lessons</button><div><div class="course-kicker">Before Lesson ${lesson+1}</div><h3>Review every word</h3><p>Word ${index+1} of ${items.length} · the lesson unlocks after the final preview card.</p></div></div>${progressBar((index+1)/items.length*100)}<article class="lesson-word-card"><span class="lesson-word-count">${index+1} / ${items.length}</span><div class="word-hero">${v3Esc(word.jp)}</div><div class="word-reading">${v3Esc(word.reading)}</div><div class="word-meaning">${v3Esc(word.en)}</div><div class="mastery-banner"><span>${v3Stars(mastery)}</span><strong>${mastery}% mastery</strong></div><button data-vocab-preview-speak type="button">🔊 Hear pronunciation</button></article><div class="lesson-preview-actions"><button data-vocab-preview-back type="button" ${index===0?'disabled':''}>← Previous word</button><button data-vocab-preview-next class="primary" type="button">${last?'Finish word review':'Next word →'}</button></div></section>`;
+}
+function renderVocabularyCourse(stage=academyStage){
+  stage=Number(stage);
+  const label=vocabularyCourseLabel(stage),target=jlptVocabularyTarget(stage),words=jlptVocabularyWords(stage),lessons=jlptVocabularyLevels(stage);
+  const lesson=academyView.lesson===null?null:Number(academyView.lesson);
+  if(lesson!==null&&lessons[lesson]){
+    const items=lessons[lesson];
+    if(academyView.preview!==null)return renderVocabularyLessonPreview(stage,lesson,items);
+    if(academyView.word!==null){
+      const word=words[Number(academyView.word)];
+      if(!word){academyView.word=null;return renderVocabularyCourse(stage);}
+      const mastery=jlptVocabularyWordMastery(word),examples=v3WordExamples(word);
+      return `<section class="course-focus"><button class="course-back" data-word-back type="button">← Lesson ${lesson+1}</button><div class="course-kicker">${label} Vocabulary · Lesson ${lesson+1}</div><div class="word-hero">${v3Esc(word.jp)}</div><div class="word-reading">${v3Esc(word.reading)}</div><div class="word-meaning">${v3Esc(word.en)}</div><div class="mastery-banner"><span>${v3Stars(mastery)}</span><strong>${mastery}% mastery</strong></div><div class="detail-grid"><article><h4>Examples</h4>${examples.map(example=>`<p class="jp-example">${v3Esc(example)}</p>`).join('')}</article><article><h4>Study actions</h4><button data-word-speak="${word.index}" type="button">▶ Hear pronunciation</button><button data-word-quiz="${word.index}" class="primary" type="button">Practice this word</button><p class="small">Correct practice raises the same mastery shown in the Course and Expedition Hub.</p></article></div></section>`;
+    }
+    const mastery=jlptVocabularyLevelMastery(stage,lesson);
+    return `<section><div class="course-subhead"><button class="course-back" data-lessons-back type="button">← All lessons</button><div><h3>${label} Vocabulary Lesson ${lesson+1}</h3><p>${items.length} words · ${mastery}% lesson mastery</p></div></div><div class="lesson-list-actions"><button data-vocab-review-again type="button">Review all words</button><button data-vocab-start class="primary" type="button" ${academyView.lessonPreviewComplete?'':'disabled'}>Start lesson</button></div><div class="word-list">${items.map(word=>{const itemMastery=jlptVocabularyWordMastery(word);return `<button class="word-row" data-word-index="${word.index}" type="button"><span class="word-main"><strong>${v3Esc(word.jp)}</strong><small>${v3Esc(word.reading)} · ${v3Esc(word.en)}</small></span><span class="word-mastery"><b>${v3Stars(itemMastery)}</b><small>${itemMastery}%</small></span></button>`;}).join('')}</div></section>`;
+  }
+  if(lesson!==null){academyView.lesson=null;academyView.preview=null;academyView.lessonPreviewComplete=false;}
+  return `<div class="academy-toolbar"><strong>${label} Vocabulary Lessons</strong><span>${words.length} verified words loaded · progression target: ${target.toLocaleString()}</span></div><p class="course-instruction">Course and Expedition Hub use these same lessons. Reach 75% mastery in each lesson. After every two lessons, pass a 25-question randomized review quiz at 75% within two minutes to open the next lesson.</p><div class="lesson-grid">${lessons.map((items,index)=>{const open=jlptVocabularyLevelUnlocked(stage,index),mastery=jlptVocabularyLevelMastery(stage,index),known=items.filter(word=>jlptVocabularyWordMastery(word)>=75).length,current=stage===selectedStageIndex()&&index===currentJlptVocabularyLevel(stage),card=`<button class="lesson-button lesson-loaded ${open?'lesson-open':'lesson-locked'} ${mastery>=JLPT_VOCABULARY_UNLOCK_MASTERY?'lesson-complete':''} ${current?'lesson-current':''}" data-vocab-lesson="${index}" type="button" ${open?'':'disabled'}><strong>${open?`Lesson ${index+1}`:`🔒 Lesson ${index+1}`}</strong><span>${known}/${items.length} mastered · ${items.length} words</span>${progressBar(mastery)}</button>`;return `${card}${(index+1)%2===0?renderJlptReviewCheckpointCard(stage,"vocabulary",index+1):""}`;}).join('')||'<div class="academy-callout">No vocabulary words are loaded for the current course selection yet.</div>'}</div>`;
+}
+function openVocabularyLessonReview(stage,index){
+  stage=Number(stage);index=Number(index);
+  if(!isStageUnlocked(stage)||!jlptVocabularyLevelUnlocked(stage,index)){setMessage("That vocabulary lesson is still locked.","wrong");return false;}
+  openAcademy(stage);academyTab="vocabulary";academyView.lesson=index;academyView.word=null;academyView.quiz=null;academyView.preview=0;academyView.lessonPreviewComplete=false;renderAcademy();return true;
+}
+function startReviewedVocabularyLesson(stage,index){
+  if(!academyView.lessonPreviewComplete){setMessage("Review every word before starting the lesson.","wrong");return false;}
+  selectStage(Number(stage),false);
+  if(!selectJlptVocabularyLevel(Number(stage),Number(index)))return false;
+  closeAcademy();mine();document.getElementById("challengeArea")?.scrollIntoView({behavior:"smooth",block:"center"});return true;
+}
+function handleVocabularyCourseAction(target,stage=academyStage){
+  if(!target)return false;stage=Number(stage);
+  if(target.matches("[data-review-checkpoint-stage]")){openJlptReviewCheckpoint(Number(target.dataset.reviewCheckpointStage),String(target.dataset.reviewCheckpointSection),Number(target.dataset.reviewCheckpointLesson));return true;}
+  if(target.matches("[data-vocab-lesson]")){openVocabularyLessonReview(stage,Number(target.dataset.vocabLesson));return true;}
+  if(target.matches("[data-lessons-back]")){academyView.lesson=null;academyView.word=null;academyView.preview=null;academyView.lessonPreviewComplete=false;renderAcademy();return true;}
+  if(target.matches("[data-vocab-preview-back]")){academyView.preview=Math.max(0,Number(academyView.preview)-1);renderAcademy();return true;}
+  if(target.matches("[data-vocab-preview-next]")){const items=jlptVocabularyLevels(stage)[Number(academyView.lesson)]||[];if(Number(academyView.preview)>=items.length-1)academyView.lessonPreviewComplete=true;else academyView.preview=Number(academyView.preview)+1;renderAcademy();return true;}
+  if(target.matches("[data-vocab-preview-speak]")){const word=(jlptVocabularyLevels(stage)[Number(academyView.lesson)]||[])[Number(academyView.preview)||0];if(word)speakJapanese(word.reading||word.jp);return true;}
+  if(target.matches("[data-vocab-review-again]")){academyView.word=null;academyView.preview=0;academyView.lessonPreviewComplete=false;renderAcademy();return true;}
+  if(target.matches("[data-vocab-preview-list]")){academyView.word=null;academyView.preview=null;renderAcademy();return true;}
+  if(target.matches("[data-vocab-start]")){startReviewedVocabularyLesson(stage,Number(academyView.lesson));return true;}
+  if(target.matches("[data-word-index]")){academyView.word=Number(target.dataset.wordIndex);academyView.preview=null;renderAcademy();return true;}
+  if(target.matches("[data-word-back]")){academyView.word=null;academyView.preview=null;renderAcademy();return true;}
+  if(target.matches("[data-word-speak]")){const word=jlptVocabularyWords(stage)[Number(target.dataset.wordSpeak)];if(word)speakJapanese(word.reading||word.jp);return true;}
+  if(target.matches("[data-word-quiz]")){const index=Number(target.dataset.wordQuiz),words=jlptVocabularyWords(stage),word=words[index];if(!word)return true;const wrong=shuffle(words.filter((_,wordIndex)=>wordIndex!==index).map(item=>item.en)).slice(0,3);v3QuizCard(`What does ${word.jp} mean?`,[word.en,...wrong],word.en,good=>setVocabularyWordMastery(word,good?25:-5));return true;}
+  return false;
+}
+
+// v6.4.14 - Give Kanji, Grammar, and Reading the same lesson flow as Vocabulary.
+const JLPT_SECTION_LESSON_CONFIG={
+  vocabulary:{size:50,singular:"word",plural:"words"},
+  kanji:{size:20,singular:"kanji",plural:"kanji"},
+  grammar:{size:10,singular:"grammar point",plural:"grammar points"},
+  reading:{size:4,singular:"reading",plural:"readings"}
+};
+function jlptSectionSpec(section){return JLPT_SECTION_SPECS.find(item=>item.id===section)||JLPT_SECTION_SPECS[0];}
+function jlptSectionLessonConfig(section){return JLPT_SECTION_LESSON_CONFIG[section]||JLPT_SECTION_LESSON_CONFIG.vocabulary;}
+function jlptSectionItems(stage,section){
+  stage=Number(stage);section=String(section||"vocabulary");
+  if(section==="vocabulary")return jlptVocabularyWords(stage).map(word=>({...word,section,primary:word.jp,secondary:word.reading,meaning:word.en,listenText:word.reading||word.jp}));
+  if(stage===2&&section==="kanji")return N5_KANJI_LIST.slice(0,120).map((kanji,sourceIndex)=>{const info=N5_KANJI_INFO[kanji]||["—","repetition mark"];return {stage,section,sourceIndex,index:sourceIndex,key:`${stage}:${section}:${sourceIndex}`,masteryId:`kanji:${kanji}`,primary:kanji,secondary:info[0],meaning:info[1],detail:info[1],listenText:kanji};});
+  if(stage===2&&section==="grammar")return N5_GRAMMAR_POINTS.slice(0,90).map((grammar,sourceIndex)=>({stage,section,sourceIndex,index:sourceIndex,key:`${stage}:${section}:${sourceIndex}`,masteryId:`grammar:${sourceIndex}`,primary:grammar[0],secondary:grammar[1],meaning:grammar[1],detail:grammar[2],listenText:grammar[2]}));
+  if(stage===2&&section==="reading")return N5_READING_PASSAGES.map((reading,sourceIndex)=>({stage,section,sourceIndex,index:sourceIndex,key:`${stage}:${section}:${sourceIndex}`,masteryId:`reading:${sourceIndex}`,primary:reading[0],secondary:reading[2],meaning:reading[3],detail:reading[1],question:reading[2],answer:reading[3],listenText:reading[1]}));
+  const course=JLPT_COURSES[stage],rows=course?.[section]||[];
+  return rows.map((row,sourceIndex)=>{
+    const item={stage,section,sourceIndex,index:sourceIndex,key:`${stage}:${section}:${sourceIndex}`,masteryId:jlptMasteryId(section,sourceIndex,stage),primary:row[0]};
+    if(section==="kanji")Object.assign(item,{secondary:row[1],meaning:row[2],detail:row[2],listenText:row[0]});
+    if(section==="grammar")Object.assign(item,{secondary:row[1],meaning:row[1],detail:row[2],listenText:row[2]});
+    if(section==="reading")Object.assign(item,{secondary:row[2],meaning:row[3],detail:row[1],question:row[2],answer:row[3],listenText:row[1]});
+    return item;
+  });
+}
+function jlptSectionLevels(stage,section){
+  if(section==="vocabulary")return jlptVocabularyLevels(stage);
+  const items=jlptSectionItems(stage,section),size=jlptSectionLessonConfig(section).size,levels=[];
+  for(let index=0;index<items.length;index+=size)levels.push(items.slice(index,index+size));
+  return levels;
+}
+function jlptSectionLevelMastery(stage,section,index){
+  if(section==="vocabulary")return jlptVocabularyLevelMastery(stage,index);
+  return averageMastery((jlptSectionLevels(stage,section)[Number(index)]||[]).map(item=>item.masteryId));
+}
+function jlptReviewCheckpointKey(stage,section,evenLesson){return `${Number(stage)}:${String(section)}:${Number(evenLesson)}`;}
+function jlptReviewCheckpointResult(stage,section,evenLesson){ensureJlptSectionState();return state.jlptReviewCheckpoints[jlptReviewCheckpointKey(stage,section,evenLesson)]||{best:0,passed:false};}
+function jlptReviewCheckpointPassed(stage,section,evenLesson){return jlptReviewCheckpointResult(stage,section,evenLesson).passed===true;}
+function jlptReviewCheckpointAvailable(stage,section,evenLesson){
+  stage=Number(stage);section=String(section);evenLesson=Number(evenLesson);
+  const levels=jlptSectionLevels(stage,section),first=evenLesson-2,second=evenLesson-1;
+  return isStageUnlocked(stage)&&evenLesson>=2&&evenLesson%2===0&&!!levels[first]&&!!levels[second]&&jlptSectionLevelMastery(stage,section,first)>=JLPT_VOCABULARY_UNLOCK_MASTERY&&jlptSectionLevelMastery(stage,section,second)>=JLPT_VOCABULARY_UNLOCK_MASTERY;
+}
+function jlptReviewCheckpointChoices(answer,values){
+  const wrong=[...new Set(values.map(value=>String(value||"")).filter(value=>value&&value!==String(answer)))];
+  return shuffle([String(answer),...shuffle(wrong).slice(0,3)]);
+}
+function jlptReviewCheckpointQuestionBank(stage,section,evenLesson){
+  stage=Number(stage);section=String(section);evenLesson=Number(evenLesson);
+  const rawPair=jlptSectionLevels(stage,section).slice(evenLesson-2,evenLesson).flat(),ids=new Set(rawPair.map(item=>String(item.masteryId))),all=jlptSectionItems(stage,section),items=all.filter(item=>ids.has(String(item.masteryId))),bank=[];
+  const add=(id,display,prompt,answer,values)=>{const options=jlptReviewCheckpointChoices(answer,values);if(String(answer||"")&&options.length>=2)bank.push({id,display:String(display||""),prompt:String(prompt||""),answer:String(answer),options});};
+  if(section==="vocabulary")items.forEach(item=>{
+    add(`${item.masteryId}:meaning`,item.primary,"Choose the correct meaning.",item.meaning,items.map(entry=>entry.meaning));
+    if(item.secondary&&item.secondary!==item.primary)add(`${item.masteryId}:reading`,item.primary,"Choose the correct reading.",item.secondary,items.map(entry=>entry.secondary));
+  });
+  if(section==="kanji")items.forEach(item=>{
+    add(`${item.masteryId}:meaning`,item.primary,"Choose this kanji's meaning.",item.meaning,items.map(entry=>entry.meaning));
+    if(item.secondary&&item.secondary!=="—")add(`${item.masteryId}:reading`,item.primary,"Choose the correct reading.",item.secondary,items.map(entry=>entry.secondary));
+  });
+  if(section==="grammar")items.forEach(item=>add(`${item.masteryId}:grammar`,item.detail,"Which grammar point is used?",item.primary,items.map(entry=>entry.primary)));
+  if(section==="reading")items.forEach(item=>add(`${item.masteryId}:reading`,item.detail,item.question,item.answer,items.map(entry=>entry.answer)));
+  return bank;
+}
+function buildJlptReviewCheckpointQuestions(stage,section,evenLesson){
+  const bank=jlptReviewCheckpointQuestionBank(stage,section,evenLesson),result=[];
+  while(bank.length&&result.length<JLPT_REVIEW_QUIZ_QUESTION_COUNT){
+    shuffle([...bank]).forEach(question=>{if(result.length<JLPT_REVIEW_QUIZ_QUESTION_COUNT)result.push({...question,options:shuffle([...question.options])});});
+  }
+  return result;
+}
+function renderJlptReviewCheckpointCard(stage,section,evenLesson,world=false){
+  const result=jlptReviewCheckpointResult(stage,section,evenLesson),passed=result.passed===true,available=jlptReviewCheckpointAvailable(stage,section,evenLesson),open=passed||available,best=Math.max(0,Number(result.best)||0),pair=`Lessons ${evenLesson-1}–${evenLesson}`;
+  if(world)return `<button data-world-review-checkpoint-stage="${stage}" data-world-review-checkpoint-section="${section}" data-world-review-checkpoint-lesson="${evenLesson}" class="jlpt-vocabulary-level jlpt-review-checkpoint ${open?'open':'locked'} ${passed?'complete':''}" ${open?'':'disabled'}><span>${passed?'✓':open?'🧠':'🔒'}</span><strong>${pair} Quiz</strong><small>${passed?`${best}% best · Passed`:available?'25 questions · 2:00 · Need 75%':`Reach 75% in both lessons`}</small><i><b style="width:${passed?100:best}%"></b></i></button>`;
+  return `<button class="lesson-button jlpt-review-checkpoint ${open?'lesson-open':'lesson-locked'} ${passed?'lesson-complete':''}" data-review-checkpoint-stage="${stage}" data-review-checkpoint-section="${section}" data-review-checkpoint-lesson="${evenLesson}" type="button" ${open?'':'disabled'}><strong>${passed?'✓':open?'🧠':'🔒'} ${pair} Review Quiz</strong><span>${passed?`${best}% best · Passed`:available?'25 randomized questions · 2:00 · Pass at 75%':`Reach 75% in Lessons ${evenLesson-1} and ${evenLesson}`}</span>${progressBar(passed?100:best)}</button>`;
+}
+function jlptCourseQuestionMatchesItem(question,item){
+  if(!question||!item||Number(question.stage)!==Number(item.stage))return false;
+  if(Number(item.stage)>2)return String(question.courseId||"")===`jlpt${item.stage}:${item.section}:${item.sourceIndex}`;
+  if(item.section==="kanji")return question.kind==="academy-kanji"&&String(question.q)===String(item.primary);
+  if(item.section==="grammar")return question.kind==="academy-grammar"&&String(question.a)===String(item.primary);
+  if(item.section==="reading")return question.kind==="academy-reading"&&String(question.q)===String(item.detail);
+  return false;
+}
+function jlptSectionLevelQuestions(stage,section,index){
+  if(section==="vocabulary")return jlptVocabularyLevelQuestions(stage,index);
+  const items=jlptSectionLevels(stage,section)[Number(index)]||[],pool=jlptSectionQuestionPool(stage,section);
+  return pool.filter(question=>items.some(item=>jlptCourseQuestionMatchesItem(question,item)));
+}
+function jlptSectionLevelUnlocked(stage,section,index){
+  if(section==="vocabulary")return jlptVocabularyLevelUnlocked(stage,index);
+  stage=Number(stage);index=Number(index);
+  if(index<=0)return isStageUnlocked(stage);
+  return isStageUnlocked(stage)&&jlptSectionLevelMastery(stage,section,index-1)>=JLPT_VOCABULARY_UNLOCK_MASTERY&&(index%2!==0||jlptReviewCheckpointPassed(stage,section,index));
+}
+function highestUnlockedJlptSectionLevel(stage,section){
+  if(section==="vocabulary")return highestUnlockedJlptVocabularyLevel(stage);
+  const levels=jlptSectionLevels(stage,section);let highest=0;
+  for(let index=1;index<levels.length;index++){if(jlptSectionLevelUnlocked(stage,section,index))highest=index;else break;}
+  return highest;
+}
+function currentJlptSectionLevel(stage=selectedStageIndex(),section=currentJlptSection(stage)){
+  ensureJlptSectionState();stage=Number(stage);section=String(section||"vocabulary");
+  if(section==="vocabulary"){
+    const current=currentJlptVocabularyLevel(stage);
+    state.jlptSectionLevel[stage].vocabulary=current;
+    return current;
+  }
+  const levels=jlptSectionLevels(stage,section),highest=highestUnlockedJlptSectionLevel(stage,section),saved=Math.max(0,Number(state.jlptSectionLevel[stage][section])||0);
+  state.jlptSectionLevel[stage][section]=Math.min(Math.max(0,levels.length-1),highest,saved);
+  return state.jlptSectionLevel[stage][section];
+}
+const selectJlptVocabularyLevelV6413=selectJlptVocabularyLevel;
+selectJlptVocabularyLevel=function(stage,index){
+  const selected=selectJlptVocabularyLevelV6413(stage,index);
+  if(selected){ensureJlptSectionState();state.jlptSectionLevel[Number(stage)].vocabulary=Number(index);save();}
+  return selected;
+};
+function selectJlptSectionLevel(stage,section,index){
+  stage=Number(stage);section=String(section||"vocabulary");index=Number(index);
+  if(section==="vocabulary")return selectJlptVocabularyLevel(stage,index);
+  const levels=jlptSectionLevels(stage,section);
+  if(stage<2||stage!==selectedStageIndex()||!levels[index]||!jlptSectionLevelUnlocked(stage,section,index))return false;
+  ensureJlptSectionState();state.jlptSectionSelection[stage]=section;state.jlptSectionLevel[stage][section]=index;clearJlptRouteQuestion();
+  const spec=jlptSectionSpec(section),config=jlptSectionLessonConfig(section),mastery=jlptSectionLevelMastery(stage,section,index),area=document.getElementById("challengeArea");
+  if(area)area.innerHTML=`<div class="empty"><strong>${spec.name} Lesson ${index+1}</strong><br>${levels[index].length} ${config.plural} · ${mastery}% mastery<br>Item review complete. Tap the rock to continue this lesson.</div>`;
+  save();render();setMessage(`${stages[stage].label} ${spec.name} Lesson ${index+1} selected.`,"correct");return true;
+}
+const filterJlptPoolForSelectionV6413=filterJlptPoolForSelection;
+filterJlptPoolForSelection=function(pool,stage){
+  stage=Number(stage);if(stage<2)return filterJlptPoolForSelectionV6413(pool,stage);
+  const section=currentJlptSection(stage),levelIndex=currentJlptSectionLevel(stage,section),level=jlptSectionLevelQuestions(stage,section,levelIndex),ids=new Set(level.map(question=>String(question.id)));
+  let selected=(Array.isArray(pool)?pool:[]).filter(question=>jlptQuestionSection(question)===section&&ids.has(String(question.id)));
+  if(!selected.length)selected=level;
+  return selected;
+};
+validJlptQuestionForSelection=function(question){
+  const stage=selectedStageIndex();if(stage<2)return true;
+  if(!question||Number(question.stage)!==stage)return false;
+  const boss=state.v5?.boss;if(boss?.status==="active"&&Number(question.bossCourseStage)===Number(boss.stage))return true;
+  const section=currentJlptSection(stage);if(jlptQuestionSection(question)!==section)return false;
+  return jlptSectionLevelQuestions(stage,section,currentJlptSectionLevel(stage,section)).some(candidate=>String(candidate.id)===String(question.id));
+};
+function resetJlptLessonView(){academyView.lesson=null;academyView.word=null;academyView.sectionItem=null;academyView.preview=null;academyView.lessonPreviewComplete=false;academyView.lessonSection=null;academyView.checkpointQuiz=null;clearJlptReviewQuizClock();syncJlptReviewQuizTabs(false);}
+function jlptSectionTarget(stage,section){
+  stage=Number(stage);if(stage===2)return jlptSectionItems(stage,section).length;
+  const course=JLPT_COURSES[stage];if(section==="kanji")return Number(course?.kanjiTarget||0);if(section==="grammar")return Number(course?.grammarTarget||0);return jlptSectionItems(stage,section).length;
+}
+function jlptSectionItemPrompt(item){
+  if(item.section==="kanji")return `What does ${item.primary} mean?`;
+  if(item.section==="grammar")return `Which grammar point is used in: ${item.detail}`;
+  return item.question||item.secondary;
+}
+function jlptSectionItemAnswer(item){return item.section==="grammar"?item.primary:item.section==="reading"?item.answer:item.meaning;}
+function jlptSectionItemCard(item,preview=false){
+  const mastery=academyItemMastery(item.masteryId),section=item.section;
+  if(section==="kanji")return `<div class="word-hero section-item-hero">${v3Esc(item.primary)}</div><div class="word-reading">${v3Esc(item.secondary)}</div><div class="word-meaning">${v3Esc(item.meaning)}</div>${preview?"":`<p class="small">Review the readings, then connect them to the meaning.</p>`}<div class="mastery-banner"><span>${v3Stars(mastery)}</span><strong>${mastery}% mastery</strong></div>`;
+  if(section==="grammar")return `<div class="word-hero section-item-hero">${v3Esc(item.primary)}</div><div class="word-meaning">${v3Esc(item.meaning)}</div><article class="grammar-example"><h4>Example</h4><p class="jp-example">${v3Esc(item.detail)}</p></article><div class="mastery-banner"><span>${v3Stars(mastery)}</span><strong>${mastery}% mastery</strong></div>`;
+  return `<div class="word-hero section-item-hero">${v3Esc(item.primary)}</div><p class="jp-passage reading-card-text">${v3Esc(item.detail)}</p><article class="grammar-example"><h4>Comprehension</h4><p>${v3Esc(item.question)}</p><strong>${v3Esc(item.answer)}</strong></article><div class="mastery-banner"><span>${v3Stars(mastery)}</span><strong>${mastery}% mastery</strong></div>`;
+}
+function renderJlptSectionLessonPreview(stage,section,lesson,items){
+  const spec=jlptSectionSpec(section),config=jlptSectionLessonConfig(section),complete=academyView.lessonPreviewComplete===true;
+  if(complete)return `<section class="lesson-preview-complete"><div class="lesson-review-check">✓</div><div class="course-kicker">${vocabularyCourseLabel(stage)} ${spec.name} · Lesson ${lesson+1}</div><h3>Item review complete</h3><p>You reviewed all ${items.length} ${config.plural} in this lesson. Practice will now use this same set.</p><div class="lesson-preview-actions"><button data-lessons-back type="button">← All lessons</button><button data-section-preview-list type="button">View item list</button><button data-section-review-again type="button">Review again</button><button data-section-start class="primary" type="button">Start Lesson ${lesson+1}</button></div></section>`;
+  const index=Math.max(0,Math.min(items.length-1,Number(academyView.preview)||0)),item=items[index],last=index===items.length-1;
+  return `<section class="lesson-preview"><div class="lesson-preview-head"><button class="course-back" data-lessons-back type="button">← All lessons</button><div><div class="course-kicker">Before Lesson ${lesson+1}</div><h3>Review every ${config.singular}</h3><p>${spec.name} item ${index+1} of ${items.length} · practice opens after the final preview card.</p></div></div>${progressBar((index+1)/items.length*100)}<article class="lesson-word-card section-lesson-card section-${section}"><span class="lesson-word-count">${index+1} / ${items.length}</span>${jlptSectionItemCard(item,true)}<button data-section-preview-speak type="button">🔊 Hear Japanese</button></article><div class="lesson-preview-actions"><button data-section-preview-back type="button" ${index===0?'disabled':''}>← Previous item</button><button data-section-preview-next class="primary" type="button">${last?'Finish item review':'Next item →'}</button></div></section>`;
+}
+function renderJlptSectionCourse(stage=academyStage,section=academyTab){
+  stage=Number(stage);section=String(section);const spec=jlptSectionSpec(section),config=jlptSectionLessonConfig(section),items=jlptSectionItems(stage,section),lessons=jlptSectionLevels(stage,section),label=vocabularyCourseLabel(stage),target=jlptSectionTarget(stage,section);
+  const lesson=academyView.lesson===null?null:Number(academyView.lesson);
+  if(lesson!==null&&lessons[lesson]){
+    const lessonItems=lessons[lesson];
+    if(academyView.preview!==null)return renderJlptSectionLessonPreview(stage,section,lesson,lessonItems);
+    if(academyView.sectionItem!==null&&academyView.sectionItem!==undefined){
+      const item=items.find(entry=>entry.sourceIndex===Number(academyView.sectionItem));if(!item){academyView.sectionItem=null;return renderJlptSectionCourse(stage,section);}
+      return `<section class="course-focus"><button class="course-back" data-section-item-back type="button">← Lesson ${lesson+1}</button><div class="course-kicker">${label} ${spec.name} · Lesson ${lesson+1}</div>${jlptSectionItemCard(item)}<div class="detail-grid"><article><h4>Listen and review</h4><button data-section-item-speak type="button">🔊 Hear Japanese</button></article><article><h4>Study action</h4><button data-section-item-practice class="primary" type="button">Practice this ${config.singular}</button></article></div></section>`;
+    }
+    const mastery=jlptSectionLevelMastery(stage,section,lesson);
+    return `<section><div class="course-subhead"><button class="course-back" data-lessons-back type="button">← All lessons</button><div><h3>${label} ${spec.name} Lesson ${lesson+1}</h3><p>${lessonItems.length} ${config.plural} · ${mastery}% lesson mastery</p></div></div><div class="lesson-list-actions"><button data-section-review-again type="button">Review all items</button><button data-section-start class="primary" type="button" ${academyView.lessonPreviewComplete?'':'disabled'}>Start lesson</button></div><div class="word-list">${lessonItems.map(item=>{const mastery=academyItemMastery(item.masteryId);return `<button class="word-row" data-section-item="${item.sourceIndex}" type="button"><span class="word-main"><strong>${v3Esc(item.primary)}</strong><small>${v3Esc(item.secondary||item.meaning||"")}</small></span><span class="word-mastery"><b>${v3Stars(mastery)}</b><small>${mastery}%</small></span></button>`;}).join('')}</div></section>`;
+  }
+  if(lesson!==null)resetJlptLessonView();
+  return `<div class="academy-toolbar"><strong>${label} ${spec.name} Lessons</strong><span>${items.length} interactive ${config.plural} loaded · progression target: ${target.toLocaleString()}</span></div><p class="course-instruction">Course and Expedition Hub use these same lessons. Reach 75% mastery in each lesson. After every two lessons, pass a 25-question randomized review quiz at 75% within two minutes to open the next lesson.</p><div class="lesson-grid">${lessons.map((lessonItems,index)=>{const open=jlptSectionLevelUnlocked(stage,section,index),mastery=jlptSectionLevelMastery(stage,section,index),known=lessonItems.filter(item=>academyItemMastery(item.masteryId)>=75).length,current=stage===selectedStageIndex()&&section===currentJlptSection(stage)&&index===currentJlptSectionLevel(stage,section),card=`<button class="lesson-button lesson-loaded ${open?'lesson-open':'lesson-locked'} ${mastery>=JLPT_VOCABULARY_UNLOCK_MASTERY?'lesson-complete':''} ${current?'lesson-current':''}" data-section-lesson="${index}" type="button" ${open?'':'disabled'}><strong>${open?`Lesson ${index+1}`:`🔒 Lesson ${index+1}`}</strong><span>${known}/${lessonItems.length} mastered · ${lessonItems.length} ${config.plural}</span>${progressBar(mastery)}</button>`;return `${card}${(index+1)%2===0?renderJlptReviewCheckpointCard(stage,section,index+1):""}`;}).join('')||`<div class="academy-callout">No ${config.plural} are loaded for this course yet.</div>`}</div>`;
+}
+function openJlptSectionLessonReview(stage,section,index){
+  stage=Number(stage);section=String(section||"vocabulary");index=Number(index);
+  if(section==="vocabulary"){const opened=openVocabularyLessonReview(stage,index);if(opened)academyView.lessonSection="vocabulary";return opened;}
+  if(!isStageUnlocked(stage)||!jlptSectionLevelUnlocked(stage,section,index)){setMessage(`That ${jlptSectionSpec(section).name.toLowerCase()} lesson is still locked.`,"wrong");return false;}
+  openAcademy(stage);academyTab=section;academyView.lesson=index;academyView.lessonSection=section;academyView.sectionItem=null;academyView.word=null;academyView.quiz=null;academyView.preview=0;academyView.lessonPreviewComplete=false;renderAcademy();return true;
+}
+function startReviewedJlptSectionLesson(stage,section,index){
+  if(!academyView.lessonPreviewComplete){setMessage("Review every item before starting the lesson.","wrong");return false;}
+  selectStage(Number(stage),false);if(!selectJlptSectionLevel(Number(stage),section,Number(index)))return false;
+  closeAcademy();mine();document.getElementById("challengeArea")?.scrollIntoView({behavior:"smooth",block:"center"});return true;
+}
+function practiceJlptSectionItem(stage,section,item){
+  const items=jlptSectionItems(stage,section),answer=jlptSectionItemAnswer(item),wrong=[...new Set(items.filter(entry=>entry.sourceIndex!==item.sourceIndex).map(jlptSectionItemAnswer).filter(value=>value!==answer))];
+  v3QuizCard(jlptSectionItemPrompt(item),[answer,...shuffle(wrong).slice(0,3)],answer,good=>v3SetMastery(item.masteryId,good?25:-5));
+}
+function handleJlptSectionCourseAction(target,stage=academyStage,section=academyTab){
+  if(!target||section==="vocabulary")return false;stage=Number(stage);
+  if(target.matches("[data-review-checkpoint-stage]")){openJlptReviewCheckpoint(Number(target.dataset.reviewCheckpointStage),String(target.dataset.reviewCheckpointSection),Number(target.dataset.reviewCheckpointLesson));return true;}
+  const levels=jlptSectionLevels(stage,section),lesson=Number(academyView.lesson),items=levels[lesson]||[];
+  if(target.matches("[data-section-lesson]")){openJlptSectionLessonReview(stage,section,Number(target.dataset.sectionLesson));return true;}
+  if(target.matches("[data-lessons-back]")){resetJlptLessonView();renderAcademy();return true;}
+  if(target.matches("[data-section-preview-back]")){academyView.preview=Math.max(0,Number(academyView.preview)-1);renderAcademy();return true;}
+  if(target.matches("[data-section-preview-next]")){if(Number(academyView.preview)>=items.length-1)academyView.lessonPreviewComplete=true;else academyView.preview=Number(academyView.preview)+1;renderAcademy();return true;}
+  if(target.matches("[data-section-preview-speak]")){const item=items[Number(academyView.preview)||0];if(item)speakJapanese(item.listenText||item.primary);return true;}
+  if(target.matches("[data-section-review-again]")){academyView.sectionItem=null;academyView.preview=0;academyView.lessonPreviewComplete=false;renderAcademy();return true;}
+  if(target.matches("[data-section-preview-list]")){academyView.sectionItem=null;academyView.preview=null;renderAcademy();return true;}
+  if(target.matches("[data-section-start]")){startReviewedJlptSectionLesson(stage,section,lesson);return true;}
+  if(target.matches("[data-section-item]")){academyView.sectionItem=Number(target.dataset.sectionItem);academyView.preview=null;renderAcademy();return true;}
+  if(target.matches("[data-section-item-back]")){academyView.sectionItem=null;renderAcademy();return true;}
+  if(target.matches("[data-section-item-speak]")){const item=jlptSectionItems(stage,section).find(entry=>entry.sourceIndex===Number(academyView.sectionItem));if(item)speakJapanese(item.listenText||item.primary);return true;}
+  if(target.matches("[data-section-item-practice]")){const item=jlptSectionItems(stage,section).find(entry=>entry.sourceIndex===Number(academyView.sectionItem));if(item)practiceJlptSectionItem(stage,section,item);return true;}
+  return false;
+}
+const renderAcademyV6413AllSections=renderAcademy;
+renderAcademy=function(){
+  if(JLPT_SECTION_IDS.has(academyTab)&&academyTab!=="vocabulary"&&!academyView.quiz){
+    if(academyView.lessonSection&&academyView.lessonSection!==academyTab)resetJlptLessonView();
+    if(academyView.lesson!==null&&!academyView.lessonSection)academyView.lessonSection=academyTab;
+    updateAcademyChrome();const box=document.getElementById("academyContent");if(!box)return;
+    document.querySelectorAll("[data-academy-tab]").forEach(button=>button.classList.toggle("primary",button.dataset.academyTab===academyTab));
+    box.innerHTML=renderJlptSectionCourse(academyStage,academyTab);
+    box.onclick=event=>{const target=event.target.closest("button");if(target)handleJlptSectionCourseAction(target,academyStage,academyTab);};
+    return;
+  }
+  if(academyTab==="vocabulary"&&academyView.lessonSection&&academyView.lessonSection!=="vocabulary")resetJlptLessonView();
+  return renderAcademyV6413AllSections();
+};
 const normalizeStateV649Sections=normalizeState;
-normalizeState=function(raw){return ensureJlptSectionState(normalizeStateV649Sections(raw));};
+normalizeState=function(raw){const next=ensureJlptSectionState(normalizeStateV649Sections(raw));importVocabularyQuestionProgress(next);return next;};
 const renderV649Sections=render;
 render=function(){ensureJlptSectionState();const repaired=repairActiveJlptQuestion();renderV649Sections();if(repaired)save();};
 const loadProfileV649Sections=loadProfile;
 loadProfile=function(profile){const result=loadProfileV649Sections(profile);ensureJlptSectionState();repairActiveJlptQuestion();render();return result;};
 ensureJlptSectionState();
 repairActiveJlptQuestion();
-if(activeProfileId)render();
+const importedVocabularyProgress=importVocabularyQuestionProgress(state);
+if(activeProfileId){if(importedVocabularyProgress)save();render();}
 
 
 // v6.4.6 - Alphabet-only kana family levels and mine-routing repair.
@@ -2583,3 +2963,59 @@ loadProfile=function(profile){const result=loadProfileV646(profile);ensureKanaFa
 ensureKanaFamilyState();
 repairActiveKanaQuestion();
 if(activeProfileId)render();
+
+// v6.4.17 - Required two-lesson review checkpoints for every JLPT course section.
+function clearJlptReviewQuizClock(){if(jlptReviewQuizInterval){clearInterval(jlptReviewQuizInterval);jlptReviewQuizInterval=null;}}
+function syncJlptReviewQuizTabs(disabled){document.querySelectorAll("[data-academy-tab]").forEach(button=>{button.disabled=!!disabled;button.setAttribute("aria-disabled",String(!!disabled));});}
+function jlptReviewQuizRemainingMs(quiz=academyView.checkpointQuiz){return quiz&&!quiz.finished?Math.max(0,Number(quiz.deadline)-Date.now()):0;}
+function jlptReviewQuizTimeLabel(ms){const total=Math.max(0,Math.ceil(Number(ms||0)/1000));return `${String(Math.floor(total/60)).padStart(2,"0")}:${String(total%60).padStart(2,"0")}`;}
+function finishJlptReviewCheckpoint(reason="completed"){
+  const quiz=academyView.checkpointQuiz;if(!quiz||quiz.finished)return false;
+  clearJlptReviewQuizClock();quiz.finished=true;quiz.finishReason=reason;quiz.finishedAt=Date.now();quiz.score=Math.round(Number(quiz.correct||0)/JLPT_REVIEW_QUIZ_QUESTION_COUNT*100);quiz.passed=quiz.score>=JLPT_REVIEW_QUIZ_PASS_SCORE;
+  ensureJlptSectionState();const key=jlptReviewCheckpointKey(quiz.stage,quiz.section,quiz.evenLesson),previous=jlptReviewCheckpointResult(quiz.stage,quiz.section,quiz.evenLesson);
+  state.jlptReviewCheckpoints[key]={best:Math.max(Number(previous.best)||0,quiz.score),lastScore:quiz.score,attempts:Number(previous.attempts||0)+1,passed:previous.passed===true||quiz.passed,passedAt:quiz.passed?Date.now():Number(previous.passedAt||0)};
+  const nextExists=!!jlptSectionLevels(quiz.stage,quiz.section)[quiz.evenLesson];
+  save();renderAcademy();setMessage(quiz.passed?(nextExists?`Review quiz passed with ${quiz.score}%. Lesson ${quiz.evenLesson+1} is now available.`:`Final lesson-pair review passed with ${quiz.score}%.`):`Review quiz score: ${quiz.score}%. Reach 75% to continue.`,quiz.passed?"correct":"wrong");return true;
+}
+function jlptReviewQuizTick(){
+  const quiz=academyView.checkpointQuiz;if(!quiz||quiz.finished){clearJlptReviewQuizClock();return;}
+  const remaining=jlptReviewQuizRemainingMs(quiz),timer=document.getElementById("jlptReviewQuizTimer");if(timer){timer.textContent=jlptReviewQuizTimeLabel(remaining);timer.classList.toggle("urgent",remaining<=30000);}
+  if(remaining<=0)finishJlptReviewCheckpoint("timeout");
+}
+function startJlptReviewQuizClock(){if(jlptReviewQuizInterval)return;jlptReviewQuizInterval=setInterval(jlptReviewQuizTick,250);jlptReviewQuizTick();}
+function renderJlptReviewCheckpointQuiz(){
+  const quiz=academyView.checkpointQuiz;if(!quiz)return "";const spec=jlptSectionSpec(quiz.section),pair=`Lessons ${quiz.evenLesson-1}–${quiz.evenLesson}`,levels=jlptSectionLevels(quiz.stage,quiz.section),nextExists=!!levels[quiz.evenLesson];
+  if(quiz.finished){
+    const record=jlptReviewCheckpointResult(quiz.stage,quiz.section,quiz.evenLesson),gatePassed=record.passed===true,elapsed=Math.min(120,Math.max(0,Math.ceil((Number(quiz.finishedAt)-Number(quiz.startedAt))/1000))),unanswered=JLPT_REVIEW_QUIZ_QUESTION_COUNT-Number(quiz.answeredCount||0);
+    return `<section class="jlpt-review-quiz-result ${quiz.passed?'passed':'failed'}"><div class="lesson-review-check">${quiz.passed?'✓':'!'}</div><div class="course-kicker">${vocabularyCourseLabel(quiz.stage)} ${spec.name} · ${pair} checkpoint</div><h3>${quiz.passed?'Review quiz passed':'Review quiz needs another try'}</h3><div class="jlpt-review-result-score">${quiz.score}%</div><p>${quiz.correct}/${JLPT_REVIEW_QUIZ_QUESTION_COUNT} correct · ${unanswered} unanswered · ${elapsed} seconds used</p><strong>${quiz.passed?(nextExists?`Lesson ${quiz.evenLesson+1} is now available.`:'Final lesson-pair review complete.'):gatePassed?'This checkpoint remains passed from your earlier score.':'Score at least 75% (19 correct answers) to unlock the next lesson.'}</strong><div class="lesson-preview-actions"><button data-checkpoint-back type="button">← All lessons</button><button data-checkpoint-retry type="button">Try another random set</button>${gatePassed&&nextExists?`<button data-checkpoint-continue class="primary" type="button">Continue to Lesson ${quiz.evenLesson+1}</button>`:""}</div></section>`;
+  }
+  const question=quiz.questions[quiz.current],remaining=jlptReviewQuizRemainingMs(quiz),progress=(quiz.current+1)/JLPT_REVIEW_QUIZ_QUESTION_COUNT*100;
+  return `<section class="course-focus jlpt-review-quiz"><header><div><div class="course-kicker">${vocabularyCourseLabel(quiz.stage)} ${spec.name} · ${pair} Review Quiz</div><h3>Question ${quiz.current+1} of ${JLPT_REVIEW_QUIZ_QUESTION_COUNT}</h3><p>${quiz.correct} correct so far · 75% required to pass</p></div><strong id="jlptReviewQuizTimer" class="jlpt-review-timer ${remaining<=30000?'urgent':''}" aria-live="polite">${jlptReviewQuizTimeLabel(remaining)}</strong></header>${progressBar(progress)}<article class="jlpt-review-question"><div class="jlpt-review-question-display">${v3Esc(question.display)}</div><p>${v3Esc(question.prompt)}</p><div class="course-answer-grid">${question.options.map((option,index)=>{const correct=quiz.answered&&option===question.answer,wrong=quiz.answered&&option===quiz.selected&&option!==question.answer;return `<button data-checkpoint-answer="${index}" class="${correct?'answer-good':wrong?'answer-bad':''}" type="button" ${quiz.answered?'disabled':''}>${v3Esc(option)}</button>`;}).join("")}</div><div class="course-feedback" aria-live="polite">${quiz.answered?(quiz.selected===question.answer?'✅ Correct!':`❌ Correct answer: <strong>${v3Esc(question.answer)}</strong>`):"Choose the best answer before time runs out."}</div></article><div class="lesson-preview-actions"><button data-checkpoint-quit type="button">Quit quiz</button>${quiz.answered?`<button data-checkpoint-next class="primary" type="button">${quiz.current===JLPT_REVIEW_QUIZ_QUESTION_COUNT-1?'See results':'Next question →'}</button>`:""}</div></section>`;
+}
+function leaveJlptReviewCheckpoint(){clearJlptReviewQuizClock();academyView.checkpointQuiz=null;syncJlptReviewQuizTabs(false);resetJlptLessonView();renderAcademy();}
+function openJlptReviewCheckpoint(stage,section,evenLesson){
+  stage=Number(stage);section=String(section);evenLesson=Number(evenLesson);
+  if(!JLPT_SECTION_IDS.has(section)||(!jlptReviewCheckpointAvailable(stage,section,evenLesson)&&!jlptReviewCheckpointPassed(stage,section,evenLesson))){setMessage(`Reach 75% mastery in Lessons ${evenLesson-1} and ${evenLesson} before starting this review quiz.`,"wrong");return false;}
+  const quizQuestions=buildJlptReviewCheckpointQuestions(stage,section,evenLesson);if(quizQuestions.length!==JLPT_REVIEW_QUIZ_QUESTION_COUNT){setMessage("This review quiz does not have enough lesson questions yet.","wrong");return false;}
+  openAcademy(stage);academyTab=section;academyView.lesson=null;academyView.word=null;academyView.sectionItem=null;academyView.preview=null;academyView.lessonSection=section;academyView.quiz=null;academyView.checkpointQuiz={stage,section,evenLesson,questions:quizQuestions,current:0,correct:0,answeredCount:0,answered:false,selected:null,startedAt:Date.now(),deadline:Date.now()+JLPT_REVIEW_QUIZ_TIME_MS,finished:false,score:0,passed:false};
+  updateAcademyChrome();syncJlptReviewQuizTabs(true);clearJlptReviewQuizClock();renderAcademy();return true;
+}
+function handleJlptReviewCheckpointAction(target){
+  const quiz=academyView.checkpointQuiz;if(!target||!quiz)return false;
+  if(target.matches("[data-checkpoint-answer]")){
+    if(quiz.finished||quiz.answered)return true;if(jlptReviewQuizRemainingMs(quiz)<=0){finishJlptReviewCheckpoint("timeout");return true;}
+    const question=quiz.questions[quiz.current],option=question.options[Number(target.dataset.checkpointAnswer)];quiz.selected=option;quiz.answered=true;quiz.answeredCount=Number(quiz.answeredCount||0)+1;if(option===question.answer)quiz.correct=Number(quiz.correct||0)+1;playFeedbackSound(option===question.answer);renderAcademy();return true;
+  }
+  if(target.matches("[data-checkpoint-next]")){if(!quiz.answered)return true;if(quiz.current>=JLPT_REVIEW_QUIZ_QUESTION_COUNT-1)finishJlptReviewCheckpoint("completed");else{quiz.current+=1;quiz.answered=false;quiz.selected=null;renderAcademy();}return true;}
+  if(target.matches("[data-checkpoint-retry]")){openJlptReviewCheckpoint(quiz.stage,quiz.section,quiz.evenLesson);return true;}
+  if(target.matches("[data-checkpoint-continue]")){const {stage,section,evenLesson}=quiz;clearJlptReviewQuizClock();academyView.checkpointQuiz=null;syncJlptReviewQuizTabs(false);openJlptSectionLessonReview(stage,section,evenLesson);return true;}
+  if(target.matches("[data-checkpoint-back],[data-checkpoint-quit]")){leaveJlptReviewCheckpoint();return true;}
+  return false;
+}
+const closeAcademyV6417Review=closeAcademy;
+closeAcademy=function(){clearJlptReviewQuizClock();if(academyView)academyView.checkpointQuiz=null;syncJlptReviewQuizTabs(false);return closeAcademyV6417Review();};
+const renderAcademyV6417Review=renderAcademy;
+renderAcademy=function(){
+  if(academyView.checkpointQuiz){updateAcademyChrome();const box=document.getElementById("academyContent");if(!box)return;syncJlptReviewQuizTabs(true);box.innerHTML=renderJlptReviewCheckpointQuiz();box.onclick=event=>{const target=event.target.closest("button");if(target)handleJlptReviewCheckpointAction(target);};if(!academyView.checkpointQuiz.finished)startJlptReviewQuizClock();return;}
+  syncJlptReviewQuizTabs(false);return renderAcademyV6417Review();
+};

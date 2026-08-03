@@ -1,14 +1,15 @@
 // Japanese Miner v6.0 — The Polish Update
 (()=>{
 'use strict';
-const VERSION='6.4.9-player-level-settlements', SNAPSHOT_PREFIX='jm_v6_snapshots_';
+const VERSION='6.4.18-koji-fixed-above-menu', SNAPSHOT_PREFIX='jm_v6_snapshots_';
 const TOUR=[
  {section:'Getting started',icon:'⛏️',title:'Welcome to Japanese Miner',text:'Answer Japanese questions, build mastery, collect scientific gemstones, and progress from Hiragana through JLPT N1.',tips:['Create or sign in to a local player profile so every feature uses the same save.','Tap New Question or the mine rock to begin the selected course route.','Use the round menu button at the bottom-right whenever you need another game area.']},
  {section:'Getting started',icon:'🧭',title:'One-time placement test',text:'A new save may take one randomized placement assessment. Its result can recommend and unlock the correct starting mine.',tips:['The placement assessment may be completed only once per save.','Question order and answer order are randomized for that one attempt.','Earlier mines remain available for review after accepting the recommended starting point.']},
+ {section:'Getting started',icon:'🧙',title:'Ask Kōji for today’s plan',text:'Kōji the Mine Gnome permanently waits beside the mine and turns your saved progress into a short, clickable study plan.',tips:['Tap Kōji whenever you want to see due Smart Reviews, the active lesson, mission rewards, hearts, streaks, or a ready guardian.','Each reminder opens the correct game area directly.','Kōji stays in the cave and updates as your progress changes.']},
  {section:'Navigation',icon:'☰',title:'Explore, Gear, and Player menus',text:'The Game Menu separates progression, owned equipment, and account tools into three clear categories.',tips:['Explore contains the Expedition Hub, Course, Learning Path, Mine, Quests, and Missions.','Gear contains Shop, Inventory, Character, and the Notebook.','Player contains statistics, achievements, calendar, settings, guide, feedback, and account tools. Use ← Menu to return from any full-screen menu.']},
  {section:'Course progression',icon:'🗺️',title:'Use the Expedition Hub',text:'The Expedition Hub is the world map for choosing a mine route, checking checkpoints, and entering guardian encounters.',tips:['Green or highlighted nodes are available; lock icons show what still needs progression.','Select a node to make that family, section, or level the active mining route.','The Learning Path and Course screens show the same saved mastery from different views.']},
  {section:'Course progression',icon:'あ',title:'Hiragana and Katakana families',text:'The two alphabet mines contain only their own kana and advance one character family at a time.',tips:['Start with Vowels, then unlock K, S, T, N, H, M, Y, R, W/N, voiced families, and P.','Reach 20% mastery in the current family to unlock the next family.','Choose families from their nodes in the Expedition Hub; the large family panel stays off the home mining screen.']},
- {section:'Course progression',icon:'語',title:'JLPT sections and Vocabulary levels',text:'Each JLPT mine is divided into Vocabulary, Kanji, Grammar, and Reading stops before its guardian.',tips:['Choose the section you want from its Expedition Hub stop.','Vocabulary is split into stable 10-question sublevels; reach 20% mastery to open the next level.','The guardian still tests the full course rather than only the selected section or Vocabulary level.']},
+ {section:'Course progression',icon:'語',title:'JLPT section lessons',text:'Each JLPT mine is divided into Vocabulary, Kanji, Grammar, and Reading lessons before its guardian.',tips:['N5 contains 20 Vocabulary lessons, 6 Kanji lessons, 9 Grammar lessons, and 3 Reading lessons.','The Course and Expedition Hub show the same lesson items, unlocks, mastery, and review checkpoints.','Reach 75% mastery in each lesson. After every two lessons, pass a 25-question randomized review quiz at 75% within two minutes to continue.']},
  {section:'Questions',icon:'📖',title:'Question help and kanji support',text:'Read the prompt, choose an answer, and use the explanation to understand why it was correct or incorrect.',tips:['The “I don’t know this kanji” button appears only when the visible question or instruction actually contains kanji.','It stays hidden on English-, Hiragana-, and Katakana-only prompts.','Question audio and answer explanations can be adjusted in Accessibility settings.']},
  {section:'Guardian tests',icon:'👹',title:'Pass the silent Boss Gate',text:'Every guardian blocks the next mine until its Perfect Gate Challenge is passed.',tips:['Each attempt draws 25 different randomized questions from the guardian’s full course.','The test is silent and lasts up to 60 seconds; wrong answers are recorded instead of ending the test immediately.','Results appear after question 25 or when time expires. Only 25/25 unlocks the next mine.']},
  {section:'Goals and rewards',icon:'📜',title:'Complete personal Quests',text:'Quests reward consistent practice through a separate set of daily and weekly goals.',tips:['Open Quests directly from Explore.','Daily goals reset each calendar day; weekly goals reset every Monday.','Rewards include Nuggets plus Hints or Shields. Progress and claimed rewards remain in the current player save.']},
@@ -20,7 +21,7 @@ const TOUR=[
  {section:'Settlement',icon:'🏘️',title:'Build long-term upgrades with Player Levels',text:'Settlement buildings are escalating investments that give account-wide Player XP and Player Levels a permanent progression purpose.',tips:['Building Levels 1–5 require Player Levels 5, 12, 22, 35, and 50.','The Sakura Garden raises daily Mission Nuggets, while the Gem Forge improves question-streak treasure chests.','Purchased building levels are permanent and grandfathered; only the next upgrade must meet its Player Level and Nugget requirements.']},
  {section:'Study tools',icon:'🧠',title:'Smart Review and Word Book',text:'Smart Review uses spaced repetition so missed or difficult material returns sooner and mastered material waits longer.',tips:['Complete due reviews from the Expedition Hub Review tab.','Correct Japanese items enter the Word Book automatically.','The Word Book includes listening and supported browsers may offer pronunciation practice.']},
  {section:'Study tools',icon:'📓',title:'Notebook and Sticky Notes',text:'Incorrect answers enter the Notebook as difficult items without deleting the original question history.',tips:['Open Notebook from Gear or the Player Center.','Attach an 800-character Sticky Note directly to a difficult word, phrase, or question.','Create independent notes, edit or remove them, and mark difficult items reviewed without deleting their attached study context.']},
- {section:'Practice support',icon:'❤️',title:'Hearts, Shields, and silent tests',text:'Normal wrong answers can cost hearts. Shields protect one mistake, and hearts recover automatically over time.',tips:['The health timer shows when all three hearts return.','Hints can remove an incorrect choice during normal practice.','Boss testing is always silent and does not consume hearts or shields.']},
+ {section:'Practice support',icon:'❤️',title:'Hearts, Shields, and silent tests',text:'Time away never costs hearts. Normal wrong answers can cost hearts, shields protect one mistake, and recovery continues while the game is closed.',tips:['Missing practice days resets the practice streak but leaves hearts unchanged.','When the recovery timer expires, returning to the game restores three hearts.','Boss testing is always silent and does not consume hearts or shields.']},
  {section:'Progress records',icon:'📅',title:'Study time, Calendar, and Statistics',text:'Visible practice time, study dates, accuracy, streaks, and course distribution are stored with the active profile.',tips:['The Practice Calendar shows studied days, monthly activity, and total study time.','Timing pauses when the page is hidden and resumes when active again.','Statistics identify the least-practiced category and show mastery throughout the learning path.']},
  {section:'Private curriculum',icon:'🔐',title:'Tutor and Admin material',text:'Tutor-provided curriculum is protected like Admin tools and remains visible only to the PIN-authenticated owner account.',tips:['Standard players cannot select, receive, review, or import protected Tutor questions.','Signing in to the authorized owner profile restores the private curriculum.','Boss decks, Word Book entries, Notebook items, and backups respect the same access rule.']},
  {section:'Settings and safety',icon:'⚙️',title:'Accessibility, saves, and recovery',text:'Use Accessibility for text, motion, contrast, audio, explanations, and local safety snapshots.',tips:['Account export creates a portable backup containing progress, collections, settings, Notebook notes, and study records.','Safety snapshots provide local recovery points; restoring one replaces the current saved state.','Use the visible Back buttons to return to the parent menu, and avoid clearing browser storage before exporting a backup.']}
@@ -63,6 +64,84 @@ function coachShell(){let c=document.getElementById('v6CoachCard');if(!c){c=docu
 function coachMessage(kind){if(kind==='correct')return{icon:'✨',title:'Great strike!',text:'That answer was correct. Your Japanese knowledge and mining progress both grew.',action:'',label:''};if(kind==='wrong')return{icon:'📘',title:'Let’s learn from that',text:Number(state.hearts||0)>0?'Compare your choice with the correct answer, then keep going. Every mistake strengthens your review path.':'Your hearts are recovering. Review the explanation while your mine energy returns.',action:state.hearts>0?'':'dashboard',label:'View health'};return recommendation();}
 function renderCoach(kind='question'){coachShell();const c=document.getElementById('v6CoachCard');if(!c)return;const r=coachMessage(kind),duplicate=['mine','question'].includes(r.action);c.classList.toggle('informational',duplicate||!r.action);c.innerHTML=`<div class="v6-gnome" aria-hidden="true"><i class="gnome-hat"></i><i class="gnome-face"></i><i class="gnome-nose"></i><i class="gnome-beard"></i><i class="gnome-body"></i></div><div class="v6-coach-speech"><span>KŌJI · MINE GNOME</span><h2>${r.icon} ${r.title}</h2><p>${r.text}</p></div>${!r.action?'':`<button class="primary" data-v6-coach="${r.action}">${r.label}</button>`}`;const action=c.querySelector('[data-v6-coach]');if(action)action.onclick=()=>coachAction(r.action);clearTimeout(coachHideTimer);c.classList.add('visible');c.setAttribute('aria-hidden','false');coachHideTimer=setTimeout(()=>{c.classList.remove('visible');c.setAttribute('aria-hidden','true');},7000);}
 function coachAction(a){if(a==='mine'){mine();document.getElementById('challengeArea')?.scrollIntoView({behavior:'smooth'});}else if(a==='question')document.getElementById('challengeArea')?.scrollIntoView({behavior:'smooth'});else if(a==='map')window.openJapaneseMinerV5?.('map');else if(a==='review')window.openJapaneseMinerV5?.('review');else if(a==='dashboard')window.openJapaneseMinerDashboard?.('health');}
+
+// v6.4.18 - Kōji is fixed directly above the round menu button on every screen size.
+// v6.4.17 - Every two JLPT lessons now lead to a required 25-question, two-minute review quiz.
+// v6.4.16 - Every later JLPT lesson now requires 75% mastery in the lesson before it.
+// v6.4.15 - Kōji is now a permanent, clickable guide inside the mine.
+let coachLastFeedback=null;
+function coachDueReviewCount(){
+ const srs=state.v5?.srs||{},now=Date.now();
+ return questions.filter(question=>questionAllowedForSession(question)&&srs[question.id]&&Number(srs[question.id].dueAt||0)<=now).length;
+}
+function coachMissionSummary(){
+ const missions=state.v5?.missions,specs=typeof MISSION_SPECS==='undefined'?[]:MISSION_SPECS;
+ if(!missions||!specs.length)return{claimable:0,claimed:0,total:0,remaining:0};
+ const claimable=specs.filter(spec=>!missions.claimed?.[spec.id]&&Number(missions[spec.metric]||0)>=Number(spec.goal||0)).length;
+ const claimed=specs.filter(spec=>missions.claimed?.[spec.id]).length;
+ return{claimable,claimed,total:specs.length,remaining:Math.max(0,specs.length-claimed)};
+}
+function coachLessonReminder(){
+ const stage=selectedStageIndex();
+ if(stage<2){
+  const family=currentKanaFamily(stage),mastery=kanaFamilyMastery(family);
+  return{icon:stage===0?'あ':'ア',title:`Continue ${family.name}`,text:`This kana family is at ${mastery}% mastery. Reach ${KANA_FAMILY_UNLOCK_MASTERY}% to open the next family.`,action:'map',label:'Open family map'};
+ }
+ const section=currentJlptSection(stage),spec=jlptSectionSpec(section),levels=jlptSectionLevels(stage,section);
+ const checkpoint=Array.from({length:Math.floor(levels.length/2)},(_,index)=>(index+1)*2).find(evenLesson=>jlptReviewCheckpointAvailable(stage,section,evenLesson)&&!jlptReviewCheckpointPassed(stage,section,evenLesson));
+ if(checkpoint)return{icon:'🧠',title:`${spec.name} Lessons ${checkpoint-1}–${checkpoint} review is ready`,text:'Answer 25 randomized questions in two minutes and score at least 75% to unlock the next lesson.',action:'checkpoint',label:'Start review quiz',stage,section,evenLesson:checkpoint};
+ let level=currentJlptSectionLevel(stage,section),mastery=jlptSectionLevelMastery(stage,section,level);
+ if(mastery>=JLPT_VOCABULARY_UNLOCK_MASTERY&&levels[level+1]&&jlptSectionLevelUnlocked(stage,section,level+1)){level+=1;mastery=jlptSectionLevelMastery(stage,section,level);}
+ const items=levels[level]||[],config=jlptSectionLessonConfig(section);
+ return{icon:spec.icon,title:`${spec.name} Lesson ${level+1} is next`,text:`${mastery}% mastery · ${items.length} ${config.plural}. Review every item before practice.`,action:'lesson',label:`Open Lesson ${level+1}`,stage,section,level};
+}
+function coachReminderTasks(){
+ ensureV6();const tasks=[],due=coachDueReviewCount(),missions=coachMissionSummary(),stage=selectedStageIndex(),today=dateKey();
+ if(Number(state.hearts||0)<=0)tasks.push({icon:'❤️‍🩹',title:'Hearts are recovering',text:'Your hearts are safe while you are away. Check the recovery timer or use this time to review your course plan.',action:'dashboard',label:'View health'});
+ if(due>0)tasks.push({icon:'🧠',title:`${due} Smart Review${due===1?'':'s'} ready`,text:'Reviewing due material now is the strongest step for long-term memory.',action:'review',label:'Start review'});
+ if(state.active&&!state.answered)tasks.push({icon:'🎌',title:'Finish your current challenge',text:'A question is waiting. Return to it before starting another activity.',action:'question',label:'Return to question'});
+ tasks.push(coachLessonReminder());
+ if(missions.claimable>0)tasks.push({icon:'🎁',title:`${missions.claimable} mission reward${missions.claimable===1?'':'s'} ready`,text:'You completed mission goals that are waiting to be claimed.',action:'missions',label:'Claim rewards'});
+ else if(missions.remaining>0)tasks.push({icon:'🎯',title:'Daily missions in progress',text:`${missions.claimed}/${missions.total} mission rewards claimed today. Check the board for your next objective.`,action:'missions',label:'View missions'});
+ if(state.lastPracticeDate!==today)tasks.push({icon:'🔥',title:Number(state.practiceStreak||0)>0?`Protect your ${state.practiceStreak}-day streak`:'Start today’s study',text:'One focused lesson or review session keeps your learning routine moving.',action:'mine',label:'Practice now'});
+ if(typeof bossUnlocked==='function'&&bossUnlocked(stage)&&!state.v5?.bossDefeated?.includes(stage))tasks.push({icon:'👹',title:`${stages[stage].label} guardian is ready`,text:'Your course checkpoint has reached the guardian gate. Review first, then attempt the silent test.',action:'boss',label:'View guardian'});
+ if(tasks.length<3)tasks.push({icon:'🗺️',title:'Check your next checkpoint',text:'The Expedition Hub shows your active route, mastery, lessons, and guardian progress.',action:'map',label:'Open map'});
+ const seen=new Set();return tasks.filter(task=>{const key=`${task.action}:${task.title}`;if(seen.has(key))return false;seen.add(key);return true;}).slice(0,4);
+}
+function closeCoach(){const dock=document.getElementById('v6CoachDock'),button=document.getElementById('v6CoachButton'),card=document.getElementById('v6CoachCard');dock?.classList.remove('open');button?.setAttribute('aria-expanded','false');card?.setAttribute('aria-hidden','true');}
+function openCoach(){renderCoach('refresh');const dock=document.getElementById('v6CoachDock'),button=document.getElementById('v6CoachButton'),card=document.getElementById('v6CoachCard');dock?.classList.add('open');button?.setAttribute('aria-expanded','true');card?.setAttribute('aria-hidden','false');}
+coachShell=function(){
+ let dock=document.getElementById('v6CoachDock');if(!document.body)return;
+ if(!dock){
+  dock=document.createElement('div');dock.id='v6CoachDock';dock.className='v6-coach-dock';dock.innerHTML=`<button id="v6CoachButton" class="v6-coach-character" type="button" aria-expanded="false" aria-controls="v6CoachCard" title="Kōji the Mine Gnome — open today’s study plan"><span id="v6CoachBadge" class="v6-coach-badge" hidden></span><span class="v6-gnome" aria-hidden="true"><i class="gnome-hat"></i><i class="gnome-face"></i><i class="gnome-nose"></i><i class="gnome-beard"></i><i class="gnome-body"></i></span><strong>Kōji</strong><small>Study guide</small></button><section id="v6CoachCard" class="v6-coach-popover" aria-hidden="true" aria-label="Kōji’s study reminders"><header><div><span>KŌJI · MINE GNOME</span><h2>Today’s plan</h2></div><button id="v6CoachClose" type="button" aria-label="Close Kōji’s reminders">×</button></header><div id="v6CoachContent"></div></section>`;
+   document.body.appendChild(dock);
+  dock.querySelector('#v6CoachButton').onclick=()=>dock.classList.contains('open')?closeCoach():openCoach();
+  dock.querySelector('#v6CoachClose').onclick=closeCoach;
+  }
+  if(dock.parentElement!==document.body)document.body.appendChild(dock);
+ if(!document.body.dataset.kojiOutsideBound){document.body.dataset.kojiOutsideBound='1';document.addEventListener('click',event=>{const current=document.getElementById('v6CoachDock');if(current?.classList.contains('open')&&!event.target.closest('#v6CoachDock'))closeCoach();});}
+};
+recommendation=function(){return coachReminderTasks()[0]||{icon:'🗺️',title:'Stay on track',text:'Open the Expedition Hub to choose your next lesson.',action:'map',label:'Open map'};};
+renderCoach=function(kind='refresh'){
+ coachShell();const dock=document.getElementById('v6CoachDock'),card=document.getElementById('v6CoachCard'),content=document.getElementById('v6CoachContent'),button=document.getElementById('v6CoachButton'),badge=document.getElementById('v6CoachBadge');if(!dock||!card||!content||!button)return;
+ if(kind==='correct'||kind==='wrong'){coachLastFeedback={...coachMessage(kind),kind,at:Date.now()};button.classList.remove('react-correct','react-wrong');void button.offsetWidth;button.classList.add(kind==='correct'?'react-correct':'react-wrong');setTimeout(()=>button.classList.remove('react-correct','react-wrong'),900);}
+ const tasks=coachReminderTasks(),feedback=coachLastFeedback&&Date.now()-coachLastFeedback.at<15000?coachLastFeedback:null,due=coachDueReviewCount(),missions=coachMissionSummary(),attention=due+missions.claimable;
+ badge.hidden=attention<=0;badge.textContent=attention>9?'9+':String(attention);button.setAttribute('aria-label',`Kōji study guide. ${tasks[0]?.title||'Open today’s plan'}.`);
+ content.innerHTML=`${feedback?`<div class="v6-coach-feedback ${feedback.kind}"><strong>${feedback.icon} ${esc6(feedback.title)}</strong><span>${esc6(feedback.text)}</span></div>`:''}<div class="v6-coach-reminder-list">${tasks.map((task,index)=>`<button type="button" data-v6-coach-task="${index}"><span>${task.icon}</span><span><strong>${esc6(task.title)}</strong><small>${esc6(task.text)}</small></span><b>${esc6(task.label)} →</b></button>`).join('')}</div>`;
+ content.querySelectorAll('[data-v6-coach-task]').forEach(taskButton=>taskButton.onclick=()=>{const task=tasks[Number(taskButton.dataset.v6CoachTask)];if(task)coachAction(task.action,task);});
+};
+coachAction=function(action,task={}){
+ closeCoach();
+ if(action==='mine'){mine();document.getElementById('challengeArea')?.scrollIntoView({behavior:'smooth'});}
+ else if(action==='question')document.getElementById('challengeArea')?.scrollIntoView({behavior:'smooth'});
+ else if(action==='map')window.openJapaneseMinerV5?.('map');
+ else if(action==='review')window.openJapaneseMinerV5?.('review');
+ else if(action==='dashboard')window.openJapaneseMinerDashboard?.('health');
+ else if(action==='missions')window.openJapaneseMinerV5?.('missions');
+ else if(action==='boss')window.openJapaneseMinerV5?.('boss');
+ else if(action==='lesson'){const stage=Number(task.stage),section=String(task.section||'vocabulary'),level=Number(task.level)||0;selectStage(stage,false);openJlptSectionLessonReview(stage,section,level);}
+ else if(action==='checkpoint'){openJlptReviewCheckpoint(Number(task.stage),String(task.section||'vocabulary'),Number(task.evenLesson));}
+};
 function explanation(q,chosen,correct){
  if(!state.v6.explanations||!q)return;
  let box=document.getElementById('v6AnswerExplanation');if(!box){box=document.createElement('section');box.id='v6AnswerExplanation';box.className='v6-answer-explanation';document.getElementById('message')?.after(box);}
@@ -86,13 +165,13 @@ function advertiseGuideAfterOnboarding(){
  save();
  setTimeout(()=>openTour(0),300);
 }
-function init(){ensureV6();shell();applySettings();coachShell();addMenuItems();storyCheck();createSnapshot();}
+function init(){ensureV6();shell();applySettings();renderCoach('refresh');addMenuItems();storyCheck();createSnapshot();}
 const oldShowQuestion=showQuestion;showQuestion=function(q){oldShowQuestion(q);renderCoach('question');};
 const oldAnswer=answer;answer=function(opt,button){const q=state.active,was=state.answered,correct=!!q&&opt===q.a;if(q&&!was&&/[\u3040-\u30ff\u3400-\u9fff]/.test(stripMarkup(opt)))speakJapanese(opt);oldAnswer(opt,button);if(q&&!was){explanation(q,opt,correct);renderCoach(correct?'correct':'wrong');}createSnapshot();};
-const oldRender=render;render=function(){ensureV6();oldRender();applySettings();coachShell();addMenuItems();storyCheck();};
+const oldRender=render;render=function(){ensureV6();oldRender();applySettings();renderCoach('refresh');addMenuItems();storyCheck();};
 const oldSave=save;save=function(){oldSave();if(state?.v6)createSnapshot();};
 const oldLoad=loadProfile;loadProfile=function(profile){oldLoad(profile);ensureV6();applySettings();setTimeout(init,0);};
-document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.v6-overlay.open').forEach(o=>closeOverlay(o.id.includes('Tour')?'tour':o.id.includes('Settings')?'settings':'feedback'));});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCoach();document.querySelectorAll('.v6-overlay.open').forEach(o=>closeOverlay(o.id.includes('Tour')?'tour':o.id.includes('Settings')?'settings':'feedback'));}});
 document.addEventListener('click',e=>{if(e.target.closest?.('#beginJourneyBtn,#acceptPlacementBtn'))advertiseGuideAfterOnboarding();});
 document.addEventListener('click',e=>{const toggle=e.target.closest?.('.character-option-toggle');if(!toggle)return;const section=toggle.closest('.character-option'),collapsed=section.classList.toggle('collapsed');toggle.setAttribute('aria-expanded',String(!collapsed));const key=section.dataset.characterSection;if(key)try{localStorage.setItem('jmCharacterSection:'+key,collapsed?'collapsed':'open');}catch{}});
 document.addEventListener('jm-character-sections-ready',()=>document.querySelectorAll('.character-option[data-character-section]').forEach(section=>{try{if(localStorage.getItem('jmCharacterSection:'+section.dataset.characterSection)==='collapsed'){section.classList.add('collapsed');section.querySelector('.character-option-toggle')?.setAttribute('aria-expanded','false');}}catch{}}));
