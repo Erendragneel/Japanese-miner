@@ -14,7 +14,7 @@
   "background_color": "#101522",
   "theme_color": "#101522",
   "icons": [
-    {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+    {"src":"japanese-miner-pickaxe-192-v6435.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"japanese-miner-pickaxe-512-v6435.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
   ]
 }

@@ -1,8 +1,8 @@
 // Japanese Miner v6.0 — The Polish Update
 (()=>{
 'use strict';
-const VERSION='6.4.33-advanced-pickaxe-icon', SNAPSHOT_PREFIX='jm_v6_snapshots_', FEEDBACK_INBOX_KEY='jm_v6_admin_feedback_inbox', FEEDBACK_INBOX_LIMIT=200;
-let deferredInstallPrompt=null;
+const VERSION='6.4.35-icon-cache-refresh', SNAPSHOT_PREFIX='jm_v6_snapshots_', FEEDBACK_INBOX_KEY='jm_v6_admin_feedback_inbox', FEEDBACK_INBOX_LIMIT=200;
+let deferredInstallPrompt=null,installEventsBound=false;
 const TOUR=[
  {section:'Getting started',icon:'⛏️',title:'Welcome to Japanese Miner',text:'Answer Japanese questions, build mastery, collect scientific gemstones, and progress from Hiragana through JLPT N1.',tips:['Create or sign in to a local player profile so every feature uses the same save.','Tap New Question or the mine rock to begin the selected course route.','Use the round menu button at the bottom-right whenever you need another game area.']},
  {section:'Getting started',icon:'🧭',title:'One-time placement test',text:'A new save may take one randomized placement assessment. Its result can recommend and unlock the correct starting mine.',tips:['The placement assessment may be completed only once per save.','Question order and answer order are randomized for that one attempt.','Earlier mines remain available for review after accepting the recommended starting point.']},
@@ -25,7 +25,7 @@ const TOUR=[
  {section:'Practice support',icon:'❤️',title:'Hearts, Shields, and silent tests',text:'Time away never costs hearts. Normal wrong answers can cost hearts, shields protect one mistake, and recovery continues while the game is closed.',tips:['Missing practice days resets the practice streak but leaves hearts unchanged.','When the recovery timer expires, returning to the game restores three hearts.','Boss testing is always silent and does not consume hearts or shields.']},
  {section:'Progress records',icon:'📅',title:'Study time, Calendar, and Statistics',text:'Visible practice time, study dates, accuracy, streaks, and course distribution are stored with the active profile.',tips:['The Practice Calendar shows studied days, monthly activity, and total study time.','Timing pauses when the page is hidden and resumes when active again.','Statistics identify the least-practiced category and show mastery throughout the learning path.']},
  {section:'Private curriculum',icon:'🔐',title:'Tutor and Admin material',text:'Tutor-provided curriculum is protected like Admin tools and remains visible only to the PIN-authenticated owner account.',tips:['Standard players cannot select, receive, review, or import protected Tutor questions.','Signing in to the authorized owner profile restores the private curriculum.','Boss decks, Word Book entries, Notebook items, and backups respect the same access rule.']},
- {section:'Settings and safety',icon:'⚙️',title:'Accessibility, saves, and recovery',text:'Use Accessibility for text, motion, contrast, audio, explanations, and local safety snapshots.',tips:['Account export creates a portable backup containing progress, collections, settings, Notebook notes, and study records.','Safety snapshots provide local recovery points; restoring one replaces the current saved state.','Use the visible Back buttons to return to the parent menu, and avoid clearing browser storage before exporting a backup.']}
+ {section:'Settings and safety',icon:'⚙️',title:'Accessibility, installation, saves, and recovery',text:'Use Accessibility for text, motion, contrast, audio, app installation, explanations, and local safety snapshots.',tips:['Install App or Add to Home Screen is available inside Accessibility & Settings when supported by the device.','Safety snapshots provide local recovery points; restoring one replaces the current saved state.','Use the visible Back buttons to return to the parent menu, and avoid clearing browser storage before exporting a backup.']}
 ];
 function ensureV6(){
  state.v6=Object.assign({tourComplete:false,onboardingGuideOffered:false,textSize:'normal',reducedMotion:false,highContrast:false,colorAssist:false,sfxVolume:70,musicVolume:35,explanations:true,feedback:[],storySeen:[],lastSnapshot:0},state.v6||{});
@@ -70,6 +70,8 @@ function coachAction(a){if(a==='mine'){mine();document.getElementById('challenge
 // v6.4.28 - Matched Kōji's launcher dimensions to the round menu button.
 // v6.4.29 - Removed the separate N5 learning-track selector and its UI wiring.
 // v6.4.30 - Tutor curriculum controls are created only for the authenticated owner account.
+// v6.4.35 - Versioned pickaxe icon URLs prevent launchers from reusing the original hammer artwork.
+// v6.4.34 - Install App moved from the header into Accessibility & Settings.
 // v6.4.33 - Advanced forged pickaxe artwork replaces the original launcher icon.
 // v6.4.32 - Menu access remains available when optional quick-stat controls are absent.
 // v6.4.31 - Review now refreshes the previous study session without microphone or speaking tests.
@@ -172,7 +174,7 @@ function openSettings(){
  ensureV6();
  openOverlay('settings');
  const box=document.getElementById('v6SettingsContent');
- box.innerHTML=`<div class="v6-settings-grid"><label>Text size<select id="v6TextSize"><option value="normal">Normal</option><option value="large">Large</option><option value="xlarge">Extra large</option></select></label><label class="v6-switch"><input id="v6ReducedMotion" type="checkbox"><span>Reduce animations</span></label><label class="v6-switch"><input id="v6HighContrast" type="checkbox"><span>High contrast</span></label><label class="v6-switch"><input id="v6ColorAssist" type="checkbox"><span>Color-blind indicators</span></label><label class="v6-switch"><input id="v6Explanations" type="checkbox"><span>Answer explanations</span></label><label>Sound effects <output id="v6SfxOut"></output><input id="v6Sfx" type="range" min="0" max="100"></label><label>Music <output id="v6MusicOut"></output><input id="v6Music" type="range" min="0" max="100"></label></div><section class="v6-save-recovery"><h3>🛟 Save recovery</h3><p>Japanese Miner keeps rolling safety snapshots on this device.</p><div id="v6SnapshotList"></div><button id="v6SnapshotNow">Create safety snapshot</button></section><section class="v6-save-management"><h3>🗑️ Save management</h3><p>Reset only the currently signed-in player’s progress. You will be asked to confirm before anything is erased.</p><button id="v6ResetSave" class="danger" type="button">Reset Save</button></section>`;
+ box.innerHTML=`<div class="v6-settings-grid"><label>Text size<select id="v6TextSize"><option value="normal">Normal</option><option value="large">Large</option><option value="xlarge">Extra large</option></select></label><label class="v6-switch"><input id="v6ReducedMotion" type="checkbox"><span>Reduce animations</span></label><label class="v6-switch"><input id="v6HighContrast" type="checkbox"><span>High contrast</span></label><label class="v6-switch"><input id="v6ColorAssist" type="checkbox"><span>Color-blind indicators</span></label><label class="v6-switch"><input id="v6Explanations" type="checkbox"><span>Answer explanations</span></label><label>Sound effects <output id="v6SfxOut"></output><input id="v6Sfx" type="range" min="0" max="100"></label><label>Music <output id="v6MusicOut"></output><input id="v6Music" type="range" min="0" max="100"></label></div><section class="v6-install-app"><div><span>DEVICE APP</span><h3>📲 Install Japanese Miner</h3><p id="v6InstallStatus">Checking whether installation is available on this device…</p><small>If your home screen still shows the old hammer, remove that J-Miner shortcut once, reopen Japanese Miner in your browser, then install it again from this menu.</small></div><button id="installAppBtn" class="install-app-btn" type="button" disabled>Install App</button></section><section class="v6-save-recovery"><h3>🛟 Save recovery</h3><p>Japanese Miner keeps rolling safety snapshots on this device.</p><div id="v6SnapshotList"></div><button id="v6SnapshotNow">Create safety snapshot</button></section><section class="v6-save-management"><h3>🗑️ Save management</h3><p>Reset only the currently signed-in player’s progress. You will be asked to confirm before anything is erased.</p><button id="v6ResetSave" class="danger" type="button">Reset Save</button></section>`;
  const bind=(id,key,type='checked')=>{const el=document.getElementById(id);el[type]=state.v6[key];el.onchange=()=>{state.v6[key]=el[type];applySettings();save();};};
  document.getElementById('v6TextSize').value=state.v6.textSize;
  document.getElementById('v6TextSize').onchange=e=>{state.v6.textSize=e.target.value;applySettings();save();};
@@ -183,6 +185,7 @@ function openSettings(){
  [['v6Sfx','sfxVolume','v6SfxOut'],['v6Music','musicVolume','v6MusicOut']].forEach(([id,key,out])=>{const e=document.getElementById(id),o=document.getElementById(out);e.value=state.v6[key];o.textContent=e.value+'%';e.oninput=()=>{state.v6[key]=Number(e.value);o.textContent=e.value+'%';save();};});
  document.getElementById('v6SnapshotNow').onclick=()=>{createSnapshot(true);renderSnapshots();};
  document.getElementById('v6ResetSave').onclick=()=>{if(window.resetJapaneseMinerSave?.())closeOverlay('settings');};
+ initInstallApp();
  renderSnapshots();
 }
 function snapshotKey(){return SNAPSHOT_PREFIX+(activeProfileId||'guest');}
@@ -236,20 +239,29 @@ function advertiseGuideAfterOnboarding(){
  setTimeout(()=>openTour(0),300);
 }
 function isStandaloneApp(){return window.matchMedia?.('(display-mode: standalone)').matches||window.navigator.standalone===true;}
+function isAppleMobileDevice(){return /iphone|ipad|ipod/i.test(navigator.userAgent)||navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1;}
+function syncInstallAppControl(){
+ const button=document.getElementById('installAppBtn'),status=document.getElementById('v6InstallStatus');
+ if(!button)return;
+ const installed=isStandaloneApp(),appleMobile=isAppleMobileDevice(),ready=!!deferredInstallPrompt;
+ button.hidden=installed;
+ button.disabled=!installed&&!appleMobile&&!ready;
+ button.title=installed?'Japanese Miner is already installed':appleMobile?'Add Japanese Miner to the iPhone or iPad Home Screen':ready?'Install Japanese Miner on this device':'Installation is not currently available in this browser';
+ if(status)status.textContent=installed?'Japanese Miner is installed. Remove the old J-Miner home-screen app once and reinstall it to refresh its launcher icon.':appleMobile?'Tap Install App for iPhone or iPad Add to Home Screen instructions.':ready?'Japanese Miner is ready to install with the advanced pickaxe icon.':'Your browser will enable this button when Japanese Miner is ready to install.';
+}
+async function requestInstallApp(){
+ if(deferredInstallPrompt){const prompt=deferredInstallPrompt;deferredInstallPrompt=null;await prompt.prompt();const result=await prompt.userChoice;if(result.outcome==='accepted')setMessage('Japanese Miner is installed and ready to play.','correct');syncInstallAppControl();return;}
+ if(isAppleMobileDevice())alert('To install Japanese Miner: tap the Share button in Safari, then choose Add to Home Screen.');
+}
 function initInstallApp(){
- const button=document.getElementById('installAppBtn');if(!button)return;
- const isiPhoneOrIPad=/iphone|ipad|ipod/i.test(navigator.userAgent)||navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1;
- if(isStandaloneApp()){button.hidden=true;return;}
- if(!button.dataset.installBound){
-  button.dataset.installBound='1';
-  window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstallPrompt=event;button.hidden=false;button.title='Install Japanese Miner on this device';});
-  window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;button.hidden=true;setMessage('Japanese Miner is installed and ready to play.','correct');});
-  button.addEventListener('click',async()=>{
-   if(deferredInstallPrompt){const prompt=deferredInstallPrompt;deferredInstallPrompt=null;await prompt.prompt();const result=await prompt.userChoice;if(result.outcome==='accepted')button.hidden=true;return;}
-   if(isiPhoneOrIPad)alert('To install Japanese Miner: tap the Share button in Safari, then choose Add to Home Screen.');
-  });
+ if(!installEventsBound){
+  installEventsBound=true;
+  window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstallPrompt=event;syncInstallAppControl();});
+  window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;syncInstallAppControl();setMessage('Japanese Miner is installed and ready to play.','correct');});
  }
- if(isiPhoneOrIPad){button.hidden=false;button.title='Add Japanese Miner to the iPhone or iPad Home Screen';}
+ const button=document.getElementById('installAppBtn');
+ if(button&&!button.dataset.installBound){button.dataset.installBound='1';button.addEventListener('click',requestInstallApp);}
+ syncInstallAppControl();
 }
 function init(){ensureV6();shell();applySettings();renderCoach('refresh');addMenuItems();storyCheck();createSnapshot();initInstallApp();}
 const oldShowQuestion=showQuestion;showQuestion=function(q){oldShowQuestion(q);renderCoach('question');};
