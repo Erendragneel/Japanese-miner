@@ -243,8 +243,7 @@ body.stats-open{overflow:hidden}
 .learning-settings{display:grid;gap:10px;margin-top:12px;padding:12px;background:#10172a;border:1px solid #2c3757;border-radius:13px}
 .learning-settings label{display:grid;gap:5px;color:var(--muted);font-size:13px}
 .learning-settings select{width:100%;background:#17203a;color:var(--text);border:1px solid #3a4669;border-radius:10px;padding:10px;font:inherit}
-.tutor-locked-notice{display:grid;gap:4px;padding:12px 14px;border:1px solid #806fe4;border-radius:12px;background:linear-gradient(135deg,#241c3d,#17203a);color:#dce5ff}
-.tutor-locked-notice[hidden]{display:none}.tutor-locked-notice strong{color:#c9b8ff}.tutor-locked-notice span{font-size:12px;color:var(--muted);line-height:1.45}
+.owner-tutor-controls{display:contents}
 ruby rt{font-size:.42em;color:#aeb9d6;font-weight:500}
 .furigana-line{display:block;color:var(--muted);font-size:.42em;margin-top:8px;line-height:1.5}
 .kanji-help-btn{margin:10px auto 4px;display:block;background:#28365c;border-color:#4b5d91}

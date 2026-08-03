@@ -1,4 +1,4 @@
-const CACHE_NAME='japanese-miner-v6.4.27-web-scroll-restored';
+const CACHE_NAME='japanese-miner-v6.4.32-menu-button-restored';
 const APP_SHELL=[
   './',
   './index.html',

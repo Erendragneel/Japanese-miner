@@ -352,6 +352,26 @@ function repairTutorAccessState(target=state){
   if(target.v5?.boss?.questionIds?.some(id=>restrictedIds.has(String(id)))){target.v5.boss=null;changed=true;}
   return changed;
 }
+function syncOwnerTutorControls(idx=selectedStageIndex()){
+  const settings=document.querySelector('.learning-settings');
+  let root=document.getElementById('ownerTutorControls');
+  if(!settings||!tutorAccessGranted()||Number(idx)!==2){root?.remove();return;}
+  if(!root){
+    root=document.createElement('div');
+    root.id='ownerTutorControls';
+    root.className='owner-tutor-controls';
+    root.setAttribute('aria-label','Owner-only tutor curriculum controls');
+    root.innerHTML=`<label id="n5CurriculumWrap" for="n5Curriculum">N5 curriculum source<select id="n5Curriculum"><option value="mixed">Mixed — standard N5 + tutor lessons</option><option value="tutor">Tutor Curriculum only</option><option value="standard">Standard N5 only</option></select></label><label id="tutorTrackWrap" for="tutorTrack">Tutor lesson track<select id="tutorTrack"><option value="all">All tutor material</option><option value="vocabulary">Core vocabulary</option><option value="verbs">Verb groups and conjugation</option><option value="particles">Particles</option><option value="patterns">Wants, requests, ability and plans</option><option value="adjectives">Adjectives and descriptions</option><option value="conversation">Daily conversation</option></select></label><div id="tutorMasteryLabel" class="small">Tutor curriculum mastery: 0%</div><div class="small">Changing either owner setting starts a fresh question.</div>`;
+    settings.querySelector('label[for="supportMode"]')?.after(root);
+    root.querySelector('#n5Curriculum').addEventListener('change',e=>{if(!tutorAccessGranted()){root.remove();return;}state.n5Curriculum=e.target.value;state.active=null;state.answered=false;save();render();setMessage(`N5 curriculum changed to ${e.target.options[e.target.selectedIndex].text}. Start a new question.`,"correct");});
+    root.querySelector('#tutorTrack').addEventListener('change',e=>{if(!tutorAccessGranted()){root.remove();return;}state.tutorTrack=e.target.value;state.active=null;state.answered=false;save();render();setMessage(`Tutor lesson track changed to ${e.target.options[e.target.selectedIndex].text}. Start a new question.`,"correct");});
+  }
+  const curriculum=root.querySelector('#n5Curriculum'),track=root.querySelector('#tutorTrack'),trackWrap=root.querySelector('#tutorTrackWrap'),mastery=root.querySelector('#tutorMasteryLabel');
+  curriculum.value=state.n5Curriculum||'mixed';
+  track.value=state.tutorTrack||'all';
+  trackWrap.hidden=state.n5Curriculum==='standard';
+  mastery.textContent=`Tutor curriculum mastery: ${tutorCurriculumMastery()}%`;
+}
 
 function profileStorageKey(id){ return `jm_profile_${id}`; }
 function readProfiles(){
@@ -469,6 +489,7 @@ function loadProfile(profile){
 }
 function logout(){
   save();activeProfileId=null;isDeveloperSession=false;
+  syncOwnerTutorControls();
   closeDeveloperPanel();localStorage.removeItem(ACTIVE_PROFILE_KEY);
   document.getElementById("activePlayerName").textContent="Not signed in";
   setAuthOverlayVisible(true);
@@ -542,24 +563,8 @@ function syncSelectedStageUI(){
   if(quickMineLabel) quickMineLabel.textContent=state.active&&!state.answered?"Return to Question":"New Question";
   if(soundToggle) soundToggle.checked=state.soundEnabled!==false;
   const supportMode=document.getElementById("supportMode");
-  const n5Tier=document.getElementById("n5Tier");
-  const n5TierWrap=document.getElementById("n5TierWrap");
-  const n5Curriculum=document.getElementById("n5Curriculum");
-  const n5CurriculumWrap=document.getElementById("n5CurriculumWrap");
-  const tutorTrack=document.getElementById("tutorTrack");
-  const tutorTrackWrap=document.getElementById("tutorTrackWrap");
-  const tutorMasteryLabel=document.getElementById("tutorMasteryLabel");
-  const tutorLockedNotice=document.getElementById("tutorLockedNotice");
-  const tutorAccess=tutorAccessGranted();
   if(supportMode) supportMode.value=state.supportMode||"guided";
-  if(n5Tier) n5Tier.value=state.n5Tier||"beginner";
-  if(n5Curriculum) n5Curriculum.value=tutorAccess?(state.n5Curriculum||"mixed"):"standard";
-  if(tutorTrack) tutorTrack.value=state.tutorTrack||"all";
-  if(n5TierWrap) n5TierWrap.hidden=idx!==2;
-  if(n5CurriculumWrap) n5CurriculumWrap.hidden=idx!==2||!tutorAccess;
-  if(tutorTrackWrap) tutorTrackWrap.hidden=idx!==2||!tutorAccess||state.n5Curriculum==="standard";
-  if(tutorMasteryLabel){tutorMasteryLabel.hidden=idx!==2||!tutorAccess;tutorMasteryLabel.textContent=`Tutor curriculum mastery: ${tutorCurriculumMastery()}%`;}
-  if(tutorLockedNotice)tutorLockedNotice.hidden=idx!==2||tutorAccess;
+  syncOwnerTutorControls(idx);
 }
 
 function selectStage(index,openCourse=false){
@@ -1365,12 +1370,12 @@ function setStatsDrawer(open){
   const drawer=document.getElementById("statsDrawer");
   const overlay=document.getElementById("statsOverlay");
   const quick=document.getElementById("quickStatsBtn");
-  drawer.classList.toggle("open",open);
-  overlay.classList.toggle("open",open);
+  drawer?.classList.toggle("open",open);
+  overlay?.classList.toggle("open",open);
   document.body.classList.toggle("stats-open",open);
   syncPageScrollLock();
-  drawer.setAttribute("aria-hidden",String(!open));
-  quick.setAttribute("aria-expanded",String(open));
+  drawer?.setAttribute("aria-hidden",String(!open));
+  quick?.setAttribute("aria-expanded",String(open));
 }
 function jumpToSection(id){
   setStatsDrawer(false);
@@ -1380,9 +1385,6 @@ function jumpToSection(id){
 document.getElementById("quickMineBtn").onclick=quickMineAction;
 document.getElementById("soundToggle").addEventListener("change",e=>{state.soundEnabled=e.target.checked;save();if(state.soundEnabled)playFeedbackSound(true);});
 document.getElementById("supportMode").addEventListener("change",e=>{state.supportMode=e.target.value;state.active=null;state.answered=false;save();render();setMessage(`Support mode changed to ${e.target.options[e.target.selectedIndex].text}. Start a new question.`,"correct");});
-document.getElementById("n5Tier").addEventListener("change",e=>{state.n5Tier=e.target.value;state.active=null;state.answered=false;save();render();setMessage(`N5 track changed to ${e.target.options[e.target.selectedIndex].text}. Start a new question.`,"correct");});
-document.getElementById("n5Curriculum").addEventListener("change",e=>{if(!tutorAccessGranted()){e.target.value="standard";state.n5Curriculum="standard";save();render();setMessage("Private Tutor Curriculum requires the password-protected owner account.","wrong");return;}state.n5Curriculum=e.target.value;state.active=null;state.answered=false;save();render();setMessage(`N5 curriculum changed to ${e.target.options[e.target.selectedIndex].text}. Start a new question.`,"correct");});
-document.getElementById("tutorTrack").addEventListener("change",e=>{if(!tutorAccessGranted()){e.target.value="all";state.tutorTrack="all";save();render();setMessage("Private Tutor Curriculum requires the password-protected owner account.","wrong");return;}state.tutorTrack=e.target.value;state.active=null;state.answered=false;save();render();setMessage(`Tutor lesson track changed to ${e.target.options[e.target.selectedIndex].text}. Start a new question.`,"correct");});
 document.getElementById("quickStatsBtn")?.addEventListener("click",()=>setStatsDrawer(true));
 document.getElementById("headerStatsBtn").onclick=()=>setStatsDrawer(true);
 document.getElementById("closeStatsBtn").onclick=()=>setStatsDrawer(false);
@@ -1850,7 +1852,7 @@ function finishPlacementTest(){
   state.placementResult={date:Date.now(),route,hiragana:hiraScore,katakana:kataScore,n5:n5Score};
   save();render();placementSession.required=false;
   document.getElementById('placementCloseBtn').hidden=false;
-  document.getElementById('placementContent').innerHTML=`<div class="placement-results"><div class="placement-score-grid"><div class="placement-score"><strong>${hiraScore}%</strong><span>Hiragana</span></div><div class="placement-score"><strong>${kataScore}%</strong><span>Katakana</span></div><div class="placement-score"><strong>${n5Score}%</strong><span>JLPT N5</span></div></div><div class="placement-recommendation"><h3>🧭 ${title}</h3><p>${description}</p></div><div class="placement-note">This one-time placement result is now saved. Recommended N5 track: <strong>${state.n5Tier}</strong> · Reading support: <strong>${state.supportMode}</strong>.</div><div class="placement-result-actions"><button id="acceptPlacementBtn" class="primary" type="button">Begin at ${route==='n5'?'JLPT N5':route==='katakana'?'Katakana':'Hiragana'}</button></div></div>`;
+  document.getElementById('placementContent').innerHTML=`<div class="placement-results"><div class="placement-score-grid"><div class="placement-score"><strong>${hiraScore}%</strong><span>Hiragana</span></div><div class="placement-score"><strong>${kataScore}%</strong><span>Katakana</span></div><div class="placement-score"><strong>${n5Score}%</strong><span>JLPT N5</span></div></div><div class="placement-recommendation"><h3>🧭 ${title}</h3><p>${description}</p></div><div class="placement-note">This one-time placement result is now saved. Reading support: <strong>${state.supportMode}</strong>.</div><div class="placement-result-actions"><button id="acceptPlacementBtn" class="primary" type="button">Begin at ${route==='n5'?'JLPT N5':route==='katakana'?'Katakana':'Hiragana'}</button></div></div>`;
   document.getElementById('acceptPlacementBtn').addEventListener('click',()=>{closePlacementOnboarding();document.getElementById('rock')?.scrollIntoView({behavior:'smooth',block:'center'});});
   syncPlacementTestButton();
 }
