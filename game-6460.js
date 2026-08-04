@@ -1255,7 +1255,7 @@ function answer(opt,button){
 
     const masteryText=kanaProgress ? ` ${kanaProgress.char} mastery is now ${masteryScore(kanaProgress.char)}% (${kanaProgress.correctCount}/${kanaProgress.attempts} correct).` : "";
     const currentMastery=stageMastery(answeredStage);
-    const clearText=justCleared?` 🎉 ${stages[answeredStage].name} course cleared with ${currentMastery}% mastery! ${answeredStage<stages.length-1?`The guardian gate is ready in Expedition Hub: score 25/25 within 60 seconds to unlock ${stages[answeredStage+1].name}. `:"The final guardian gate is ready in Expedition Hub. "}+${STAGE_CLEAR_REWARDS[answeredStage].toLocaleString()} bonus Nuggets.`:"";
+    const clearText=justCleared?` 🎉 ${stages[answeredStage].name} course cleared with ${currentMastery}% mastery! ${answeredStage<stages.length-1?`The guardian gate is ready in Expedition Hub: score 25/25 within 5 minutes to unlock ${stages[answeredStage+1].name}. `:"The final guardian gate is ready in Expedition Hub. "}+${STAGE_CLEAR_REWARDS[answeredStage].toLocaleString()} bonus Nuggets.`:"";
     const nextCheckpointDrop=GEM_CHECKPOINT_DROPS.find(drop=>drop.stage===answeredStage&&!gemCheckpointClaimed(drop));
     const checkpointText=checkpointDrops.length?` 💎 Checkpoint reward: ${checkpointDrops.map(drop=>`${drop.gem.icon} ${drop.gem.name}`).join(", ")}.`:nextCheckpointDrop?` Next gem drop: ${nextCheckpointDrop.gem} at checkpoint ${nextCheckpointDrop.checkpoint} (${nextCheckpointDrop.checkpoint*20}% course XP).`:" All gemstone checkpoints in this mine are claimed.";
     const unlockRewardText=unlockedGemRewards.length?` Mine access reward: ${unlockedGemRewards.length} newly unlocked gemstone${unlockedGemRewards.length===1?'':'s'} added to your save.`:"";
@@ -2375,11 +2375,13 @@ if(state?.colorTheme)document.body.dataset.theme=state.colorTheme;
   window.syncJapaneseMinerRenderedLayers=syncRenderedAvatarLayers;
   window.addEventListener('jm-recolors-ready',()=>document.querySelectorAll('.miner-avatar').forEach(syncRenderedAvatarLayers));
   if(Object.keys(window.JM_RECOLOR_DATA||{}).length)queueMicrotask(()=>document.querySelectorAll('.miner-avatar').forEach(syncRenderedAvatarLayers));
+  const CHARACTER_PORTRAIT_IMAGES={short:'short.png',spiky:'anime-miner-v1.png',bob:'bob.png',long:'long.png',bun:'bun.png',buzz:'buzz.png',ponytail:'ponytail.png',wavy:'wavy.png',undercut:'undercut.png',twintails:'twintails.png',regalsweep:'regal-sweep.png',sidesweep:'side-sweep.png',flamespikes:'flame-spikes.png',texturedcrop:'textured-crop.png'};
+  function characterPortraitSource(style=state.character?.hairStyle){return CHARACTER_PORTRAIT_IMAGES[style]||CHARACTER_PORTRAIT_IMAGES.spiky;}
+  function characterPortraitMarkup(){return `<img class="header-avatar-photo" src="${characterPortraitSource()}" alt="Your customized miner portrait" draggable="false">`;}
   function characterMarkup(size='large',override={}){
     const c=Object.assign({},state.character,override);
-    const hairstyleImages={short:'short.png',spiky:'anime-miner-v1.png',bob:'bob.png',long:'long.png',bun:'bun.png',buzz:'buzz.png',ponytail:'ponytail.png',wavy:'wavy.png',undercut:'undercut.png',twintails:'twintails.png',regalsweep:'regal-sweep.png',sidesweep:'side-sweep.png',flamespikes:'flame-spikes.png',texturedcrop:'textured-crop.png'};
-    const avatarImage=hairstyleImages[c.hairStyle]||hairstyleImages.spiky;
-    const maskStyle=hairstyleImages[c.hairStyle]?c.hairStyle:'spiky';
+    const avatarImage=characterPortraitSource(c.hairStyle);
+    const maskStyle=CHARACTER_PORTRAIT_IMAGES[c.hairStyle]?c.hairStyle:'spiky';
     const fashion=Object.assign({jacket:'none',gloves:'none',shoes:'boots'},state.v5?.fashion||{}),sources=renderedSources(c,maskStyle,fashion);
     const layer=(name)=>`<img class="native-cosmetic-layer native-${name}-layer" ${sources[name]?`src="${sources[name]}"`:''} alt="" draggable="false">`;
     return `<div class="miner-avatar ${size}" data-skin="${c.skin}" data-hair-style="${c.hairStyle}" data-hair-color="${c.hairColor}" data-shirt="${c.shirt}" data-pants="${c.pants}" data-accessory="${c.accessory}" data-jacket="${fashion.jacket}" data-gloves="${fashion.gloves}" data-shoes="${fashion.shoes}" aria-label="Customized miner character">
@@ -2458,7 +2460,7 @@ if(state?.colorTheme)document.body.dataset.theme=state.colorTheme;
   }
 
   function addMenuItems(){const grid=document.querySelector('.game-menu-grid');if(!grid)return;const items=[['profile','🧍','Character','Customize hair, skin, and clothing'],['quests','🎯','Quests','Daily and weekly rewards'],['achievements','🏆','Achievements','Titles and milestones'],['notebook','📓','Notebook','Difficult items and personal sticky notes'],['statistics','📈','Player Stats','Accuracy and study trends'],['account','☁️','Account','Backup and transfer saves']];items.forEach(([tab,icon,name,desc])=>{if(grid.querySelector(`[data-feature-open="${tab}"],[data-menu-action="${tab}"]`))return;const b=document.createElement('button');b.type='button';b.dataset.featureOpen=tab;b.dataset.menuCategoryName=tab==='profile'||tab==='notebook'?'gear':'player';b.innerHTML=`<span>${icon}</span><strong>${name}</strong><small>${desc}</small>`;b.addEventListener('click',()=>{closeGameMenu();openFeatureCenter(tab);});grid.appendChild(b);});}
-  const renderV38=render;render=function(){ensureV38();renderV38();checkAchievements();const chip=document.querySelector('.account-chip #activePlayerName');if(chip&&state.selectedTitle)chip.title=state.selectedTitle;let mini=document.getElementById('headerCharacterAvatar');if(!mini){const holder=document.querySelector('.account-chip');if(holder){mini=document.createElement('button');mini.id='headerCharacterAvatar';mini.className='header-character-avatar';mini.type='button';mini.title='Customize character';mini.addEventListener('click',()=>openFeatureCenter('profile'));holder.prepend(mini);}}if(mini)mini.innerHTML=characterMarkup('mini');};
+  const renderV38=render;render=function(){ensureV38();renderV38();checkAchievements();const chip=document.querySelector('.account-chip #activePlayerName');if(chip&&state.selectedTitle)chip.title=state.selectedTitle;let mini=document.getElementById('headerCharacterAvatar');if(!mini){const holder=document.querySelector('.account-chip');if(holder){mini=document.createElement('button');mini.id='headerCharacterAvatar';mini.className='header-character-avatar';mini.type='button';mini.title='Customize character';mini.setAttribute('aria-label','Open character customization');mini.addEventListener('click',()=>openFeatureCenter('profile'));holder.prepend(mini);}}if(mini){mini.innerHTML=characterPortraitMarkup();const portrait=mini.querySelector('.header-avatar-photo');if(portrait)portrait.onerror=()=>{portrait.onerror=null;portrait.src='anime-miner-v1.png';};}};
   const loadV38=loadProfile;loadProfile=function(profile){loadV38(profile);ensureV38();save();};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{featureShell();addMenuItems();});else{featureShell();addMenuItems();}
 })();
@@ -2473,7 +2475,7 @@ const JLPT_VOCABULARY_LESSON_SIZE=25;
 const JLPT_VOCABULARY_LAYOUT_VERSION=25;
 const JLPT_VOCABULARY_UNLOCK_MASTERY=75;
 const JLPT_REVIEW_QUIZ_QUESTION_COUNT=25;
-const JLPT_REVIEW_QUIZ_TIME_MS=2*60*1000;
+  const JLPT_REVIEW_QUIZ_TIME_MS=2.5*60*1000;
 const JLPT_REVIEW_QUIZ_PASS_SCORE=75;
 const JLPT_REVIEW_AUTO_ADVANCE_DELAY_MS=650;
 let jlptReviewQuizInterval=null;
@@ -2818,8 +2820,8 @@ function buildJlptReviewCheckpointQuestions(stage,section,evenLesson){
 }
 function renderJlptReviewCheckpointCard(stage,section,evenLesson,world=false){
   const result=jlptReviewCheckpointResult(stage,section,evenLesson),passed=result.passed===true,available=jlptReviewCheckpointAvailable(stage,section,evenLesson),open=passed||available,best=Math.max(0,Number(result.best)||0),pair=`Lessons ${evenLesson-1}–${evenLesson}`;
-  if(world)return `<button data-world-review-checkpoint-stage="${stage}" data-world-review-checkpoint-section="${section}" data-world-review-checkpoint-lesson="${evenLesson}" class="jlpt-vocabulary-level jlpt-review-checkpoint ${open?'open':'locked'} ${passed?'complete':''}" ${open?'':'disabled'}><span>${passed?'✓':open?'🧠':'🔒'}</span><strong>${pair} Quiz</strong><small>${passed?`${best}% best · Passed`:available?'25 questions · 2:00 · Need 75%':`Reach 75% in both lessons`}</small><i><b style="width:${passed?100:best}%"></b></i></button>`;
-  return `<button class="lesson-button jlpt-review-checkpoint ${open?'lesson-open':'lesson-locked'} ${passed?'lesson-complete':''}" data-review-checkpoint-stage="${stage}" data-review-checkpoint-section="${section}" data-review-checkpoint-lesson="${evenLesson}" type="button" ${open?'':'disabled'}><strong>${passed?'✓':open?'🧠':'🔒'} ${pair} Review Quiz</strong><span>${passed?`${best}% best · Passed`:available?'25 randomized questions · 2:00 · Pass at 75%':`Reach 75% in Lessons ${evenLesson-1} and ${evenLesson}`}</span>${progressBar(passed?100:best)}</button>`;
+  if(world)return `<button data-world-review-checkpoint-stage="${stage}" data-world-review-checkpoint-section="${section}" data-world-review-checkpoint-lesson="${evenLesson}" class="jlpt-vocabulary-level jlpt-review-checkpoint ${open?'open':'locked'} ${passed?'complete':''}" ${open?'':'disabled'}><span>${passed?'✓':open?'🧠':'🔒'}</span><strong>${pair} Quiz</strong><small>${passed?`${best}% best · Passed`:available?'25 questions · 2:30 · Need 75%':`Reach 75% in both lessons`}</small><i><b style="width:${passed?100:best}%"></b></i></button>`;
+  return `<button class="lesson-button jlpt-review-checkpoint ${open?'lesson-open':'lesson-locked'} ${passed?'lesson-complete':''}" data-review-checkpoint-stage="${stage}" data-review-checkpoint-section="${section}" data-review-checkpoint-lesson="${evenLesson}" type="button" ${open?'':'disabled'}><strong>${passed?'✓':open?'🧠':'🔒'} ${pair} Review Quiz</strong><span>${passed?`${best}% best · Passed`:available?'25 randomized questions · 2:30 · Pass at 75%':`Reach 75% in Lessons ${evenLesson-1} and ${evenLesson}`}</span>${progressBar(passed?100:best)}</button>`;
 }
 function jlptCourseQuestionMatchesItem(question,item){
   if(!question||!item||Number(question.stage)!==Number(item.stage))return false;
@@ -3060,7 +3062,7 @@ function startJlptReviewQuizClock(){if(jlptReviewQuizInterval)return;jlptReviewQ
 function renderJlptReviewCheckpointQuiz(){
   const quiz=academyView.checkpointQuiz;if(!quiz)return "";const spec=jlptSectionSpec(quiz.section),pair=`Lessons ${quiz.evenLesson-1}–${quiz.evenLesson}`,levels=jlptSectionLevels(quiz.stage,quiz.section),nextExists=!!levels[quiz.evenLesson];
   if(quiz.finished){
-    const record=jlptReviewCheckpointResult(quiz.stage,quiz.section,quiz.evenLesson),gatePassed=record.passed===true,elapsed=Math.min(120,Math.max(0,Math.ceil((Number(quiz.finishedAt)-Number(quiz.startedAt))/1000))),unanswered=JLPT_REVIEW_QUIZ_QUESTION_COUNT-Number(quiz.answeredCount||0);
+    const record=jlptReviewCheckpointResult(quiz.stage,quiz.section,quiz.evenLesson),gatePassed=record.passed===true,elapsed=Math.min(150,Math.max(0,Math.ceil((Number(quiz.finishedAt)-Number(quiz.startedAt))/1000))),unanswered=JLPT_REVIEW_QUIZ_QUESTION_COUNT-Number(quiz.answeredCount||0);
     return `<section class="jlpt-review-quiz-result ${quiz.passed?'passed':'failed'}"><div class="lesson-review-check">${quiz.passed?'✓':'!'}</div><div class="course-kicker">${vocabularyCourseLabel(quiz.stage)} ${spec.name} · ${pair} checkpoint</div><h3>${quiz.passed?'Review quiz passed':'Review quiz needs another try'}</h3><div class="jlpt-review-result-score">${quiz.score}%</div><p>${quiz.correct}/${JLPT_REVIEW_QUIZ_QUESTION_COUNT} correct · ${unanswered} unanswered · ${elapsed} seconds used</p><strong>${quiz.passed?(nextExists?`Lesson ${quiz.evenLesson+1} is now available.`:'Final lesson-pair review complete.'):gatePassed?'This checkpoint remains passed from your earlier score.':'Score at least 75% (19 correct answers) to unlock the next lesson.'}</strong><div class="lesson-preview-actions"><button data-checkpoint-back type="button">← All lessons</button><button data-checkpoint-retry type="button">Try another random set</button>${gatePassed&&nextExists?`<button data-checkpoint-continue class="primary" type="button">Continue to Lesson ${quiz.evenLesson+1}</button>`:""}</div></section>`;
   }
   const question=quiz.questions[quiz.current],remaining=jlptReviewQuizRemainingMs(quiz),progress=(quiz.current+1)/JLPT_REVIEW_QUIZ_QUESTION_COUNT*100;

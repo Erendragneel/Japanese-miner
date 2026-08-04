@@ -1,4 +1,4 @@
-const CACHE_NAME='japanese-miner-v6.4.35-icon-cache-refresh';
+const CACHE_NAME='japanese-miner-v6.4.37-koji-phone-popover';
 const APP_SHELL=[
   './',
   './index.html',
@@ -11,6 +11,7 @@ const APP_SHELL=[
   './v6.js',
   './recovery-6460.js',
   './manifest.webmanifest',
+  './anime-miner-v1.png',
   './japanese-miner-pickaxe-180-v6435.png',
   './japanese-miner-pickaxe-192-v6435.png',
   './japanese-miner-pickaxe-512-v6435.png'
