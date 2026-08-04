@@ -1,4 +1,4 @@
-const CACHE_NAME='japanese-miner-v6.4.58-full-portrait-accessories';
+const CACHE_NAME='japanese-miner-v6.4.60-supporter-locks-clean-accessories';
 const APP_SHELL=[
   './',
   './index.html',

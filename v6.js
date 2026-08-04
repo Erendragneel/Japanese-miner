@@ -1,7 +1,7 @@
 // Japanese Miner v6.0 — The Polish Update
 (()=>{
 'use strict';
-const VERSION='6.4.58-full-portrait-accessories', SNAPSHOT_PREFIX='jm_v6_snapshots_', FEEDBACK_INBOX_KEY='jm_v6_admin_feedback_inbox', FEEDBACK_INBOX_LIMIT=200;
+const VERSION='6.4.60-supporter-locks-clean-accessories', SNAPSHOT_PREFIX='jm_v6_snapshots_', FEEDBACK_INBOX_KEY='jm_v6_admin_feedback_inbox', FEEDBACK_INBOX_LIMIT=200;
 let deferredInstallPrompt=null,installEventsBound=false;
 const TOUR=[
  {section:'Getting started',icon:'⛏️',title:'Welcome to Japanese Miner',text:'Answer Japanese questions, build mastery, collect scientific gemstones, and progress from Hiragana through JLPT N1.',tips:['Create or sign in to a local player profile so every feature uses the same save.','Tap New Question or the mine rock to begin the selected course route.','Use the round menu button at the bottom-right whenever you need another game area.']},
