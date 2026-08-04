@@ -1,4 +1,4 @@
-const CACHE_NAME='japanese-miner-v6.4.37-koji-phone-popover';
+const CACHE_NAME='japanese-miner-v6.4.54-patreon-tiers-covers';
 const APP_SHELL=[
   './',
   './index.html',
