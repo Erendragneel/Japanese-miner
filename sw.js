@@ -1,4 +1,4 @@
-const CACHE_NAME='japanese-miner-v6.4.60-supporter-locks-clean-accessories';
+const CACHE_NAME='japanese-miner-v6.4.81-discord-feedback-cleanup';
 const APP_SHELL=[
   './',
   './index.html',
