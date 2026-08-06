@@ -119,22 +119,22 @@ const questions = [
   {stage:1,q:"ア",prompt:"Choose the correct reading.",a:"a",opts:["a","i","u","o"]},
   {stage:1,q:"シ",prompt:"Choose the correct reading.",a:"shi",opts:["tsu","shi","so","n"]},
   {stage:1,q:"Which katakana is “ko”?",prompt:"Choose the character.",a:"コ",opts:["ロ","ユ","コ","ヨ"]},
-  {stage:2,q:"水",prompt:"What does this kanji mean?",a:"water",opts:["fire","water","tree","gold"]},
-  {stage:2,q:"私は学生です。",prompt:"Choose the best meaning.",a:"I am a student.",opts:["I am a student.","I drink water.","I like school.","I am a teacher."]},
-  {stage:3,q:"昨日、映画を見ました。",prompt:"Choose the best meaning.",a:"I watched a movie yesterday.",opts:["I will watch a movie.","I watched a movie yesterday.","I bought a movie.","I watched TV today."]},
-  {stage:4,q:"この問題は思ったより難しい。",prompt:"Choose the best meaning.",a:"This problem is harder than I thought.",opts:["This problem is easy.","I forgot the problem.","This problem is harder than I thought.","The answer is difficult to read."]},
-  {stage:5,q:"彼は会議に出席する予定です。",prompt:"Choose the best meaning.",a:"He plans to attend the meeting.",opts:["He canceled the meeting.","He plans to attend the meeting.","He already left the meeting.","He is organizing a party."]},
-  {stage:6,q:"努力を重ねた結果、目標を達成した。",prompt:"Choose the best meaning.",a:"After sustained effort, the goal was achieved.",opts:["The goal was abandoned.","The effort caused a problem.","After sustained effort, the goal was achieved.","The result was unexpected."]},
-  {stage:2,q:"毎朝七時に起きます。",prompt:"Choose the best meaning.",a:"I wake up at seven every morning.",opts:["I sleep at seven every night.","I wake up at seven every morning.","I leave at eight every morning.","I eat breakfast at seven."]},
-  {stage:2,q:"駅はどこですか。",prompt:"Choose the best meaning.",a:"Where is the station?",opts:["When does the train leave?","Where is the station?","How much is the ticket?","Is this the station?"]},
-  {stage:3,q:"雨が降っているので、傘を持っていきます。",prompt:"Choose the best meaning.",a:"Because it is raining, I will take an umbrella.",opts:["Because it is raining, I will take an umbrella.","I forgot my umbrella in the rain.","It may rain tomorrow.","I bought an umbrella yesterday."]},
-  {stage:3,q:"宿題を終えてから、テレビを見ました。",prompt:"Choose the best meaning.",a:"After finishing my homework, I watched television.",opts:["I watched television before homework.","After finishing my homework, I watched television.","I did homework while watching television.","I did not finish my homework."]},
-  {stage:4,q:"電車が遅れたため、会議に間に合わなかった。",prompt:"Choose the best meaning.",a:"Because the train was delayed, I did not make it to the meeting on time.",opts:["The meeting was delayed by a train.","Because the train was delayed, I did not make it to the meeting on time.","I left the meeting early to catch a train.","The meeting was held on the train."]},
-  {stage:4,q:"彼女は日本に来て以来、毎日漢字を勉強している。",prompt:"Choose the best meaning.",a:"She has studied kanji every day since coming to Japan.",opts:["She studied kanji before coming to Japan.","She has studied kanji every day since coming to Japan.","She will study kanji when she leaves Japan.","She teaches kanji in Japan."]},
-  {stage:5,q:"この計画を実現するには、十分な資金を確保する必要がある。",prompt:"Choose the best meaning.",a:"To realize this plan, it is necessary to secure sufficient funding.",opts:["The plan was canceled because funding was excessive.","To realize this plan, it is necessary to secure sufficient funding.","The funding plan has already been completed.","No funding is required for the plan."]},
-  {stage:5,q:"予想に反して、売上は前年度を上回った。",prompt:"Choose the best meaning.",a:"Contrary to expectations, sales exceeded the previous year.",opts:["Sales were exactly as expected.","Contrary to expectations, sales exceeded the previous year.","Sales fell below the previous year.","The forecast was made last year."]},
-  {stage:6,q:"彼の主張は一見もっともらしいが、根拠に乏しい。",prompt:"Choose the best meaning.",a:"His argument seems plausible at first glance, but lacks evidence.",opts:["His argument is supported by extensive evidence.","His argument seems plausible at first glance, but lacks evidence.","His claim was immediately rejected as impossible.","His evidence is difficult to understand."]},
-  {stage:6,q:"制度の見直しをめぐって、関係者の意見は真っ向から対立した。",prompt:"Choose the best meaning.",a:"The parties' opinions were directly opposed over reviewing the system.",opts:["Everyone agreed to keep the system unchanged.","The parties' opinions were directly opposed over reviewing the system.","Only one person reviewed the system.","The system was revised without discussion."]}
+  {stage:2,q:"水",speechText:"みず",prompt:"What does this kanji mean?",a:"water",opts:["fire","water","tree","gold"]},
+  {stage:2,q:"私は学生です。",speechText:"わたしは がくせいです。",prompt:"Choose the best meaning.",a:"I am a student.",opts:["I am a student.","I drink water.","I like school.","I am a teacher."]},
+  {stage:3,q:"昨日、映画を見ました。",speechText:"きのう、えいがを みました。",prompt:"Choose the best meaning.",a:"I watched a movie yesterday.",opts:["I will watch a movie.","I watched a movie yesterday.","I bought a movie.","I watched TV today."]},
+  {stage:4,q:"この問題は思ったより難しい。",speechText:"この もんだいは おもったより むずかしい。",prompt:"Choose the best meaning.",a:"This problem is harder than I thought.",opts:["This problem is easy.","I forgot the problem.","This problem is harder than I thought.","The answer is difficult to read."]},
+  {stage:5,q:"彼は会議に出席する予定です。",speechText:"かれは かいぎに しゅっせきする よていです。",prompt:"Choose the best meaning.",a:"He plans to attend the meeting.",opts:["He canceled the meeting.","He plans to attend the meeting.","He already left the meeting.","He is organizing a party."]},
+  {stage:6,q:"努力を重ねた結果、目標を達成した。",speechText:"どりょくを かさねた けっか、もくひょうを たっせいした。",prompt:"Choose the best meaning.",a:"After sustained effort, the goal was achieved.",opts:["The goal was abandoned.","The effort caused a problem.","After sustained effort, the goal was achieved.","The result was unexpected."]},
+  {stage:2,q:"毎朝七時に起きます。",speechText:"まいあさ しちじに おきます。",prompt:"Choose the best meaning.",a:"I wake up at seven every morning.",opts:["I sleep at seven every night.","I wake up at seven every morning.","I leave at eight every morning.","I eat breakfast at seven."]},
+  {stage:2,q:"駅はどこですか。",speechText:"えきは どこですか。",prompt:"Choose the best meaning.",a:"Where is the station?",opts:["When does the train leave?","Where is the station?","How much is the ticket?","Is this the station?"]},
+  {stage:3,q:"雨が降っているので、傘を持っていきます。",speechText:"あめが ふっているので、かさを もっていきます。",prompt:"Choose the best meaning.",a:"Because it is raining, I will take an umbrella.",opts:["Because it is raining, I will take an umbrella.","I forgot my umbrella in the rain.","It may rain tomorrow.","I bought an umbrella yesterday."]},
+  {stage:3,q:"宿題を終えてから、テレビを見ました。",speechText:"しゅくだいを おえてから、テレビを みました。",prompt:"Choose the best meaning.",a:"After finishing my homework, I watched television.",opts:["I watched television before homework.","After finishing my homework, I watched television.","I did homework while watching television.","I did not finish my homework."]},
+  {stage:4,q:"電車が遅れたため、会議に間に合わなかった。",speechText:"でんしゃが おくれたため、かいぎに まにあわなかった。",prompt:"Choose the best meaning.",a:"Because the train was delayed, I did not make it to the meeting on time.",opts:["The meeting was delayed by a train.","Because the train was delayed, I did not make it to the meeting on time.","I left the meeting early to catch a train.","The meeting was held on the train."]},
+  {stage:4,q:"彼女は日本に来て以来、毎日漢字を勉強している。",speechText:"かのじょは にほんに きて いらい、まいにち かんじを べんきょうしている。",prompt:"Choose the best meaning.",a:"She has studied kanji every day since coming to Japan.",opts:["She studied kanji before coming to Japan.","She has studied kanji every day since coming to Japan.","She will study kanji when she leaves Japan.","She teaches kanji in Japan."]},
+  {stage:5,q:"この計画を実現するには、十分な資金を確保する必要がある。",speechText:"この けいかくを じつげんするには、じゅうぶんな しきんを かくほする ひつようが ある。",prompt:"Choose the best meaning.",a:"To realize this plan, it is necessary to secure sufficient funding.",opts:["The plan was canceled because funding was excessive.","To realize this plan, it is necessary to secure sufficient funding.","The funding plan has already been completed.","No funding is required for the plan."]},
+  {stage:5,q:"予想に反して、売上は前年度を上回った。",speechText:"よそうに はんして、うりあげは ぜんねんどを うわまわった。",prompt:"Choose the best meaning.",a:"Contrary to expectations, sales exceeded the previous year.",opts:["Sales were exactly as expected.","Contrary to expectations, sales exceeded the previous year.","Sales fell below the previous year.","The forecast was made last year."]},
+  {stage:6,q:"彼の主張は一見もっともらしいが、根拠に乏しい。",speechText:"かれの しゅちょうは いっけん もっともらしいが、こんきょに とぼしい。",prompt:"Choose the best meaning.",a:"His argument seems plausible at first glance, but lacks evidence.",opts:["His argument is supported by extensive evidence.","His argument seems plausible at first glance, but lacks evidence.","His claim was immediately rejected as impossible.","His evidence is difficult to understand."]},
+  {stage:6,q:"制度の見直しをめぐって、関係者の意見は真っ向から対立した。",speechText:"せいどの みなおしを めぐって、かんけいしゃの いけんは まっこうから たいりつした。",prompt:"Choose the best meaning.",a:"The parties' opinions were directly opposed over reviewing the system.",opts:["Everyone agreed to keep the system unchanged.","The parties' opinions were directly opposed over reviewing the system.","Only one person reviewed the system.","The system was revised without discussion."]}
 ];
 hira.forEach(([ch,rom])=>questions.push({stage:0,q:ch,prompt:"Choose the correct reading.",a:rom,opts:makeKanaOpts(hira,rom),kana:ch,kanaType:"hiragana"}));
 kata.forEach(([ch,rom])=>questions.push({stage:1,q:ch,prompt:"Choose the correct reading.",a:rom,opts:makeKanaOpts(kata,rom),kana:ch,kanaType:"katakana"}));
@@ -205,15 +205,15 @@ const n5Sentences=[
 ];
 function rubyWord(kanji,reading){return `<ruby>${kanji}<rt>${reading}</rt></ruby>`;}
 n5Vocab.forEach(([kanji,reading,meaning])=>{
-  addQuestion({stage:2,tier:"beginner",support:"guided",q:reading,displayGuided:reading,displayStandard:rubyWord(kanji,reading),displayChallenge:kanji,prompt:"Choose the meaning.",a:meaning,opts:wordOptions(n5Vocab,meaning,2),help:`${kanji} is read ${reading} and means “${meaning}.”`,kind:"vocabulary",vocabularyKey:kanji});
+  addQuestion({stage:2,tier:"beginner",support:"guided",q:reading,displayGuided:reading,displayStandard:rubyWord(kanji,reading),displayChallenge:kanji,speechText:reading,prompt:"Choose the meaning.",a:meaning,opts:wordOptions(n5Vocab,meaning,2),help:`${kanji} is read ${reading} and means “${meaning}.”`,kind:"vocabulary",vocabularyKey:kanji});
   addQuestion({stage:2,tier:"beginner",support:"guided",q:`Which word means “${meaning}”?`,prompt:"Choose the reading.",a:reading,opts:wordOptions(n5Vocab,reading,1),help:`${kanji} is read ${reading}.`,kind:"vocabulary",vocabularyKey:kanji});
-  addQuestion({stage:2,tier:"intermediate",support:"standard",q:kanji,concealedPrompt:kanji,displayChallenge:kanji,prompt:"Choose the correct reading.",a:reading,opts:wordOptions(n5Vocab,reading,1),help:`Meaning: ${meaning}. Reading: ${reading}.`,kind:"reading"});
+  addQuestion({stage:2,tier:"intermediate",support:"standard",q:kanji,concealedPrompt:kanji,displayChallenge:kanji,speechText:reading,prompt:"Choose the correct reading.",a:reading,opts:wordOptions(n5Vocab,reading,1),help:`Meaning: ${meaning}. Reading: ${reading}.`,kind:"reading"});
 });
 n5Grammar.forEach(([sentence,particle,meaning,note])=>{
   addQuestion({stage:2,tier:"intermediate",support:"guided",q:sentence,prompt:"Choose the missing particle.",a:particle,opts:shuffle([particle,...["は","が","を","に","で","と","の","へ","か"].filter(x=>x!==particle).slice(0,3)]),help:`${note}. Full meaning: ${meaning}`,kind:"grammar"});
 });
 n5Sentences.forEach(([sentence,reading,meaning])=>{
-  addQuestion({stage:2,tier:"advanced",support:"standard",q:sentence,displayGuided:reading,displayStandard:`<div>${sentence}</div><small class="furigana-line">${reading}</small>`,displayChallenge:sentence,prompt:"Choose the best meaning.",a:meaning,opts:wordOptions(n5Sentences,meaning,2),help:`Reading: ${reading}<br>Meaning: ${meaning}`,kind:"sentence"});
+  addQuestion({stage:2,tier:"advanced",support:"standard",q:sentence,displayGuided:reading,displayStandard:`<div>${sentence}</div><small class="furigana-line">${reading}</small>`,displayChallenge:sentence,speechText:reading,prompt:"Choose the best meaning.",a:meaning,opts:wordOptions(n5Sentences,meaning,2),help:`Reading: ${reading}<br>Meaning: ${meaning}`,kind:"sentence"});
 });
 
 
@@ -316,8 +316,8 @@ const advancedBanks={
 Object.entries(advancedBanks).forEach(([stage,list])=>{
   stage=Number(stage);
   list.forEach(([word,reading,meaning])=>{
-    addQuestion({stage,q:word,concealedPrompt:word,displayChallenge:word,hideReadingInPrompt:true,prompt:"Choose the meaning.",a:meaning,opts:wordOptions(list,meaning,2),help:`${word} is read ${reading} and means “${meaning}.”`,kind:"vocabulary"});
-    addQuestion({stage,q:word,concealedPrompt:word,displayChallenge:word,prompt:"Choose the reading.",a:reading,opts:wordOptions(list,reading,1),help:`Meaning: ${meaning}.`,kind:"reading"});
+    addQuestion({stage,q:word,concealedPrompt:word,displayChallenge:word,hideReadingInPrompt:true,speechText:reading,prompt:"Choose the meaning.",a:meaning,opts:wordOptions(list,meaning,2),help:`${word} is read ${reading} and means “${meaning}.”`,kind:"vocabulary"});
+    addQuestion({stage,q:word,concealedPrompt:word,displayChallenge:word,speechText:reading,prompt:"Choose the reading.",a:reading,opts:wordOptions(list,reading,1),help:`Meaning: ${meaning}.`,kind:"reading"});
   });
 });
 questions.forEach((q,i)=>{if(!q.id) q.id=`base-${q.stage}-${i}`;});
@@ -1056,14 +1056,21 @@ function refreshJapaneseVoices(){
 }
 if('speechSynthesis' in window){refreshJapaneseVoices();speechSynthesis.addEventListener?.('voiceschanged',refreshJapaneseVoices);}
 function stripMarkup(text){const d=document.createElement('div');d.innerHTML=String(text||'');return d.textContent||d.innerText||'';}
+function readingSpeechText(text){return stripMarkup(text).replace(/[／/・]+/g,'、').replace(/\s+/g,' ').trim();}
 function japaneseSpeechText(q=state.active){
   if(!q)return '日本語を勉強しましょう。';
+  if(q.speechText)return readingSpeechText(q.speechText);
   if(q.kana)return q.kana;
   if(q.kind==='reading' && q.q)return stripMarkup(q.q);
   if(q.displayChallenge)return stripMarkup(q.displayChallenge);
   if(q.q && /[ぁ-んァ-ヶ一-龯]/.test(stripMarkup(q.q)))return stripMarkup(q.q).replace(/___/g,'');
   // Never use q.a here: for English prompts the Japanese answer must remain a surprise.
   return '';
+}
+function japaneseAnswerSpeechText(q=state.active){
+  if(!q)return '';
+  const questionText=japaneseSpeechText(q);if(questionText)return questionText;
+  const answer=stripMarkup(q.a||'').trim();return /[ぁ-んァ-ヶ一-龯]/.test(answer)?answer:'';
 }
 function speakJapanese(text,rate=state.voiceRate){
   if(silentTestingActive())return;
@@ -1642,7 +1649,7 @@ function showKanjiDetail(k){const info=N5_KANJI_INFO[k]||['—','repetition mark
 function startAcademyTest(count){const pool=questions.filter(q=>q.stage===2&&questionAllowedForSession(q));if(!pool.length)return;let score=0;for(let i=0;i<count;i++){const q=pool[Math.floor(Math.random()*pool.length)];if(Math.random()<(questionMasteryScore(state.questionStats[q.id])/100*.6+.25))score++;}const pct=Math.round(score/count*100);state.academyTestBest=Math.max(state.academyTestBest,pct);save();alert(`Practice simulation complete: ${score}/${count} (${pct}%).\n\nThis simulation estimates performance from your recorded mastery. Mine questions directly to improve it.`);renderAcademy();}
 
 // Add academy kanji and grammar to the N5 mine question pool.
-N5_KANJI_LIST.slice(0,120).forEach((k,i)=>{const info=N5_KANJI_INFO[k]||['—','repetition mark'];addQuestion({stage:2,tier:'intermediate',q:k,concealedPrompt:k,displayChallenge:k,prompt:'Choose this kanji’s meaning.',a:info[1],opts:shuffle([info[1],...shuffle(Object.values(N5_KANJI_INFO).map(v=>v[1]).filter(v=>v!==info[1])).slice(0,3)]),help:`${k}: ${info[0]} — ${info[1]}`,kind:'academy-kanji'});});
+N5_KANJI_LIST.slice(0,120).forEach((k,i)=>{const info=N5_KANJI_INFO[k]||['—','repetition mark'];addQuestion({stage:2,tier:'intermediate',q:k,concealedPrompt:k,displayChallenge:k,speechText:readingSpeechText(info[0]),prompt:'Choose this kanji’s meaning.',a:info[1],opts:shuffle([info[1],...shuffle(Object.values(N5_KANJI_INFO).map(v=>v[1]).filter(v=>v!==info[1])).slice(0,3)]),help:`${k}: ${info[0]} — ${info[1]}`,kind:'academy-kanji'});});
 N5_GRAMMAR_POINTS.slice(0,90).forEach((g,i)=>addQuestion({stage:2,tier:i<30?'beginner':i<65?'intermediate':'advanced',q:g[2],prompt:'Choose the grammar point demonstrated.',a:g[0],opts:shuffle([g[0],...shuffle(N5_GRAMMAR_POINTS.map(x=>x[0]).filter(x=>x!==g[0])).slice(0,3)]),help:`${g[0]}: ${g[1]}`,kind:'academy-grammar'}));
 N5_READING_PASSAGES.forEach((p,i)=>addQuestion({stage:2,tier:'advanced',q:p[1],displayChallenge:p[1],prompt:p[2],a:p[3],opts:shuffle([p[3],...shuffle(N5_READING_PASSAGES.map(x=>x[3]).filter(x=>x!==p[3])).slice(0,3)]),help:`${p[0]}: ${p[3]}`,kind:'academy-reading'}));
 
@@ -1968,8 +1975,8 @@ const JLPT_COURSES={
 
 Object.entries(JLPT_COURSES).forEach(([stage,c])=>{
   const s=Number(stage);
-  c.vocab.forEach((w,i)=>questions.push({stage:s,q:w[0],prompt:'Choose the best meaning.',a:w[2],opts:shuffle([w[2],...shuffle(c.vocab.filter((_,j)=>j!==i).map(x=>x[2])).slice(0,3)]),kind:'advanced-vocab',courseId:`jlpt${s}:vocab:${i}`,vocabularyKey:w[0]}));
-  c.kanji.forEach((k,i)=>questions.push({stage:s,q:k[0],prompt:'Choose this kanji’s meaning.',a:k[2],opts:shuffle([k[2],...shuffle(c.kanji.filter((_,j)=>j!==i).map(x=>x[2])).slice(0,3)]),kind:'advanced-kanji',courseId:`jlpt${s}:kanji:${i}`}));
+  c.vocab.forEach((w,i)=>questions.push({stage:s,q:w[0],speechText:w[1],prompt:'Choose the best meaning.',a:w[2],opts:shuffle([w[2],...shuffle(c.vocab.filter((_,j)=>j!==i).map(x=>x[2])).slice(0,3)]),kind:'advanced-vocab',courseId:`jlpt${s}:vocab:${i}`,vocabularyKey:w[0]}));
+  c.kanji.forEach((k,i)=>questions.push({stage:s,q:k[0],speechText:readingSpeechText(k[1]),prompt:'Choose this kanji’s meaning.',a:k[2],opts:shuffle([k[2],...shuffle(c.kanji.filter((_,j)=>j!==i).map(x=>x[2])).slice(0,3)]),kind:'advanced-kanji',courseId:`jlpt${s}:kanji:${i}`}));
   c.grammar.forEach((g,i)=>questions.push({stage:s,q:g[2],prompt:'Which grammar pattern is used?',a:g[0],opts:shuffle([g[0],...shuffle(c.grammar.filter((_,j)=>j!==i).map(x=>x[0])).slice(0,3)]),kind:'advanced-grammar',courseId:`jlpt${s}:grammar:${i}`}));
   c.reading.forEach((r,i)=>questions.push({stage:s,q:r[1],prompt:r[2],a:r[3],opts:shuffle([r[3],...shuffle(c.reading.filter((_,j)=>j!==i).map(x=>x[3])).slice(0,3)]),kind:'advanced-reading',courseId:`jlpt${s}:reading:${i}`}));
 });
@@ -1984,11 +1991,11 @@ if(n5CompleteVocabulary.length!==1000)throw new Error("The complete N5 vocabular
 const standardN5VocabularyKeys=new Set(questions.filter(question=>Number(question.stage)===2&&question.vocabularyKey&&!tutorQuestion(question)).map(question=>String(question.vocabularyKey)));
 n5CompleteVocabulary.forEach(([word,reading,meaning],courseIndex)=>{
   if(standardN5VocabularyKeys.has(word))return;
-  addQuestion({id:`n5-course-${courseIndex}-meaning`,stage:2,q:reading,displayGuided:reading,displayStandard:rubyWord(word,reading),displayChallenge:word,prompt:"Choose the meaning.",a:meaning,opts:wordOptions(n5CompleteVocabulary,meaning,2),help:`${word} is read ${reading} and means “${meaning}.”`,kind:"vocabulary",vocabularyKey:word});
+  addQuestion({id:`n5-course-${courseIndex}-meaning`,stage:2,q:reading,displayGuided:reading,displayStandard:rubyWord(word,reading),displayChallenge:word,speechText:reading,prompt:"Choose the meaning.",a:meaning,opts:wordOptions(n5CompleteVocabulary,meaning,2),help:`${word} is read ${reading} and means “${meaning}.”`,kind:"vocabulary",vocabularyKey:word});
   if(word===reading){
     addQuestion({id:`n5-course-${courseIndex}-word`,stage:2,q:`Which Japanese word means “${meaning}”?`,prompt:"Choose the Japanese word.",a:word,opts:wordOptions(n5CompleteVocabulary,word,0),help:`${word} means “${meaning}.”`,kind:"vocabulary",vocabularyKey:word});
   }else{
-    addQuestion({id:`n5-course-${courseIndex}-reading`,stage:2,q:word,concealedPrompt:word,displayChallenge:word,prompt:"Choose the correct reading.",a:reading,opts:wordOptions(n5CompleteVocabulary,reading,1),help:`${word} is read ${reading} and means “${meaning}.”`,kind:"vocabulary",vocabularyKey:word});
+    addQuestion({id:`n5-course-${courseIndex}-reading`,stage:2,q:word,concealedPrompt:word,displayChallenge:word,speechText:reading,prompt:"Choose the correct reading.",a:reading,opts:wordOptions(n5CompleteVocabulary,reading,1),help:`${word} is read ${reading} and means “${meaning}.”`,kind:"vocabulary",vocabularyKey:word});
   }
 });
 
@@ -2781,13 +2788,13 @@ function jlptSectionLessonConfig(section){return JLPT_SECTION_LESSON_CONFIG[sect
 function jlptSectionItems(stage,section){
   stage=Number(stage);section=String(section||"vocabulary");
   if(section==="vocabulary")return jlptVocabularyWords(stage).map(word=>({...word,section,primary:word.jp,secondary:word.reading,meaning:word.en,listenText:word.reading||word.jp}));
-  if(stage===2&&section==="kanji")return N5_KANJI_LIST.slice(0,120).map((kanji,sourceIndex)=>{const info=N5_KANJI_INFO[kanji]||["—","repetition mark"];return {stage,section,sourceIndex,index:sourceIndex,key:`${stage}:${section}:${sourceIndex}`,masteryId:`kanji:${kanji}`,primary:kanji,secondary:info[0],meaning:info[1],detail:info[1],listenText:kanji};});
+  if(stage===2&&section==="kanji")return N5_KANJI_LIST.slice(0,120).map((kanji,sourceIndex)=>{const info=N5_KANJI_INFO[kanji]||["—","repetition mark"];return {stage,section,sourceIndex,index:sourceIndex,key:`${stage}:${section}:${sourceIndex}`,masteryId:`kanji:${kanji}`,primary:kanji,secondary:info[0],meaning:info[1],detail:info[1],listenText:readingSpeechText(info[0])};});
   if(stage===2&&section==="grammar")return N5_GRAMMAR_POINTS.slice(0,90).map((grammar,sourceIndex)=>({stage,section,sourceIndex,index:sourceIndex,key:`${stage}:${section}:${sourceIndex}`,masteryId:`grammar:${sourceIndex}`,primary:grammar[0],secondary:grammar[1],meaning:grammar[1],detail:grammar[2],listenText:grammar[2]}));
   if(stage===2&&section==="reading")return N5_READING_PASSAGES.map((reading,sourceIndex)=>({stage,section,sourceIndex,index:sourceIndex,key:`${stage}:${section}:${sourceIndex}`,masteryId:`reading:${sourceIndex}`,primary:reading[0],secondary:reading[2],meaning:reading[3],detail:reading[1],question:reading[2],answer:reading[3],listenText:reading[1]}));
   const course=JLPT_COURSES[stage],rows=course?.[section]||[];
   return rows.map((row,sourceIndex)=>{
     const item={stage,section,sourceIndex,index:sourceIndex,key:`${stage}:${section}:${sourceIndex}`,masteryId:jlptMasteryId(section,sourceIndex,stage),primary:row[0]};
-    if(section==="kanji")Object.assign(item,{secondary:row[1],meaning:row[2],detail:row[2],listenText:row[0]});
+    if(section==="kanji")Object.assign(item,{secondary:row[1],meaning:row[2],detail:row[2],listenText:readingSpeechText(row[1])});
     if(section==="grammar")Object.assign(item,{secondary:row[1],meaning:row[1],detail:row[2],listenText:row[2]});
     if(section==="reading")Object.assign(item,{secondary:row[2],meaning:row[3],detail:row[1],question:row[2],answer:row[3],listenText:row[1]});
     return item;
