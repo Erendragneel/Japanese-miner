@@ -20,7 +20,7 @@ export type MembershipSnapshot = {
   lastChargeStatus: string | null;
 };
 
-const USER_AGENT = optionalEnv("PATREON_USER_AGENT", "Japanese Miner - Membership Linking");
+const USER_AGENT = optionalEnv("PATREON_USER_AGENT", "Language Miner - Membership Linking");
 
 async function patreonFetch(url: string, token: string): Promise<PatreonPayload> {
   const response = await fetch(url, { headers: { Authorization: `Bearer ${token}`, Accept: "application/json", "User-Agent": USER_AGENT } });

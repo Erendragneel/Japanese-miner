@@ -18,7 +18,7 @@ window.getJapaneseMinerRecolor=key=>{
       window.JM_RECOLOR_DATA=JSON.parse(new TextDecoder().decode(bytes));
     }
     window.dispatchEvent(new Event('jm-recolors-ready'));
-  }catch(error){console.error('Japanese Miner cosmetic artwork could not be loaded.',error);}
+  }catch(error){console.error('Language Miner cosmetic artwork could not be loaded.',error);}
 })();
 
 const stages = [
@@ -501,7 +501,7 @@ window.japaneseMinerActiveProfile=()=>{if(!activeProfileId)return null;const pro
 function save(){
   if(!activeProfileId) return;
   try{ localStorage.setItem(profileStorageKey(activeProfileId),JSON.stringify(state)); }
-  catch(err){ console.error("Japanese Miner save failed",err); }
+  catch(err){ console.error("Language Miner save failed",err); }
 }
 const KATAKANA_XP_REQUIREMENT=STAGE_XP_REQUIREMENTS[0];
 function kanaSetMastery(set){
@@ -1476,7 +1476,7 @@ function runAdminAction(action){
   if(action==="export-save"){
     const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
     const url=URL.createObjectURL(blob);const a=document.createElement("a");
-    a.href=url;a.download=`japanese-miner-${activeProfileId}-save.json`;a.click();URL.revokeObjectURL(url);
+    a.href=url;a.download=`language-miner-${activeProfileId}-save.json`;a.click();URL.revokeObjectURL(url);
     developerMessage("Save file exported.");return;
   }
   if(action==="import-save"){
@@ -1665,7 +1665,7 @@ document.querySelectorAll('[data-academy-tab]').forEach(b=>b.addEventListener('c
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAcademy();});
 const originalRenderV21=render;render=function(){originalRenderV21();try{renderAcademySummary();const section=document.getElementById('n5AcademySection');if(section){const unlocked=isStageUnlocked(2);section.classList.toggle('locked-course',!unlocked);section.querySelectorAll('button').forEach(b=>b.disabled=!unlocked);section.title=unlocked?'N5 Mine course and progression':'Complete Katakana to unlock the N5 Mine course';}}catch(e){console.error('N5 course summary failed',e);}};
 
-// Japanese Miner v3.0 — fully interactive N5 course
+// Language Miner v3.0 — fully interactive N5 course
 let academyView={lesson:null,word:null,grammar:null,reading:null,quiz:null,preview:null,lessonPreviewComplete:false};
 function v3Stars(m){const n=Math.max(0,Math.min(5,Math.ceil(m/20)));return '★'.repeat(n)+'☆'.repeat(5-n);}
 function v3Esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -1786,7 +1786,7 @@ function renderPlacementChoice(){
   const box=document.getElementById('placementContent');
   box.innerHTML=`<p>Tell us how much Japanese you already know. Your answer only chooses a starting point—you can still study every earlier lesson whenever you like.</p>
   <div class="placement-choice-grid">
-    <button id="brandNewChoice" class="placement-choice primary" type="button"><span class="choice-icon">🌱</span><strong>I’m brand new</strong><span>Start with Hiragana and learn from the very beginning of Japanese Miner.</span></button>
+    <button id="brandNewChoice" class="placement-choice primary" type="button"><span class="choice-icon">🌱</span><strong>I’m brand new</strong><span>Start with Hiragana and learn from the very beginning of Language Miner.</span></button>
     <button id="placementChoice" class="placement-choice" type="button"><span class="choice-icon">🧭</span><strong>I already know some Japanese</strong><span>Take a 24-question placement test covering Hiragana, Katakana, and beginner N5 material.</span></button>
   </div>
   <div class="placement-note"><strong>Placement does not skip content permanently.</strong> It unlocks the most suitable mine and adjusts reading support and N5 difficulty.</div>`;
@@ -1930,7 +1930,7 @@ function renderStudyCalendar(){
     btn.addEventListener('click',()=>{
       grid.querySelectorAll('.selected').forEach(x=>x.classList.remove('selected'));btn.classList.add('selected');
       const label=new Date(key+'T12:00:00').toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-      document.getElementById('calendarDayDetail').innerHTML=studied.has(key)?`<strong>✅ ${label}</strong><br>You studied Japanese with Japanese Miner on this day.`:`<strong>${label}</strong><br>${dayDifference(today,key)>0?'This day has not happened yet.':'No completed practice was recorded on this day.'}`;
+      document.getElementById('calendarDayDetail').innerHTML=studied.has(key)?`<strong>✅ ${label}</strong><br>You studied Japanese with Language Miner on this day.`:`<strong>${label}</strong><br>${dayDifference(today,key)>0?'This day has not happened yet.':'No completed practice was recorded on this day.'}`;
     });
     grid.appendChild(btn);
   }
@@ -2485,8 +2485,8 @@ if(state?.colorTheme)document.body.dataset.theme=state.colorTheme;
   function statPercent(){return state.analytics.answered?Math.round(state.analytics.correct/state.analytics.answered*100):0;}
   function renderStatistics(){const days=(state.practiceDates||state.studyDates||[]).length;const weakest=['vocabulary','kanji','grammar','reading','listening'].sort((a,b)=>(state.analytics[a]||0)-(state.analytics[b]||0))[0];return `<div class="stats-feature-grid"><div class="metric-card"><span>Total questions</span><strong class="viz-stat-value">${state.analytics.answered.toLocaleString()}</strong></div><div class="metric-card"><span>Overall accuracy</span><strong class="viz-stat-value">${statPercent()}%</strong></div><div class="metric-card"><span>Study days</span><strong class="viz-stat-value">${days}</strong></div><div class="metric-card"><span>Best streak</span><strong class="viz-stat-value">${Number(state.bestStreak||0)}</strong></div></div><div class="feature-section"><h3>Practice distribution</h3>${['vocabulary','kanji','grammar','reading','listening'].map(k=>`<div class="stat-row"><span>${k[0].toUpperCase()+k.slice(1)}</span><strong>${Number(state.analytics[k]||0).toLocaleString()}</strong></div>`).join('')}<div class="viz-callout"><strong>Recommended focus:</strong> ${weakest[0].toUpperCase()+weakest.slice(1)} has received the least practice so far.</div><h3>Current progression</h3>${stages.map((s,i)=>`<div class="stat-row"><span>${s.label}</span><strong>${Math.round(stageMastery(i))}% mastery · ${Number(state.stageXp[i]||0).toLocaleString()} XP</strong></div>`).join('')}</div>`;}
   function backupPayload(){const profiles=readProfiles();const profile=profiles.find(p=>p.id===activeProfileId);return {format:'JapaneseMinerBackup',version:'4.0',exportedAt:new Date().toISOString(),profile:{name:profile?.name||'Player',id:activeProfileId},state};}
-  function downloadBackup(){const blob=new Blob([JSON.stringify(backupPayload(),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`japanese-miner-${(document.getElementById('activePlayerName')?.textContent||'player').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}-backup.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
-  function importBackup(file){const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(data.format!=='JapaneseMinerBackup'||!data.state)throw new Error('Invalid Japanese Miner backup.');if(!confirm('Replace this profile’s current progress with the imported backup?'))return;state=normalizeState(data.state);repairTutorAccessState();ensureV38();save();render();closeFeatureCenter();setMessage('Account backup imported successfully.','correct');}catch(e){alert(e.message||'The backup could not be imported.');}};reader.readAsText(file);}
+  function downloadBackup(){const blob=new Blob([JSON.stringify(backupPayload(),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`language-miner-${(document.getElementById('activePlayerName')?.textContent||'player').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}-backup.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+  function importBackup(file){const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(data.format!=='JapaneseMinerBackup'||!data.state)throw new Error('Invalid Language Miner backup.');if(!confirm('Replace this profile’s current progress with the imported backup?'))return;state=normalizeState(data.state);repairTutorAccessState();ensureV38();save();render();closeFeatureCenter();setMessage('Account backup imported successfully.','correct');}catch(e){alert(e.message||'The backup could not be imported.');}};reader.readAsText(file);}
   function renderAccount(){const supporter=window.japaneseMinerSupporterEntitlement?.()||{tier:0,connected:false};return `<div class="feature-section"><div class="viz-callout"><strong>Portable account backup</strong><br>This build stores gameplay profiles in the browser. Exporting a backup lets you move progress to another phone or browser safely.</div><button id="exportBackupBtn" class="primary" type="button">⬇️ Export account backup</button><label class="backup-upload">⬆️ Import account backup<input id="importBackupInput" type="file" accept="application/json"></label><h3>Cloud supporter status</h3><p>Patreon verification uses a secure cloud account when configured. Gameplay progress remains local unless you export and import a backup.</p><div class="stat-row"><span>Patreon connection</span><strong>${supporter.tier>0?`Tier ${supporter.tier} · ${supporter.tier_name||'Verified supporter'}`:supporter.connected?'Connected · no paid tier':'Not connected'}</strong></div><div class="stat-row"><span>Active profile ID</span><strong>${activeProfileId||'Not signed in'}</strong></div><div class="stat-row"><span>Selected title</span><strong>${state.selectedTitle||'None'}</strong></div></div>`;}
   function renderFeatureCenter(tab){
     ensureV38();tab=tab==='mistakes'?'notebook':tab;featureTab=tab;featureShell();

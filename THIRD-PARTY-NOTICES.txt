@@ -3,7 +3,7 @@ THIRD-PARTY NOTICES
 N5 course vocabulary source
 Project: elzup/jlpt-word-list
 Source: https://github.com/elzup/jlpt-word-list
-The first 1,000-word Japanese Miner course combines its existing vocabulary with entries adapted from the N5 list and a beginner extension from the N4 list.
+The first 1,000-word Language Miner course combines its existing vocabulary with entries adapted from the N5 list and a beginner extension from the N4 list.
 
 MIT License
 

@@ -1,4 +1,4 @@
-// Japanese Miner v6.4.6 recovered integration layer.
+// Language Miner v6.4.6 recovered integration layer.
 // Restores v6.4.3 accumulated study time after the kana-family branch.
 // v6.4.3 - Accumulated daily study time.
 const STUDY_ACTIVITY_WINDOW_MS=2*60*1000;

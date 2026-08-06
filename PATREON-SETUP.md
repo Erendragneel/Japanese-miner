@@ -1,129 +1,275 @@
-# Japanese Miner Patreon linking setup
+# Language Miner Patreon setup — beginner version
 
-Version 6.4.85 contains the complete browser integration, database migration, and Supabase Edge Functions. The game remains safe to open before configuration: Patreon features stay locked and the Patreon panel explains that administrator setup is required.
+> **Connected release:** The supplied `patreon-config.js` is already enabled for Supabase project `xfvhweapnqooqsyxtvko`. The backend and Patreon webhook were configured and verified on August 7, 2026. Use the instructions below only when rebuilding or moving the integration to another project.
 
-## What this integration does
+This is a one-time administrator job. The **View Patreon memberships** button does not perform this setup; it only opens your public Patreon page.
 
-- Creates a separate Supabase supporter account for each signed-in email.
-- Links that account to Patreon using OAuth 2 authorization code flow.
-- Exchanges the Patreon code and checks membership only inside an Edge Function.
-- Maps the three immutable Patreon tier IDs to Japanese Miner tiers 1, 2, and 3.
-- Keeps upgrades, downgrades, charge changes, and cancellations synchronized through signed Patreon webhooks.
-- Rechecks membership at most every 12 hours when a supporter opens the game.
-- Allows seven days of offline grace after the last successful verification by default.
-- Keeps gameplay saves local. Patreon linking does not upload profile progress.
+When this guide is finished, players will see **Connect Patreon**, sign in to a small supporter account, approve Patreon, and receive the tier reported by their paid membership.
 
-## 1. Create the Supabase project
+## The three pieces
 
-Create a Supabase project for Japanese Miner. In **Authentication > URL Configuration**:
+Think of the system as three boxes:
 
-1. Set the Site URL to the exact deployed game URL.
-2. Add the same URL to the allowed redirect URLs.
-3. Keep email confirmation enabled for production.
+1. **GitHub Pages** displays Language Miner.
+2. **Supabase** securely verifies accounts and membership status.
+3. **Patreon** reports which paid tier the member owns.
 
-Run `supabase/migrations/202608060001_patreon_linking.sql` using the Supabase SQL editor or `supabase db push`. The migration creates the two protected tables and their row-level security policy.
+The included files contain the code for all three boxes, but you must create the Supabase project and connect your Patreon creator account.
 
-## 2. Create the Patreon API v2 client
+## Before you begin
 
-In Patreon's **Clients & API Keys** page, create an API v2 client. Register this exact callback, replacing the project reference:
+Have these ready:
 
-```text
-https://YOUR_PROJECT_REF.supabase.co/functions/v1/patreon-callback
-```
+- Your own Patreon creator login.
+- Your GitHub login for `erendragneel.github.io`.
+- A password manager or private paper for secret values.
+- The extracted Language Miner release folder on your Windows computer.
 
-Record these values privately:
+Never place a Patreon Client Secret, Creator Access Token, webhook secret, database password, or Supabase service-role key in GitHub, `patreon-config.js`, a screenshot, Discord, or a public message.
 
-- Client ID
-- Client Secret
-- Creator Access Token
-- Japanese Miner campaign ID
-- The immutable Patreon tier ID for Supporter
-- The immutable Patreon tier ID for Companion Keeper
-- The immutable Patreon tier ID for Settlement Founder
-
-The game uses tier IDs rather than prices. This prevents annual billing, discounts, or later price changes from granting the wrong benefits.
-
-To find the campaign and tier IDs, call Patreon's API v2 campaigns endpoint using the creator access token and include `tiers`. Do not put the creator token in a browser request or client file.
-
-## 3. Store protected function secrets
-
-Copy the variable names from `supabase/.env.example` and add their real values with **Supabase Edge Function Secrets**. The following values must remain server-only:
-
-- `PATREON_CLIENT_SECRET`
-- `PATREON_CREATOR_ACCESS_TOKEN`
-- `PATREON_WEBHOOK_SECRET`
-- `SUPABASE_SERVICE_ROLE_KEY`
-
-Set `APP_URL` to the full game URL, including the GitHub repository path and trailing slash. Set `ALLOWED_ORIGINS` to the origin only, such as `https://example.github.io`.
-
-## 4. Deploy the functions
-
-Deploy all five functions:
+For the instructions below, the live game address is assumed to be:
 
 ```text
-patreon-start
-patreon-callback
-patreon-status
-patreon-unlink
-patreon-webhook
+https://erendragneel.github.io/
 ```
 
-The included `supabase/config.toml` leaves JWT verification enabled for start, status, and unlink. Only the OAuth callback and signed Patreon webhook are public.
+If the address in your browser is different, use the full address you actually see, including any repository folder and the final `/`.
 
-## 5. Create the Patreon webhook
+---
 
-Create a webhook for:
+## Part 1 — Create your Supabase project
 
-```text
-https://YOUR_PROJECT_REF.supabase.co/functions/v1/patreon-webhook
-```
+1. Open [database.new](https://database.new/) in your browser.
+2. Sign in or create a Supabase account.
+3. Click **New project** if the project form is not already open.
+4. For the project name, enter `language-miner`.
+5. Create a strong database password and save it privately. Do not put it in the game files.
+6. Choose a region near you and click **Create new project**.
+7. Wait until Supabase says the project is ready.
 
-Enable these v2 events:
+### Copy the three public project details
 
-- `members:create`
-- `members:update`
-- `members:delete`
+In Supabase, open your project and find **Project Settings / API** or **Settings / API Keys**. Copy these into a private temporary note:
 
-Copy the webhook secret into `PATREON_WEBHOOK_SECRET`. The function verifies `X-Patreon-Signature` against the untouched request body before parsing the event.
+- **Project reference** — the short ID in the dashboard URL.
+- **Project URL** — looks like `https://abcdefgh.supabase.co`.
+- **Publishable key** — usually starts with `sb_publishable_`. A legacy `anon` key also works.
 
-## 6. Enable the game client
+The Project URL and publishable/anon key are safe for the browser. The database password and secret/service-role keys are not.
 
-Edit `patreon-config.js`:
+## Part 2 — Configure Supabase sign-in addresses
+
+1. In Supabase, click **Authentication**.
+2. Open **URL Configuration**.
+3. Set **Site URL** to:
+
+   ```text
+   https://erendragneel.github.io/
+   ```
+
+4. Under **Redirect URLs**, add:
+
+   ```text
+   https://erendragneel.github.io/**
+   ```
+
+5. Save the changes.
+6. Leave email confirmation enabled for the live game.
+
+## Part 3 — Create the protected database tables
+
+1. In Supabase, click **SQL Editor**.
+2. Click **New query**.
+3. On your computer, open this release file:
+
+   ```text
+   supabase/migrations/202608060001_patreon_linking.sql
+   ```
+
+4. Select and copy everything in that file.
+5. Paste it into the Supabase SQL Editor.
+6. Click **Run**.
+7. A successful run should not show a red error. It creates `patreon_connections` and `patreon_oauth_states` with row-level security.
+
+## Part 4 — Create the Patreon developer client
+
+1. Sign in to Patreon using **your creator account**, not your wife's member account.
+2. Open [Patreon Clients & API Keys](https://www.patreon.com/portal/registration/register-clients).
+3. Create a new API v2 client.
+4. Name it `Language Miner`.
+5. For its redirect/callback address, enter this after replacing `YOUR_PROJECT_REF` with the Supabase project reference copied earlier:
+
+   ```text
+   https://YOUR_PROJECT_REF.supabase.co/functions/v1/patreon-callback
+   ```
+
+6. Save the client.
+7. Copy these values into your private note:
+
+   - Client ID
+   - Client Secret
+   - Creator Access Token
+
+The game requests the Patreon API v2 scopes `identity` and `identity.memberships` when a player connects.
+
+## Part 5 — Find the campaign and tier IDs
+
+Language Miner uses Patreon's permanent numeric IDs, not tier names or prices.
+
+1. In Windows, open the extracted Language Miner folder.
+2. Click the folder address bar, type `powershell`, and press Enter.
+3. Paste this command and press Enter:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\FIND-PATREON-IDS.ps1
+   ```
+
+4. When asked, paste the Creator Access Token. The token remains hidden and is not saved.
+5. The helper will display your campaign ID and tier IDs.
+6. Match the displayed tier titles to:
+
+   - Supporter → `PATREON_TIER_1_ID`
+   - Companion Keeper → `PATREON_TIER_2_ID`
+   - Settlement Founder → `PATREON_TIER_3_ID`
+
+Save those four IDs in your private note.
+
+## Part 6 — Add the protected secrets to Supabase
+
+1. In Supabase, open **Edge Functions**.
+2. Open **Secrets Management**.
+3. Add each key below with its real value:
+
+| Secret name | Value to enter |
+|---|---|
+| `APP_URL` | `https://erendragneel.github.io/` |
+| `ALLOWED_ORIGINS` | `https://erendragneel.github.io` |
+| `PATREON_CLIENT_ID` | Client ID from Patreon |
+| `PATREON_CLIENT_SECRET` | Client Secret from Patreon |
+| `PATREON_CAMPAIGN_ID` | Campaign ID from the helper |
+| `PATREON_CREATOR_ACCESS_TOKEN` | Creator Access Token from Patreon |
+| `PATREON_TIER_1_ID` | Supporter tier ID |
+| `PATREON_TIER_2_ID` | Companion Keeper tier ID |
+| `PATREON_TIER_3_ID` | Settlement Founder tier ID |
+| `PATREON_OFFLINE_GRACE_DAYS` | `7` |
+| `PATREON_USER_AGENT` | `Language Miner - Membership Linking` |
+
+Do not manually expose `SUPABASE_SERVICE_ROLE_KEY`. Hosted Supabase Edge Functions receive the legacy service-role variable automatically.
+
+## Part 7 — Deploy the five Supabase functions
+
+The shared backend files are easiest to deploy together with the Supabase command-line tool.
+
+1. Install the current LTS version of Node.js if the `npx` command is not available on your computer.
+2. Open the extracted Language Miner folder.
+3. Click the folder address bar, type `powershell`, and press Enter.
+4. Run:
+
+   ```powershell
+   npx supabase login
+   ```
+
+5. Approve the Supabase login in the browser window.
+6. Run the following command, replacing `YOUR_PROJECT_REF`:
+
+   ```powershell
+   npx supabase link --project-ref YOUR_PROJECT_REF
+   ```
+
+7. If Supabase requests the database password, enter the private password created in Part 1.
+8. Deploy all five functions:
+
+   ```powershell
+   npx supabase functions deploy
+   ```
+
+9. In the Supabase dashboard, open **Edge Functions** and confirm these five names appear:
+
+   - `patreon-start`
+   - `patreon-callback`
+   - `patreon-status`
+   - `patreon-unlink`
+   - `patreon-webhook`
+
+## Part 8 — Create the Patreon webhook
+
+1. Return to Patreon while signed in as your creator account.
+2. Open [Patreon Webhooks](https://www.patreon.com/portal/registration/register-webhooks).
+3. Create a webhook for your creator campaign.
+4. For the webhook URL, replace the project reference here:
+
+   ```text
+   https://YOUR_PROJECT_REF.supabase.co/functions/v1/patreon-webhook
+   ```
+
+5. Enable these events:
+
+   - `members:create`
+   - `members:update`
+   - `members:delete`
+
+6. Save the webhook.
+7. Copy its webhook secret.
+8. Return to **Supabase → Edge Functions → Secrets Management**.
+9. Add `PATREON_WEBHOOK_SECRET` with that copied value and save it.
+
+Supabase makes updated secrets available to the functions without another deployment.
+
+## Part 9 — Turn on Patreon inside Language Miner
+
+Open `patreon-config.js` and change the placeholder values. The finished file should look like this, using your real public values:
 
 ```js
 window.JAPANESE_MINER_PATREON_CONFIG = Object.freeze({
   enabled: true,
   supabaseUrl: "https://YOUR_PROJECT_REF.supabase.co",
-  supabaseAnonKey: "YOUR_PUBLIC_SUPABASE_ANON_KEY",
+  supabaseAnonKey: "YOUR_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY",
   patreonJoinUrl: "https://www.patreon.com/cw/Erendragneel/membership",
   offlineGraceDays: 7
 });
 ```
 
-The Supabase project URL and anon key are designed to be public. Do not add any protected Patreon or Supabase secret to this file.
+Only the Project URL and public publishable/anon key go in this browser file. Never place the Client Secret, Creator Access Token, webhook secret, database password, or service-role key here.
 
-## 7. Production test checklist
+Upload the edited release files to the GitHub repository that publishes `https://erendragneel.github.io/`.
 
-Patreon does not provide a separate sandbox API, so use a controlled Patreon test/member account.
+## Part 10 — Test it safely
 
-1. Open Japanese Miner and sign in to a local player profile.
-2. Open **Menu > Patreon**.
-3. Create and confirm a supporter cloud account.
-4. Sign in and select **Connect Patreon**.
-5. Approve access using the Patreon member account.
-6. Confirm Tier 1 unlocks cosmetics and titles.
-7. Upgrade to Tier 2 and confirm companions unlock after refresh or webhook delivery.
-8. Upgrade to Tier 3 and confirm settlement features unlock.
-9. Downgrade and confirm higher benefits lock while lower-tier benefits remain.
-10. Cancel or produce a former/declined membership and confirm the paid tier becomes zero.
-11. Disconnect inside the game and confirm this unlinks access without cancelling the Patreon subscription.
-12. Confirm the same supporter account restores its tier on another device after signing in.
+Use your wife's Patreon member account or another controlled member account for this test. Do not use your admin/developer game profile because that profile already receives the developer Tier 3 override.
 
-## Security notes
+1. Open Language Miner in a private/incognito browser window.
+2. Sign in to a normal local player profile.
+3. Open **Menu → Patreon**.
+4. Create a supporter cloud account with an email and password.
+5. Confirm the email if Supabase sends a confirmation message.
+6. Return to Language Miner and sign in to that supporter cloud account.
+7. Click **Connect Patreon**.
+8. Before approving, verify Patreon shows the member account you intend to test—not your creator account by mistake.
+9. Approve the connection.
+10. Return to the game and click **Refresh membership** if the tier does not appear immediately.
+11. Confirm the correct tier is shown and its game features unlock.
 
-- Never commit `.env`, creator tokens, service-role keys, Client Secrets, or webhook secrets.
-- The browser never receives or stores Patreon access tokens.
-- A Patreon account can be linked to only one Supabase supporter account.
-- Webhooks update only an account that was previously linked through OAuth.
-- The backend checks campaign ID, active patron status, entitled tier IDs, and rejected charge states.
-- Frontend gating is suitable for game cosmetics. Truly private downloadable assets would need to be served from an authenticated backend rather than included in the public ZIP.
+## What success looks like
+
+- The yellow **Administrator setup required** card disappears.
+- The panel offers supporter account sign-in.
+- After sign-in, it shows **Connect Patreon**.
+- After Patreon approval, it displays the verified tier.
+- Upgrades, downgrades, payment failures, and cancellations update through the webhook or the next membership refresh.
+
+## If something fails
+
+- **Still says setup required:** `enabled` is not `true`, or the Project URL/public key in `patreon-config.js` is still a placeholder.
+- **Connect Patreon reports an error:** recheck the callback address, client ID, Client Secret, and deployed functions.
+- **Connected but tier is zero:** recheck the campaign ID, tier IDs, member status, and that the player authorized the correct Patreon account.
+- **Changes do not update:** recheck the webhook URL, webhook events, and `PATREON_WEBHOOK_SECRET`.
+- **Email sign-in fails:** recheck Supabase Authentication settings and email confirmation.
+
+## Security rules
+
+- Keep all protected values in Supabase Edge Function Secrets.
+- Never commit `.env` files or private tokens.
+- The browser never stores Patreon access tokens.
+- A Patreon account can link to only one supporter cloud account.
+- Patreon webhooks are verified before their contents are trusted.
+- Existing Language Miner save data remains local to the browser unless the player exports a backup.

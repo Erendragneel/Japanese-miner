@@ -1,5 +1,5 @@
 /*
- * Japanese Miner N5 vocabulary course: 1,000 unique playable entries.
+ * Language Miner N5 vocabulary course: 1,000 unique playable entries.
  * The first 112 entries preserve existing player mastery IDs.
  * Supplemental list source: elzup/jlpt-word-list (MIT License).
  * Source: https://github.com/elzup/jlpt-word-list

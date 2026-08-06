@@ -1,4 +1,4 @@
-project_id = "japanese-miner-patreon"
+project_id = "language-miner-patreon"
 
 [functions.patreon-callback]
 verify_jwt = false

@@ -1,6 +1,6 @@
 {
-  "name": "Japanese Miner",
-  "short_name": "J-Miner",
+  "name": "Language Miner",
+  "short_name": "L-Miner",
   "description": "Learn Japanese through mining, mastery, spoken pronunciation, and smart review.",
   "id": "./",
   "start_url": "./",
