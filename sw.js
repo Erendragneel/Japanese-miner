@@ -1,4 +1,4 @@
-const CACHE_NAME='japanese-miner-v6.4.84-deferred-test-treasure';
+const CACHE_NAME='japanese-miner-v6.4.88-wrong-answers-only';
 const APP_SHELL=[
   './',
   './index.html',
@@ -10,6 +10,8 @@ const APP_SHELL=[
   './v5-6400.js',
   './v6.js',
   './recovery-6460.js',
+  './patreon-config.js',
+  './patreon-linking.js',
   './manifest.webmanifest',
   './anime-miner-v1.png',
   './japanese-miner-pickaxe-180-v6435.png',

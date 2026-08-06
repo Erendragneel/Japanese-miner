@@ -1,0 +1,7 @@
+project_id = "japanese-miner-patreon"
+
+[functions.patreon-callback]
+verify_jwt = false
+
+[functions.patreon-webhook]
+verify_jwt = false
