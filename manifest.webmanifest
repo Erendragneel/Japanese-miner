@@ -1,7 +1,7 @@
 {
   "name": "Language Miner",
   "short_name": "L-Miner",
-  "description": "Learn Japanese through mining, mastery, spoken pronunciation, and smart review.",
+  "description": "Learn languages through mining, mastery, pronunciation, and smart review.",
   "id": "./",
   "start_url": "./",
   "scope": "./",
@@ -14,7 +14,9 @@
   "background_color": "#101522",
   "theme_color": "#101522",
   "icons": [
-    {"src":"japanese-miner-pickaxe-192-v6435.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"japanese-miner-pickaxe-512-v6435.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+    {"src":"language-miner-icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"language-miner-icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"language-miner-icon-maskable-192.png","sizes":"192x192","type":"image/png","purpose":"maskable"},
+    {"src":"language-miner-icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
   ]
 }

@@ -7,6 +7,7 @@ const LEGACY_SESSION_PREFIX="jm_patreon_session_v1:";
 
 function enabled(){return CONFIG.enabled===true&&/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(String(CONFIG.supabaseUrl||""))&&String(CONFIG.supabaseAnonKey||"").length>30;}
 function authUrl(path){return `${String(CONFIG.supabaseUrl).replace(/\/$/,"")}/auth/v1/${path}`;}
+function restUrl(path){return `${String(CONFIG.supabaseUrl).replace(/\/$/,"")}/rest/v1/${path}`;}
 function readJson(key){try{return JSON.parse(localStorage.getItem(key)||"null");}catch{return null;}}
 function writeJson(key,value){try{if(value==null)localStorage.removeItem(key);else localStorage.setItem(key,JSON.stringify(value));}catch{}}
 function normalizeSession(payload){
@@ -79,6 +80,15 @@ async function signOut(){
   saveSession(null);
   try{for(let index=localStorage.length-1;index>=0;index--){const key=localStorage.key(index);if(String(key||"").startsWith(LEGACY_SESSION_PREFIX))localStorage.removeItem(key);}}catch{}
 }
+async function adminStatus(candidate=session){
+  const current=candidate?.accessToken?candidate:await validSession();
+  const userId=current?.user?.id;
+  if(!userId)return false;
+  const response=await fetch(restUrl(`app_admins?user_id=eq.${encodeURIComponent(userId)}&select=user_id&limit=1`),{headers:{apikey:String(CONFIG.supabaseAnonKey||""),Authorization:`Bearer ${current.accessToken}`,Accept:"application/json"}});
+  if(!response.ok)return false;
+  let rows=[];try{rows=await response.json();}catch{}
+  return Array.isArray(rows)&&rows.some(row=>row?.user_id===userId);
+}
 
-window.languageMinerCloudAuth=Object.freeze({enabled,getSession,saveSession,bootstrap,validSession,signIn,signUp,signOut});
+window.languageMinerCloudAuth=Object.freeze({enabled,getSession,saveSession,bootstrap,validSession,signIn,signUp,signOut,adminStatus});
 })();

@@ -338,7 +338,6 @@ let state=structuredClone(DEFAULT_STATE);
 let appStarted=false;
 let isDeveloperSession=false;
 const DEVELOPER_NAME="Erendragneel";
-const DEVELOPER_PIN_HASH=pinHash("217838",DEVELOPER_NAME);
 function tutorAccessGranted(){return isDeveloperSession===true;}
 function tutorQuestion(question){return !!question&&(question.curriculum==="tutor"||String(question.kind||"").startsWith("tutor-"));}
 function questionAllowedForSession(question){return tutorAccessGranted()||!tutorQuestion(question);}
@@ -379,7 +378,6 @@ function readProfiles(){
 }
 function writeProfiles(profiles){localStorage.setItem(PROFILE_INDEX_KEY,JSON.stringify(profiles));}
 function normalizeName(name){return name.trim().replace(/\s+/g," ");}
-function profileIdFromName(name){return normalizeName(name).toLowerCase().replace(/[^a-z0-9_-]+/g,"-").replace(/^-+|-+$/g,"")||`player-${Date.now()}`;}
 function setAuthOverlayVisible(visible){
   const authOverlay=document.getElementById("authOverlay");
   if(!authOverlay)return;
@@ -391,12 +389,6 @@ function setAuthOverlayVisible(visible){
   authOverlay.setAttribute("aria-hidden",String(dismissed));
   if(dismissed)authOverlay.style.setProperty("display","none","important");
   else authOverlay.style.removeProperty("display");
-}
-function pinHash(pin,name){
-  let h=2166136261;
-  const text=`${normalizeName(name).toLowerCase()}|${pin}|japanese-miner`;
-  for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}
-  return (h>>>0).toString(16).padStart(8,"0");
 }
 function normalizeState(raw){
   const next={...structuredClone(DEFAULT_STATE),...(raw||{})};
@@ -465,9 +457,9 @@ function normalizeState(raw){
   next.placementResult=next.placementResult&&typeof next.placementResult==="object"?next.placementResult:null;
   return next;
 }
-function loadProfile(profile){
+function loadProfile(profile,verifiedCloudAdmin=false){
   activeProfileId=profile.id;
-  isDeveloperSession=profile.name.toLowerCase()===DEVELOPER_NAME.toLowerCase() && profile.pinHash===DEVELOPER_PIN_HASH;
+  isDeveloperSession=verifiedCloudAdmin===true&&!!profile.cloudUserId;
   localStorage.setItem(ACTIVE_PROFILE_KEY,profile.id);
   setAuthOverlayVisible(false);
   let raw=null;
@@ -1507,7 +1499,7 @@ document.getElementById("adminInfiniteHearts").addEventListener("change",e=>{
 });
 
 
-let authMode="login",pendingCloudProfileId="";
+let authMode="login";
 function setAuthMessage(text,good=false){const el=document.getElementById("authMessage");el.textContent=text;el.style.color=good?"var(--green)":"var(--red)";}
 function showAuthMode(mode){
   authMode=mode;
@@ -1517,56 +1509,44 @@ function showAuthMode(mode){
   document.getElementById("displayNameWrap").style.display=create?"grid":"none";
   document.getElementById("migrateWrap").style.display=create&&localStorage.getItem("jm_save")?"flex":"none";
   document.getElementById("authSubmitBtn").textContent=create?"Create account":"Sign in";
-  document.getElementById("authPassword").setAttribute("autocomplete",create?"new-password":"current-password");
+  const password=document.getElementById("authPassword"),passwordToggle=document.getElementById("authPasswordToggle");
+  password.setAttribute("autocomplete",create?"new-password":"current-password");password.type="password";
+  passwordToggle.textContent="👁️";passwordToggle.setAttribute("aria-label","Show password");passwordToggle.setAttribute("aria-pressed","false");
   setAuthMessage("");
-}
-function renderProfileList(){
-  const box=document.getElementById("profileList"),legacy=readProfiles().filter(profile=>!profile.cloudUserId);box.innerHTML="";
-  if(!legacy.length){box.innerHTML='<div class="small">No older local profiles exist on this device.</div>';return;}
-  legacy.forEach(profile=>{
-    const row=document.createElement("div");row.className="profile-row";
-    row.innerHTML=`<div><strong>👤 ${profile.name}</strong><br><small>Last played ${profile.lastPlayed?new Date(profile.lastPlayed).toLocaleDateString():"Never"}</small></div><button type="button">Use</button>`;
-    row.querySelector("button").addEventListener("click",()=>{document.getElementById("legacyUsername").value=profile.name;document.getElementById("legacyPin").focus();});
-    box.appendChild(row);
-  });
 }
 function cloudDisplayName(user,requested=""){
   const metadata=user?.user_metadata||{},fallback=String(user?.email||"Miner").split("@")[0].replace(/[._-]+/g," ");
   return normalizeName(requested||metadata.display_name||metadata.game_profile_name||fallback||"Miner").slice(0,20)||"Miner";
 }
-function isDeveloperProfileRecord(profile){return profile?.name?.toLowerCase()===DEVELOPER_NAME.toLowerCase()&&profile.pinHash===DEVELOPER_PIN_HASH;}
-function loadCloudProfile(session,requestedName=""){
+function isLegacyOwnerProfile(profile){return !profile?.cloudUserId&&profile?.name?.toLowerCase()===DEVELOPER_NAME.toLowerCase();}
+async function loadCloudProfile(session,requestedName=""){
   const user=session?.user;if(!user?.id)throw new Error("The online account did not include a player ID.");
-  const profiles=readProfiles(),name=cloudDisplayName(user,requestedName),metadata=user.user_metadata||{};
-  const requestedLegacyId=String(pendingCloudProfileId||session.migratedProfileId||metadata.game_profile_id||"");
-  const selectedLegacy=requestedLegacyId?profiles.find(item=>item.id===requestedLegacyId&&!item.cloudUserId&&!isDeveloperProfileRecord(item)):null;
+  const verifiedCloudAdmin=await window.languageMinerCloudAuth?.adminStatus?.(session)===true;
+  const profiles=readProfiles(),name=cloudDisplayName(user,requestedName);
+  const selectedLegacy=verifiedCloudAdmin?profiles.find(isLegacyOwnerProfile):null;
   let profile=selectedLegacy||profiles.find(item=>item.cloudUserId===user.id),attachedExisting=!!selectedLegacy;
   if(selectedLegacy){
     const formerCloudProfile=profiles.find(item=>item.cloudUserId===user.id&&item.id!==selectedLegacy.id);
     if(formerCloudProfile){
       formerCloudProfile.name=`${String(formerCloudProfile.name||"Cloud save").slice(0,13)} Backup`;
-      formerCloudProfile.pinHash=selectedLegacy.pinHash;
       formerCloudProfile.detachedFromCloudAt=Date.now();
       delete formerCloudProfile.cloudUserId;delete formerCloudProfile.email;
     }
     selectedLegacy.cloudUserId=user.id;selectedLegacy.email=user.email||"";
   }
   if(!profile){
-    const candidate=profiles.find(item=>!item.cloudUserId&&!isDeveloperProfileRecord(item)&&(item.id===requestedLegacyId||item.name.toLowerCase()===name.toLowerCase()));
-    profile=candidate||{id:`cloud-${user.id}`,name,createdAt:Date.now(),lastPlayed:Date.now()};
+    profile={id:`cloud-${user.id}`,name,createdAt:Date.now(),lastPlayed:Date.now()};
     profile.cloudUserId=user.id;profile.email=user.email||"";
-    attachedExisting=!!candidate;
-    if(!candidate)profiles.push(profile);
+    profiles.push(profile);
   }
-  pendingCloudProfileId="";
-  profile.name=profile.name||name;profile.email=user.email||profile.email||"";profile.lastPlayed=Date.now();
+  profile.name=verifiedCloudAdmin?DEVELOPER_NAME:(profile.name||name);profile.email=user.email||profile.email||"";profile.lastPlayed=Date.now();
   const hadLocalSave=localStorage.getItem(profileStorageKey(profile.id))!=null;
   if(!hadLocalSave){
     let initial=structuredClone(DEFAULT_STATE);
     if(document.getElementById("migrateOldSave").checked&&localStorage.getItem("jm_save")){try{initial=JSON.parse(localStorage.getItem("jm_save"))||initial;}catch{}localStorage.removeItem("jm_save");}
     localStorage.setItem(profileStorageKey(profile.id),JSON.stringify(normalizeState(initial)));
   }
-  writeProfiles(profiles);loadProfile(profile);
+  writeProfiles(profiles);loadProfile(profile,verifiedCloudAdmin);
   if(!hadLocalSave)setTimeout(()=>openPlacementOnboarding(true),120);
   if(attachedExisting)setTimeout(()=>setMessage("Your Language Miner account is now attached to this existing save. Its progress and Patreon access are preserved.","correct"),120);
   return profile;
@@ -1578,42 +1558,22 @@ async function submitAuth(){
   if(password.length<8){setAuthMessage("Password must contain at least 8 characters.");return;}
   if(authMode==="create"&&(name.length<2||name.length>20)){setAuthMessage("Player name must contain 2–20 characters.");return;}
   const button=document.getElementById("authSubmitBtn");button.disabled=true;button.textContent=authMode==="create"?"Creating account…":"Signing in…";
-  try{const session=authMode==="create"?await cloud.signUp(name,email,password):await cloud.signIn(email,password);loadCloudProfile(session,authMode==="create"?name:"");}
+  try{const session=authMode==="create"?await cloud.signUp(name,email,password):await cloud.signIn(email,password);await loadCloudProfile(session,authMode==="create"?name:"");document.getElementById("authPassword").value="";}
   catch(error){const message=String(error?.message||"Account access failed.");setAuthMessage(/invalid login credentials/i.test(message)?"Email or password is incorrect.":message);}
   finally{button.disabled=false;button.textContent=authMode==="create"?"Create account":"Sign in";}
-}
-function submitLegacyAuth(){
-  const name=normalizeName(document.getElementById("legacyUsername").value),pin=document.getElementById("legacyPin").value.trim();
-  if(name.length<2){setAuthMessage("Enter the existing player name.");return;}
-  if(!/^\d{4,8}$/.test(pin)){setAuthMessage("PIN must contain 4–8 digits.");return;}
-  const profiles=readProfiles();let profile=profiles.find(p=>p.name.toLowerCase()===name.toLowerCase());
-  const developerCredentials=name.toLowerCase()===DEVELOPER_NAME.toLowerCase()&&pinHash(pin,DEVELOPER_NAME)===DEVELOPER_PIN_HASH;
-  if(developerCredentials){
-    if(!profile){let id=profileIdFromName(DEVELOPER_NAME),suffix=2;while(profiles.some(p=>p.id===id))id=`${profileIdFromName(DEVELOPER_NAME)}-${suffix++}`;profile={id,name:DEVELOPER_NAME,pinHash:DEVELOPER_PIN_HASH,createdAt:Date.now(),lastPlayed:Date.now()};profiles.push(profile);localStorage.setItem(profileStorageKey(id),JSON.stringify(normalizeState(structuredClone(DEFAULT_STATE))));}
-    else{profile.name=DEVELOPER_NAME;profile.pinHash=DEVELOPER_PIN_HASH;profile.lastPlayed=Date.now();}
-    writeProfiles(profiles);loadProfile(profile);return;
-  }
-  if(!profile||profile.pinHash!==pinHash(pin,profile.name)){setAuthMessage("Player name or PIN is incorrect.");return;}
-  profile.lastPlayed=Date.now();writeProfiles(profiles);loadProfile(profile);
 }
 document.getElementById("loginTabBtn").onclick=()=>showAuthMode("login");
 document.getElementById("createTabBtn").onclick=()=>showAuthMode("create");
 document.getElementById("authSubmitBtn").onclick=submitAuth;
-document.getElementById("legacyAuthSubmitBtn").onclick=submitLegacyAuth;
 ["authUsername","authEmail","authPassword"].forEach(id=>document.getElementById(id).addEventListener("keydown",e=>{if(e.key==="Enter")submitAuth();}));
-["legacyUsername","legacyPin"].forEach(id=>document.getElementById(id).addEventListener("keydown",e=>{if(e.key==="Enter")submitLegacyAuth();}));
+document.getElementById("authPasswordToggle").addEventListener("click",()=>{const input=document.getElementById("authPassword"),button=document.getElementById("authPasswordToggle"),visible=input.type==="text";input.type=visible?"password":"text";button.textContent=visible?"👁️":"🙈";button.setAttribute("aria-label",visible?"Show password":"Hide password");button.setAttribute("aria-pressed",String(!visible));input.focus();});
 window.languageMinerShowSignIn=async()=>{
-  const profile=readProfiles().find(item=>item.id===activeProfileId);
-  pendingCloudProfileId=profile&&!profile.cloudUserId&&!isDeveloperProfileRecord(profile)?profile.id:"";
   await logout();
-  if(pendingCloudProfileId)setAuthMessage("Sign in or create your Language Miner account. It will be attached to the existing save you just verified.",true);
 };
 async function initializeUnifiedAuth(){
-  showAuthMode("login");renderProfileList();
+  showAuthMode("login");
   const session=await window.languageMinerCloudAuth?.bootstrap?.();
-  if(session){loadCloudProfile(session);return;}
-  const remembered=localStorage.getItem(ACTIVE_PROFILE_KEY),rememberedProfile=readProfiles().find(profile=>profile.id===remembered);
-  if(rememberedProfile&&!rememberedProfile.cloudUserId){loadProfile(rememberedProfile);return;}
+  if(session){await loadCloudProfile(session);return;}
   setAuthOverlayVisible(true);
 }
 initializeUnifiedAuth();
