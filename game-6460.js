@@ -486,10 +486,12 @@ function loadProfile(profile){
   else render();
   if(unlockedGemRewards.length)setMessage(`Mine access reward: ${unlockedGemRewards.length} unlocked gemstone${unlockedGemRewards.length===1?' was':'s were'} added to this save. Use the heart upgrades in Practice Health when ready.`,"correct");
   requestAnimationFrame(()=>{if(activeProfileId)setAuthOverlayVisible(false);});
-  window.dispatchEvent(new CustomEvent("jm-profile-loaded",{detail:{id:profile.id,name:profile.name}}));
+  window.dispatchEvent(new CustomEvent("jm-profile-loaded",{detail:{id:profile.id,name:profile.name,cloudUserId:profile.cloudUserId||null,email:profile.email||null}}));
 }
-function logout(){
+async function logout(){
+  const activeProfile=readProfiles().find(profile=>profile.id===activeProfileId);
   save();activeProfileId=null;isDeveloperSession=false;
+  if(activeProfile?.cloudUserId)await window.languageMinerCloudAuth?.signOut?.();
   syncOwnerTutorControls();
   closeDeveloperPanel();localStorage.removeItem(ACTIVE_PROFILE_KEY);
   window.dispatchEvent(new CustomEvent("jm-profile-logged-out"));
@@ -497,7 +499,8 @@ function logout(){
   setAuthOverlayVisible(true);
   showAuthMode("login");renderProfileList();
 }
-window.japaneseMinerActiveProfile=()=>{if(!activeProfileId)return null;const profile=readProfiles().find(item=>item.id===activeProfileId);return profile?{id:profile.id,name:profile.name}:{id:activeProfileId,name:"Player"};};
+window.japaneseMinerActiveProfile=()=>{if(!activeProfileId)return null;const profile=readProfiles().find(item=>item.id===activeProfileId);return profile?{id:profile.id,name:profile.name,cloudUserId:profile.cloudUserId||null,email:profile.email||null}:{id:activeProfileId,name:"Player",cloudUserId:null,email:null};};
+window.languageMinerLogout=logout;
 function save(){
   if(!activeProfileId) return;
   try{ localStorage.setItem(profileStorageKey(activeProfileId),JSON.stringify(state)); }
@@ -1511,58 +1514,68 @@ function showAuthMode(mode){
   const create=mode==="create";
   document.getElementById("loginTabBtn").className=create?"":"primary";
   document.getElementById("createTabBtn").className=create?"primary":"";
-  document.getElementById("confirmPinWrap").style.display=create?"grid":"none";
+  document.getElementById("displayNameWrap").style.display=create?"grid":"none";
   document.getElementById("migrateWrap").style.display=create&&localStorage.getItem("jm_save")?"flex":"none";
-  document.getElementById("authSubmitBtn").textContent=create?"Create profile":"Sign in";
-  document.getElementById("authPin").setAttribute("autocomplete",create?"new-password":"current-password");
+  document.getElementById("authSubmitBtn").textContent=create?"Create account":"Sign in";
+  document.getElementById("authPassword").setAttribute("autocomplete",create?"new-password":"current-password");
   setAuthMessage("");
 }
 function renderProfileList(){
-  const box=document.getElementById("profileList");const profiles=readProfiles();box.innerHTML="";
-  if(!profiles.length){box.innerHTML='<div class="small">No player profiles exist on this device yet.</div>';return;}
-  profiles.forEach(profile=>{
+  const box=document.getElementById("profileList"),legacy=readProfiles().filter(profile=>!profile.cloudUserId);box.innerHTML="";
+  if(!legacy.length){box.innerHTML='<div class="small">No older local profiles exist on this device.</div>';return;}
+  legacy.forEach(profile=>{
     const row=document.createElement("div");row.className="profile-row";
     row.innerHTML=`<div><strong>👤 ${profile.name}</strong><br><small>Last played ${profile.lastPlayed?new Date(profile.lastPlayed).toLocaleDateString():"Never"}</small></div><button type="button">Use</button>`;
-    row.querySelector("button").addEventListener("click",()=>{document.getElementById("authUsername").value=profile.name;document.getElementById("authPin").focus();});
+    row.querySelector("button").addEventListener("click",()=>{document.getElementById("legacyUsername").value=profile.name;document.getElementById("legacyPin").focus();});
     box.appendChild(row);
   });
 }
-function submitAuth(){
-  const name=normalizeName(document.getElementById("authUsername").value);
-  const pin=document.getElementById("authPin").value.trim();
-  if(name.length<2){setAuthMessage("Player name must contain at least 2 characters.");return;}
-  if(!/^\d{4,8}$/.test(pin)){setAuthMessage("PIN must contain 4–8 digits.");return;}
-  const profiles=readProfiles();
-  if(authMode==="create"){
-    const confirmPin=document.getElementById("authPinConfirm").value.trim();
-    if(pin!==confirmPin){setAuthMessage("The PIN entries do not match.");return;}
-    if(profiles.some(p=>p.name.toLowerCase()===name.toLowerCase())){setAuthMessage("A profile with that player name already exists.");return;}
-    let id=profileIdFromName(name),suffix=2;while(profiles.some(p=>p.id===id))id=`${profileIdFromName(name)}-${suffix++}`;
-    const profile={id,name,pinHash:pinHash(pin,name),createdAt:Date.now(),lastPlayed:Date.now()};
-    profiles.push(profile);writeProfiles(profiles);
-    let initial=structuredClone(DEFAULT_STATE);
-    if(document.getElementById("migrateOldSave").checked&&localStorage.getItem("jm_save")){
-      try{initial=JSON.parse(localStorage.getItem("jm_save"))||initial;}catch{}
-      localStorage.removeItem("jm_save");
-    }
-    localStorage.setItem(profileStorageKey(id),JSON.stringify(normalizeState(initial)));
-    loadProfile(profile);
-    setTimeout(()=>openPlacementOnboarding(true),120);
-    return;
+function cloudDisplayName(user,requested=""){
+  const metadata=user?.user_metadata||{},fallback=String(user?.email||"Miner").split("@")[0].replace(/[._-]+/g," ");
+  return normalizeName(requested||metadata.display_name||metadata.game_profile_name||fallback||"Miner").slice(0,20)||"Miner";
+}
+function loadCloudProfile(session,requestedName=""){
+  const user=session?.user;if(!user?.id)throw new Error("The online account did not include a player ID.");
+  const profiles=readProfiles(),name=cloudDisplayName(user,requestedName),metadata=user.user_metadata||{};
+  let profile=profiles.find(item=>item.cloudUserId===user.id);
+  if(!profile){
+    const legacyId=String(session.migratedProfileId||metadata.game_profile_id||"");
+    const candidate=profiles.find(item=>!item.cloudUserId&&item.name.toLowerCase()!==DEVELOPER_NAME.toLowerCase()&&(item.id===legacyId||item.name.toLowerCase()===name.toLowerCase()));
+    profile=candidate||{id:`cloud-${user.id}`,name,createdAt:Date.now(),lastPlayed:Date.now()};
+    profile.cloudUserId=user.id;profile.email=user.email||"";
+    if(!candidate)profiles.push(profile);
   }
-  let profile=profiles.find(p=>p.name.toLowerCase()===name.toLowerCase());
-  const developerCredentials=name.toLowerCase()===DEVELOPER_NAME.toLowerCase() && pinHash(pin,DEVELOPER_NAME)===DEVELOPER_PIN_HASH;
+  profile.name=profile.name||name;profile.email=user.email||profile.email||"";profile.lastPlayed=Date.now();
+  const hadLocalSave=localStorage.getItem(profileStorageKey(profile.id))!=null;
+  if(!hadLocalSave){
+    let initial=structuredClone(DEFAULT_STATE);
+    if(document.getElementById("migrateOldSave").checked&&localStorage.getItem("jm_save")){try{initial=JSON.parse(localStorage.getItem("jm_save"))||initial;}catch{}localStorage.removeItem("jm_save");}
+    localStorage.setItem(profileStorageKey(profile.id),JSON.stringify(normalizeState(initial)));
+  }
+  writeProfiles(profiles);loadProfile(profile);
+  if(!hadLocalSave)setTimeout(()=>openPlacementOnboarding(true),120);
+  return profile;
+}
+async function submitAuth(){
+  const cloud=window.languageMinerCloudAuth,email=document.getElementById("authEmail").value.trim(),password=document.getElementById("authPassword").value,name=normalizeName(document.getElementById("authUsername").value);
+  if(!cloud?.enabled?.()){setAuthMessage("Online accounts are not configured yet.");return;}
+  if(!/^\S+@\S+\.\S+$/.test(email)){setAuthMessage("Enter a valid email address.");return;}
+  if(password.length<8){setAuthMessage("Password must contain at least 8 characters.");return;}
+  if(authMode==="create"&&(name.length<2||name.length>20)){setAuthMessage("Player name must contain 2–20 characters.");return;}
+  const button=document.getElementById("authSubmitBtn");button.disabled=true;button.textContent=authMode==="create"?"Creating account…":"Signing in…";
+  try{const session=authMode==="create"?await cloud.signUp(name,email,password):await cloud.signIn(email,password);loadCloudProfile(session,authMode==="create"?name:"");}
+  catch(error){const message=String(error?.message||"Account access failed.");setAuthMessage(/invalid login credentials/i.test(message)?"Email or password is incorrect.":message);}
+  finally{button.disabled=false;button.textContent=authMode==="create"?"Create account":"Sign in";}
+}
+function submitLegacyAuth(){
+  const name=normalizeName(document.getElementById("legacyUsername").value),pin=document.getElementById("legacyPin").value.trim();
+  if(name.length<2){setAuthMessage("Enter the existing player name.");return;}
+  if(!/^\d{4,8}$/.test(pin)){setAuthMessage("PIN must contain 4–8 digits.");return;}
+  const profiles=readProfiles();let profile=profiles.find(p=>p.name.toLowerCase()===name.toLowerCase());
+  const developerCredentials=name.toLowerCase()===DEVELOPER_NAME.toLowerCase()&&pinHash(pin,DEVELOPER_NAME)===DEVELOPER_PIN_HASH;
   if(developerCredentials){
-    if(!profile){
-      let id=profileIdFromName(DEVELOPER_NAME),suffix=2;while(profiles.some(p=>p.id===id))id=`${profileIdFromName(DEVELOPER_NAME)}-${suffix++}`;
-      profile={id,name:DEVELOPER_NAME,pinHash:DEVELOPER_PIN_HASH,createdAt:Date.now(),lastPlayed:Date.now()};
-      profiles.push(profile);
-      localStorage.setItem(profileStorageKey(id),JSON.stringify(normalizeState(structuredClone(DEFAULT_STATE))));
-    }else{
-      profile.name=DEVELOPER_NAME;
-      profile.pinHash=DEVELOPER_PIN_HASH;
-      profile.lastPlayed=Date.now();
-    }
+    if(!profile){let id=profileIdFromName(DEVELOPER_NAME),suffix=2;while(profiles.some(p=>p.id===id))id=`${profileIdFromName(DEVELOPER_NAME)}-${suffix++}`;profile={id,name:DEVELOPER_NAME,pinHash:DEVELOPER_PIN_HASH,createdAt:Date.now(),lastPlayed:Date.now()};profiles.push(profile);localStorage.setItem(profileStorageKey(id),JSON.stringify(normalizeState(structuredClone(DEFAULT_STATE))));}
+    else{profile.name=DEVELOPER_NAME;profile.pinHash=DEVELOPER_PIN_HASH;profile.lastPlayed=Date.now();}
     writeProfiles(profiles);loadProfile(profile);return;
   }
   if(!profile||profile.pinHash!==pinHash(pin,profile.name)){setAuthMessage("Player name or PIN is incorrect.");return;}
@@ -1571,16 +1584,19 @@ function submitAuth(){
 document.getElementById("loginTabBtn").onclick=()=>showAuthMode("login");
 document.getElementById("createTabBtn").onclick=()=>showAuthMode("create");
 document.getElementById("authSubmitBtn").onclick=submitAuth;
-["authUsername","authPin","authPinConfirm"].forEach(id=>document.getElementById(id).addEventListener("keydown",e=>{if(e.key==="Enter")submitAuth();}));
-showAuthMode("login");renderProfileList();
-const remembered=localStorage.getItem(ACTIVE_PROFILE_KEY);
-const rememberedProfile=readProfiles().find(p=>p.id===remembered);
-if(rememberedProfile){
-  document.getElementById("authUsername").value=rememberedProfile.name;
-  // This is a local profile on the same browser. Keep it signed in across refreshes;
-  // the explicit Log out button still clears the remembered session.
-  loadProfile(rememberedProfile);
+document.getElementById("legacyAuthSubmitBtn").onclick=submitLegacyAuth;
+["authUsername","authEmail","authPassword"].forEach(id=>document.getElementById(id).addEventListener("keydown",e=>{if(e.key==="Enter")submitAuth();}));
+["legacyUsername","legacyPin"].forEach(id=>document.getElementById(id).addEventListener("keydown",e=>{if(e.key==="Enter")submitLegacyAuth();}));
+window.languageMinerShowSignIn=()=>logout();
+async function initializeUnifiedAuth(){
+  showAuthMode("login");renderProfileList();
+  const session=await window.languageMinerCloudAuth?.bootstrap?.();
+  if(session){loadCloudProfile(session);return;}
+  const remembered=localStorage.getItem(ACTIVE_PROFILE_KEY),rememberedProfile=readProfiles().find(profile=>profile.id===remembered);
+  if(rememberedProfile&&!rememberedProfile.cloudUserId){loadProfile(rememberedProfile);return;}
+  setAuthOverlayVisible(true);
 }
+initializeUnifiedAuth();
 
 
 // Integrated JLPT N5 Mine course v2.1

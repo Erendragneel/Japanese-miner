@@ -1,4 +1,4 @@
-const CACHE_NAME='language-miner-v6.4.89';
+const CACHE_NAME='language-miner-v6.4.90';
 const APP_SHELL=[
   './',
   './index.html',
@@ -11,6 +11,7 @@ const APP_SHELL=[
   './v6.js',
   './recovery-6460.js',
   './patreon-config.js',
+  './cloud-auth.js',
   './patreon-linking.js',
   './manifest.webmanifest',
   './anime-miner-v1.png',

@@ -30,7 +30,7 @@ Never place a Patreon Client Secret, Creator Access Token, webhook secret, datab
 For the instructions below, the live game address is assumed to be:
 
 ```text
-https://erendragneel.github.io/
+https://erendragneel.github.io/japanese-miner/
 ```
 
 If the address in your browser is different, use the full address you actually see, including any repository folder and the final `/`.
@@ -64,17 +64,17 @@ The Project URL and publishable/anon key are safe for the browser. The database 
 3. Set **Site URL** to:
 
    ```text
-   https://erendragneel.github.io/
+   https://erendragneel.github.io/japanese-miner/
    ```
 
 4. Under **Redirect URLs**, add:
 
    ```text
-   https://erendragneel.github.io/**
+   https://erendragneel.github.io/japanese-miner/**
    ```
 
 5. Save the changes.
-6. Leave email confirmation enabled for the live game.
+6. Leave email confirmation disabled while using Supabase's demonstration email service. Before enabling confirmation for a public launch, configure a custom SMTP provider so registrations are not limited to two messages per hour.
 
 ## Part 3 — Create the protected database tables
 
@@ -142,7 +142,7 @@ Save those four IDs in your private note.
 
 | Secret name | Value to enter |
 |---|---|
-| `APP_URL` | `https://erendragneel.github.io/` |
+| `APP_URL` | `https://erendragneel.github.io/japanese-miner/` |
 | `ALLOWED_ORIGINS` | `https://erendragneel.github.io` |
 | `PATREON_CLIENT_ID` | Client ID from Patreon |
 | `PATREON_CLIENT_SECRET` | Client Secret from Patreon |
@@ -231,29 +231,26 @@ window.JAPANESE_MINER_PATREON_CONFIG = Object.freeze({
 
 Only the Project URL and public publishable/anon key go in this browser file. Never place the Client Secret, Creator Access Token, webhook secret, database password, or service-role key here.
 
-Upload the edited release files to the GitHub repository that publishes `https://erendragneel.github.io/`.
+Upload the edited release files to the GitHub repository that publishes `https://erendragneel.github.io/japanese-miner/`.
 
 ## Part 10 — Test it safely
 
 Use your wife's Patreon member account or another controlled member account for this test. Do not use your admin/developer game profile because that profile already receives the developer Tier 3 override.
 
 1. Open Language Miner in a private/incognito browser window.
-2. Sign in to a normal local player profile.
-3. Open **Menu → Patreon**.
-4. Create a supporter cloud account with an email and password.
-5. Confirm the email if Supabase sends a confirmation message.
-6. Return to Language Miner and sign in to that supporter cloud account.
-7. Click **Connect Patreon**.
-8. Before approving, verify Patreon shows the member account you intend to test—not your creator account by mistake.
-9. Approve the connection.
-10. Return to the game and click **Refresh membership** if the tier does not appear immediately.
-11. Confirm the correct tier is shown and its game features unlock.
+2. Create or sign in to a normal Language Miner account at the game entrance.
+3. Open **Menu → Patreon**. The same game account is already active; no second supporter account is needed.
+4. Click **Connect Patreon**.
+5. Before approving, verify Patreon shows the member account you intend to test—not your creator account by mistake.
+6. Approve the connection.
+7. Return to the game and click **Refresh membership** if the tier does not appear immediately.
+8. Confirm the correct tier is shown and its game features unlock.
 
 ## What success looks like
 
 - The yellow **Administrator setup required** card disappears.
-- The panel offers supporter account sign-in.
-- After sign-in, it shows **Connect Patreon**.
+- The game entrance offers one Language Miner account sign-in.
+- The Patreon panel reuses that session and shows **Connect Patreon** without requesting another account.
 - After Patreon approval, it displays the verified tier.
 - Upgrades, downgrades, payment failures, and cancellations update through the webhook or the next membership refresh.
 
@@ -263,13 +260,13 @@ Use your wife's Patreon member account or another controlled member account for 
 - **Connect Patreon reports an error:** recheck the callback address, client ID, Client Secret, and deployed functions.
 - **Connected but tier is zero:** recheck the campaign ID, tier IDs, member status, and that the player authorized the correct Patreon account.
 - **Changes do not update:** recheck the webhook URL, webhook events, and `PATREON_WEBHOOK_SECRET`.
-- **Email sign-in fails:** recheck Supabase Authentication settings and email confirmation.
+- **Account creation is email-rate-limited:** keep email confirmation disabled until custom SMTP is configured, or configure custom SMTP before enabling confirmation.
 
 ## Security rules
 
 - Keep all protected values in Supabase Edge Function Secrets.
 - Never commit `.env` files or private tokens.
 - The browser never stores Patreon access tokens.
-- A Patreon account can link to only one supporter cloud account.
+- A Patreon account can link to only one Language Miner account.
 - Patreon webhooks are verified before their contents are trusted.
 - Existing Language Miner save data remains local to the browser unless the player exports a backup.
