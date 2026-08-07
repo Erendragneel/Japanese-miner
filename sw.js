@@ -1,4 +1,4 @@
-const CACHE_NAME='language-miner-v6.4.91-compact-brand-header';
+const CACHE_NAME='language-miner-v6.4.91-guide-audio-review-feedback-update';
 const APP_SHELL=[
   './',
   './index.html',
