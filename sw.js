@@ -1,10 +1,11 @@
-const CACHE_NAME='language-miner-v6.4.91';
+const CACHE_NAME='language-miner-v6.4.91-compact-brand-header';
 const APP_SHELL=[
   './',
   './index.html',
   './styles.css',
   './v5.css',
   './v6-6460.css',
+  './multilingual-preview.css',
   './n5-vocabulary-1000.js',
   './game-6460.js',
   './v5-6400.js',
@@ -13,11 +14,16 @@ const APP_SHELL=[
   './patreon-config.js',
   './cloud-auth.js',
   './patreon-linking.js',
+  './multilingual-preview.js',
   './manifest.webmanifest',
   './anime-miner-v1.png',
-  './japanese-miner-pickaxe-180-v6435.png',
-  './japanese-miner-pickaxe-192-v6435.png',
-  './japanese-miner-pickaxe-512-v6435.png'
+  './language-miner-logo.png',
+  './language-miner-icon-32.png',
+  './language-miner-icon-180.png',
+  './language-miner-icon-192.png',
+  './language-miner-icon-512.png',
+  './language-miner-icon-maskable-192.png',
+  './language-miner-icon-maskable-512.png'
 ];
 
 self.addEventListener('install',event=>{
