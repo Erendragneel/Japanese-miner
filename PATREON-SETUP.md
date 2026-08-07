@@ -246,6 +246,8 @@ Use your wife's Patreon member account or another controlled member account for 
 7. Return to the game and click **Refresh membership** if the tier does not appear immediately.
 8. Confirm the correct tier is shown and its game features unlock.
 
+To test a save created before unified accounts, open **Existing local save or administrator**, enter that save's player name and PIN, and choose **Use existing save**. Then open **Menu → Patreon → Attach account to this save** and sign in to or create the Language Miner account that should own it. The selected save keeps its progress and receives the verified Patreon tier.
+
 ## What success looks like
 
 - The yellow **Administrator setup required** card disappears.
@@ -259,6 +261,7 @@ Use your wife's Patreon member account or another controlled member account for 
 - **Still says setup required:** `enabled` is not `true`, or the Project URL/public key in `patreon-config.js` is still a placeholder.
 - **Connect Patreon reports an error:** recheck the callback address, client ID, Client Secret, and deployed functions.
 - **Connected but tier is zero:** recheck the campaign ID, tier IDs, member status, and that the player authorized the correct Patreon account.
+- **Existing save still shows Patreon locked:** open **Menu → Patreon**, choose **Attach account to this save**, and sign in with the Language Miner account that owns the subscription. Do not use the administrator/developer profile for member testing.
 - **Changes do not update:** recheck the webhook URL, webhook events, and `PATREON_WEBHOOK_SECRET`.
 - **Account creation is email-rate-limited:** keep email confirmation disabled until custom SMTP is configured, or configure custom SMTP before enabling confirmation.
 

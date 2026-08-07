@@ -1,4 +1,4 @@
-# Language Miner v6.4.90
+# Language Miner v6.4.91
 
 Language Miner is the renamed, save-compatible release of the Japanese-learning mining game.
 
@@ -10,6 +10,7 @@ Language Miner is the renamed, save-compatible release of the Japanese-learning 
 - Deferred quiz and test treasure notifications
 - Wrong-answer-only assessment results and Notebook review
 - One Supabase account for game access and Patreon OAuth 2 linking
+- Existing local saves can attach that account without losing progress
 - Verified Patreon Tier 1–3 entitlements
 - Signed membership webhooks and seven-day offline grace
 - Beginner-friendly Patreon/Supabase setup guide

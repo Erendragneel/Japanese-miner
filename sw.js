@@ -1,4 +1,4 @@
-const CACHE_NAME='language-miner-v6.4.90';
+const CACHE_NAME='language-miner-v6.4.91';
 const APP_SHELL=[
   './',
   './index.html',

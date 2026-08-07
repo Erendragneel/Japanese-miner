@@ -1,4 +1,4 @@
-// Language Miner v6.4.90 - one Supabase account for game access and Patreon linking.
+// Language Miner v6.4.91 - one Supabase account for game access, existing saves, and Patreon linking.
 (()=>{
 "use strict";
 const CONFIG=window.JAPANESE_MINER_PATREON_CONFIG||{};

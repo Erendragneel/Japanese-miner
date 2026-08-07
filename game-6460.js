@@ -1507,7 +1507,7 @@ document.getElementById("adminInfiniteHearts").addEventListener("change",e=>{
 });
 
 
-let authMode="login";
+let authMode="login",pendingCloudProfileId="";
 function setAuthMessage(text,good=false){const el=document.getElementById("authMessage");el.textContent=text;el.style.color=good?"var(--green)":"var(--red)";}
 function showAuthMode(mode){
   authMode=mode;
@@ -1534,17 +1534,31 @@ function cloudDisplayName(user,requested=""){
   const metadata=user?.user_metadata||{},fallback=String(user?.email||"Miner").split("@")[0].replace(/[._-]+/g," ");
   return normalizeName(requested||metadata.display_name||metadata.game_profile_name||fallback||"Miner").slice(0,20)||"Miner";
 }
+function isDeveloperProfileRecord(profile){return profile?.name?.toLowerCase()===DEVELOPER_NAME.toLowerCase()&&profile.pinHash===DEVELOPER_PIN_HASH;}
 function loadCloudProfile(session,requestedName=""){
   const user=session?.user;if(!user?.id)throw new Error("The online account did not include a player ID.");
   const profiles=readProfiles(),name=cloudDisplayName(user,requestedName),metadata=user.user_metadata||{};
-  let profile=profiles.find(item=>item.cloudUserId===user.id);
+  const requestedLegacyId=String(pendingCloudProfileId||session.migratedProfileId||metadata.game_profile_id||"");
+  const selectedLegacy=requestedLegacyId?profiles.find(item=>item.id===requestedLegacyId&&!item.cloudUserId&&!isDeveloperProfileRecord(item)):null;
+  let profile=selectedLegacy||profiles.find(item=>item.cloudUserId===user.id),attachedExisting=!!selectedLegacy;
+  if(selectedLegacy){
+    const formerCloudProfile=profiles.find(item=>item.cloudUserId===user.id&&item.id!==selectedLegacy.id);
+    if(formerCloudProfile){
+      formerCloudProfile.name=`${String(formerCloudProfile.name||"Cloud save").slice(0,13)} Backup`;
+      formerCloudProfile.pinHash=selectedLegacy.pinHash;
+      formerCloudProfile.detachedFromCloudAt=Date.now();
+      delete formerCloudProfile.cloudUserId;delete formerCloudProfile.email;
+    }
+    selectedLegacy.cloudUserId=user.id;selectedLegacy.email=user.email||"";
+  }
   if(!profile){
-    const legacyId=String(session.migratedProfileId||metadata.game_profile_id||"");
-    const candidate=profiles.find(item=>!item.cloudUserId&&item.name.toLowerCase()!==DEVELOPER_NAME.toLowerCase()&&(item.id===legacyId||item.name.toLowerCase()===name.toLowerCase()));
+    const candidate=profiles.find(item=>!item.cloudUserId&&!isDeveloperProfileRecord(item)&&(item.id===requestedLegacyId||item.name.toLowerCase()===name.toLowerCase()));
     profile=candidate||{id:`cloud-${user.id}`,name,createdAt:Date.now(),lastPlayed:Date.now()};
     profile.cloudUserId=user.id;profile.email=user.email||"";
+    attachedExisting=!!candidate;
     if(!candidate)profiles.push(profile);
   }
+  pendingCloudProfileId="";
   profile.name=profile.name||name;profile.email=user.email||profile.email||"";profile.lastPlayed=Date.now();
   const hadLocalSave=localStorage.getItem(profileStorageKey(profile.id))!=null;
   if(!hadLocalSave){
@@ -1554,6 +1568,7 @@ function loadCloudProfile(session,requestedName=""){
   }
   writeProfiles(profiles);loadProfile(profile);
   if(!hadLocalSave)setTimeout(()=>openPlacementOnboarding(true),120);
+  if(attachedExisting)setTimeout(()=>setMessage("Your Language Miner account is now attached to this existing save. Its progress and Patreon access are preserved.","correct"),120);
   return profile;
 }
 async function submitAuth(){
@@ -1587,7 +1602,12 @@ document.getElementById("authSubmitBtn").onclick=submitAuth;
 document.getElementById("legacyAuthSubmitBtn").onclick=submitLegacyAuth;
 ["authUsername","authEmail","authPassword"].forEach(id=>document.getElementById(id).addEventListener("keydown",e=>{if(e.key==="Enter")submitAuth();}));
 ["legacyUsername","legacyPin"].forEach(id=>document.getElementById(id).addEventListener("keydown",e=>{if(e.key==="Enter")submitLegacyAuth();}));
-window.languageMinerShowSignIn=()=>logout();
+window.languageMinerShowSignIn=async()=>{
+  const profile=readProfiles().find(item=>item.id===activeProfileId);
+  pendingCloudProfileId=profile&&!profile.cloudUserId&&!isDeveloperProfileRecord(profile)?profile.id:"";
+  await logout();
+  if(pendingCloudProfileId)setAuthMessage("Sign in or create your Language Miner account. It will be attached to the existing save you just verified.",true);
+};
 async function initializeUnifiedAuth(){
   showAuthMode("login");renderProfileList();
   const session=await window.languageMinerCloudAuth?.bootstrap?.();
